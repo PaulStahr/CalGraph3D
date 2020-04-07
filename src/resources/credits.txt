@@ -1,0 +1,14 @@
+<html><head></head><body>
+<center><H1>$progname</H1></center>
+<table border = \"0\"><tr><td width = \"10\"></td><td><H3>Version</H3><ul>
+<li>$progversion</li></ul><br /><H3>Developer</H3><ul>
+<li>Paul Stahr (paul.stahr@gmx.de): Program and Documentation</li><br />
+<li>Yakup Ates (yakup.ates@gmx.net): Documentation</li>
+</ul><H3>Used Software</H3><ul>
+<li>Lwjgl</li><br />
+<li>Jogamp</li><br />
+<li>Lockback</li><br />
+<li>Jdom</li></ul></td>
+<td width = \"10\"></td></tr>
+</table>
+</body></html>

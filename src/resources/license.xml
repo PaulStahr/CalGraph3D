@@ -1,0 +1,27 @@
+<licenses>
+	<license>
+		<version></version>
+		<headline>LWJGL</headline>
+		<file>lwjgl_license.txt</file>
+	</license>
+	<license>
+		<headline>JDom</headline>
+		<file>jdom_license.txt</file>
+		<version></version>
+	</license>
+	<license>
+		<headline>JInput</headline>
+		<file>jinput_license.txt</file>
+		<version></version>
+	</license>
+	<license>
+		<headline>Jogl</headline>
+		<file>jogl_license.txt</file>
+		<version></version>
+	</license>
+	<license>
+		<headline>CalGraph</headline>
+		<file>calgraph_license.txt</file>
+		<version></version>
+	</license>
+</licenses>

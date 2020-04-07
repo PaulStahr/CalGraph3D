@@ -1,0 +1,5 @@
+donut.graph
+kugel.graph
+limette.graph
+schnecke.graph
+sonnensystem.graph

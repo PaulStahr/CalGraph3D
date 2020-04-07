@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="15 seconds">
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %.-0level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>    
+    <appender name="Stream" class="logging.InterfaceLogger">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %.-1level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+	<appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>debug.log</file>
+        <append>true</append>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %.-1level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+	
+ 
+    <root level="INFO">
+        <appender-ref ref="Stream" />
+    </root>
+    <root level="DEBUG">
+        <appender-ref ref="CONSOLE" />
+    </root>
+</configuration>

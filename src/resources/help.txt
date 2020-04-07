@@ -1,0 +1,9 @@
+This is $name, version: "$version"
+Possible commands are:
+--help:				show this help
+--console			open lculatoProgram in console
+--calculator		open only the calculator
+--activate:			force open activate Window at start
+--load <file>:		load a specific file at starting
+--version:			shows version
+--author:			shows authors

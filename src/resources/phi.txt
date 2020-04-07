@@ -1,0 +1,9 @@
+set(i,x)
+set(erg,0)
+while(i>0)
+  if(ggt(i,x)=1)
+    set(erg,erg+1)
+  endif
+  set(i,i-1)
+endwhile
+return(erg)

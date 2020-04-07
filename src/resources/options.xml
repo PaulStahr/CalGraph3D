@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<options type="void">
+  <stereoskopie type="void">
+    <strength type="float">0.0</strength>
+    <moved type="float">0.0</moved>
+    <activated type="bool">false</activated>
+  </stereoskopie>
+  <show_grid_lines type="bool">false</show_grid_lines>
+  <show_framerate type="bool">false</show_framerate>
+  <show_actiavation_at_start type="bool">false</show_actiavation_at_start>
+  <scene type="void">
+    <environment type="void">
+      <type type="int">5</type>
+    </environment>
+    <cubemap type="string">/home/paul2/workspace/CalGraph3D/data/cubemaps/1</cubemap>
+  </scene>
+  <rendering_api type="string">LWJGL</rendering_api>
+  <recent_files type="string">{/home/paul2/test.graph}</recent_files>
+  <quality type="string">high</quality>
+  <product_key type="bigint">510084906613735119140311366354634223628387201794055602153765359448586772820456893546897093376969114866355564816752069465984454635987219067462113502874656851490259473010195717778706499307427981440305355018239254950387897199391462250613415229098818064531683526488910859645061307837024038682020331313304359234403949852807422643245537965849966220847567722042470432439374571885131605451895445630881192332747100073553977335743577017297191773337065808454495877170030427884596940547495008322700464329955118420817428142833195749937092100319935468320446054725401885879552732644790181749452872398666074087370067757081265459450</product_key>
+  <multisampling type="int">1</multisampling>
+  <limit_memory type="int">-1</limit_memory>
+  <limit_graph_memory type="int">-1</limit_graph_memory>
+  <light type="void">
+    <l7 type="void">
+      <zpos type="float">0.0</zpos>
+      <ypos type="float">0.0</ypos>
+      <xpos type="float">0.0</xpos>
+      <specular type="color">-1</specular>
+      <diffuse type="color">-1</diffuse>
+      <ambient type="color">-1</ambient>
+      <activated type="bool">false</activated>
+    </l7>
+    <l6 type="void">
+      <zpos type="float">0.0</zpos>
+      <ypos type="float">0.0</ypos>
+      <xpos type="float">0.0</xpos>
+      <specular type="color">-1</specular>
+      <diffuse type="color">-1</diffuse>
+      <ambient type="color">-1</ambient>
+      <activated type="bool">false</activated>
+    </l6>
+    <l5 type="void">
+      <zpos type="float">0.0</zpos>
+      <ypos type="float">0.0</ypos>
+      <xpos type="float">-1000.0</xpos>
+      <specular type="color">-16776961</specular>
+      <diffuse type="color">-16776961</diffuse>
+      <ambient type="color">-16777216</ambient>
+      <activated type="bool">true</activated>
+    </l5>
+    <l4 type="void">
+      <zpos type="float">0.0</zpos>
+      <ypos type="float">0.0</ypos>
+      <xpos type="float">1000.0</xpos>
+      <specular type="color">-16776961</specular>
+      <diffuse type="color">-16776961</diffuse>
+      <ambient type="color">-16777216</ambient>
+      <activated type="bool">true</activated>
+    </l4>
+    <l3 type="void">
+      <zpos type="float">0.0</zpos>
+      <ypos type="float">-1000.0</ypos>
+      <xpos type="float">0.0</xpos>
+      <specular type="color">-16711936</specular>
+      <diffuse type="color">-16711936</diffuse>
+      <ambient type="color">-16777216</ambient>
+      <activated type="bool">true</activated>
+    </l3>
+    <l2 type="void">
+      <zpos type="float">0.0</zpos>
+      <ypos type="float">1000.0</ypos>
+      <xpos type="float">0.0</xpos>
+      <specular type="color">-16711936</specular>
+      <diffuse type="color">-16711936</diffuse>
+      <ambient type="color">-16777216</ambient>
+      <activated type="bool">true</activated>
+    </l2>
+    <l1 type="void">
+      <zpos type="float">-1000.0</zpos>
+      <ypos type="float">0.0</ypos>
+      <xpos type="float">0.0</xpos>
+      <specular type="color">-65536</specular>
+      <diffuse type="color">-65536</diffuse>
+      <ambient type="color">-16777216</ambient>
+      <activated type="bool">true</activated>
+    </l1>
+    <l0 type="void">
+      <zpos type="float">1000.0</zpos>
+      <ypos type="float">0.0</ypos>
+      <xpos type="float">0.0</xpos>
+      <specular type="color">-65536</specular>
+      <diffuse type="color">-65536</diffuse>
+      <ambient type="color">-16777216</ambient>
+      <activated type="bool">true</activated>
+    </l0>
+  </light>
+  <layout_manager type="string">javax.swing.plaf.metal.MetalLookAndFeel</layout_manager>
+  <grid_lines_color type="color">-16777216</grid_lines_color>
+  <energy_mode type="int">0</energy_mode>
+  <background type="color">-16777216</background>
+  <auto_check_updates type="bool">false</auto_check_updates>
+  <raytrace type="void">
+    <visible type="void">
+      <anchor type="bool">true</anchor>
+   	  <direction type="bool">true</direction>
+  	  <focalpoint type="bool">true</focalpoint>
+  	  <measure type="bool">true</measure>
+    </visible>
+    <dscale type="float">0.01</dscale>
+  	<blocksize type="int">20000</blocksize>
+  	<invisible_alpha type="int">64</invisible_alpha>
+  	<ray_alpha type="int">64</ray_alpha>
+  </raytrace>
+</options>
