@@ -117,15 +117,73 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		}
 	}
 	
-	public static native long new_instance(IntBuffer bounds, IntBuffer ior, IntBuffer transculency);
+	static class VolumeRaytraceOptions
+	{
+		private long pointer;
+		enum VolumeRaytraceOptionType {
+			LOGLEVEL(0), WRITE_INSTANCE(1);
+			private final int id;
+			VolumeRaytraceOptionType(int id) { this.id = id; }
+		    public int getValue() { return id; }
+		};
+		
+		public VolumeRaytraceOptions()
+		{
+			pointer = new_options();
+		}
+		
+		public int getLoglevel()
+		{
+			return get_option_valuei(pointer, VolumeRaytraceOptionType.LOGLEVEL.id);
+		}
+		
+		public void setLoglevel(int value)
+		{
+			set_option_valuei(pointer, VolumeRaytraceOptionType.LOGLEVEL.id, value);
+		}
+		
+		public boolean getWriteInstance()
+		{
+			return get_option_valueb(pointer, VolumeRaytraceOptionType.WRITE_INSTANCE.id);
+		}
+		
+		public void setWriteInstance(boolean value)
+		{
+			set_option_valueb(pointer, VolumeRaytraceOptionType.WRITE_INSTANCE.id, value);			
+		}
+		
+		@Override
+		protected void finalize()
+		{
+			if (pointer != 0)
+			{
+				delete_options(pointer);
+				pointer = 0;
+			}
+		}
+	}
 	
-	public static native long new_instance(IntBuffer bounds, FloatBuffer ior, FloatBuffer transculency);
+	public static native long new_instance(IntBuffer bounds, IntBuffer ior, IntBuffer transculency, long opt_pt);
+
+	public static native long new_options();
+	
+	public static native long new_instance(IntBuffer bounds, FloatBuffer ior, FloatBuffer transculency, long opt_pt);
 	
 	public static native void delete_instance(long pointer);
 	
-	public static native void trace_rays(long pointer, IntBuffer start_position, ShortBuffer start_direction, FloatBuffer scale, float minimum_brightness, int iterations, boolean trace_path);
+	public static native void delete_options(long pointer);
 	
-	public static native void trace_rays(long pointer, IntBuffer start_position, FloatBuffer start_direction, FloatBuffer scale, float minimum_brightness, int iterations, boolean trace_path);
+	public static native int get_option_valuei(long pointer, long id);
+	
+	public static native void set_option_valuei(long pointer, long id, int value);
+	
+	public static native boolean get_option_valueb(long pointer, long id);
+	
+	public static native void set_option_valueb(long pointer, long id, boolean value);
+	
+	public static native void trace_rays(long pointer, IntBuffer start_position, ShortBuffer start_direction, FloatBuffer scale, float minimum_brightness, int iterations, boolean trace_path, long option_pointer);
+	
+	public static native void trace_rays(long pointer, IntBuffer start_position, FloatBuffer start_direction, FloatBuffer scale, float minimum_brightness, int iterations, boolean trace_path, long option_pointer);
 	
 	public static native void trace_rays(IntBuffer bounds, IntBuffer ior, IntBuffer transculency, IntBuffer start_position, ShortBuffer start_direction, FloatBuffer scale, float minimum_brightness, int iterations, boolean trace_path);
 	
@@ -148,26 +206,27 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 	{
 		private long pointer;
 		
-		private VolumeScene(IntBuffer bounds, IntBuffer ior, IntBuffer translucency)
+		private VolumeScene(IntBuffer bounds, IntBuffer ior, IntBuffer translucency, VolumeRaytraceOptions opt)
 		{
-			pointer = new_instance(bounds, ior, translucency);
+			pointer = new_instance(bounds, ior, translucency, opt.pointer);
 		}
 		
-		private VolumeScene(IntBuffer bounds, FloatBuffer ior, FloatBuffer translucency)
+		private VolumeScene(IntBuffer bounds, FloatBuffer ior, FloatBuffer translucency, VolumeRaytraceOptions opt)
 		{
-			pointer = new_instance(bounds, ior, translucency);
+			pointer = new_instance(bounds, ior, translucency, opt.pointer);
 		}
 		
-		public void traceRays(IntBuffer start_position, ShortBuffer start_direction, FloatBuffer scale, float minimum_brightness, int iterations, boolean trace_path)
+		public void traceRays(IntBuffer start_position, ShortBuffer start_direction, FloatBuffer scale, float minimum_brightness, int iterations, boolean trace_path, VolumeRaytraceOptions options)
 		{
-			trace_rays(pointer, start_position, start_direction, scale, minimum_brightness, iterations, trace_path);
+			trace_rays(pointer, start_position, start_direction, scale, minimum_brightness, iterations, trace_path, options.pointer);
 		}
 		
-		public void traceRays(IntBuffer start_position, FloatBuffer start_direction, FloatBuffer scale, float minimum_brightness, int iterations, boolean trace_path)
+		public void traceRays(IntBuffer start_position, FloatBuffer start_direction, FloatBuffer scale, float minimum_brightness, int iterations, boolean trace_path, VolumeRaytraceOptions options)
 		{
-			trace_rays(pointer, start_position, start_direction, scale, minimum_brightness, iterations, trace_path);
+			trace_rays(pointer, start_position, start_direction, scale, minimum_brightness, iterations, trace_path, options.pointer);
 		}
 		
+		@Override
 		protected void finalize()
 		{
 			if (pointer != 0)
@@ -276,7 +335,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 				{
 					for (int x = -1; x < width; ++x, ++index)
 					{
-						position.set((double)(x * 2 - 1) * divx - 1,(double)(y * 2 - 1) * divy - 1,(double)(z * 2 - 1) * divz - 1);
+						position.set((x * 2 - 1) * divx - 1,(y * 2 - 1) * divy - 1,(z * 2 - 1) * divz - 1);
 						mat.transformAffine(position);
 						values[i][index] = oso[i].evaluate_inner_outer(position, tmp);
 					}
@@ -344,7 +403,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 						}
 						datVar.setValue(data[index]);
 						transVar.setValue(translucency[index]);
-						position.set((double)(x * 2 + 1 - width) * divx,(double)(y * 2 + 1 - height) * divy,(double)(z * 2 + 1 - depth) * divz);
+						position.set((x * 2 + 1 - width) * divx,(y * 2 + 1 - height) * divy,(z * 2 + 1 - depth) * divz);
 						mat.transformAffine(position);
 						xVar.setValue(position.x);
 						yVar.setValue(position.y);
@@ -395,7 +454,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 					}
 					datVar.setValue(data[index]);
 					transVar.setValue(translucency[index]);
-					position.set((double)(x * 2 + 1 - width) * divx,(double)(y * 2 + 1 - height) * divy,(double)(z * 2 + 1 - depth) * divz);
+					position.set((x * 2 + 1 - width) * divx,(y * 2 + 1 - height) * divy,(z * 2 + 1 - depth) * divz);
 					mat.transformAffine(position);
 					xVar.setValue(position.x);
 					yVar.setValue(position.y);
@@ -666,6 +725,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 	
 	DoubleArrayList vertexPositions = new DoubleArrayList();
 	IntegerArrayList faceIndices = new IntegerArrayList();
+	private VolumeRaytraceOptions options;
 	public void updateMesh()
 	{
 		vertexPositions.clear();
@@ -765,7 +825,10 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			IntBuffer translucency = Buffers.createIntBuffer(vol.translucency);
 			if (native_raytrace)
 			{
-				vs = res = new VolumeScene(bounds, ior, translucency);
+				VolumeRaytraceOptions opt = new VolumeRaytraceOptions();
+				opt.setWriteInstance(true);
+				opt.setLoglevel(-4);
+				vs = res = new VolumeScene(bounds, ior, translucency, opt);
 			}
 		}
 		return res;
@@ -801,7 +864,13 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 				}
 			}
 			VolumeScene vs = getVolumeScene();
-			vs.traceRays(startPosition, startDirection, scale, 0, 8000, false);
+			if (options == null)
+			{
+				options = new VolumeRaytraceOptions();
+				options.setWriteInstance(true);
+			}
+			options.setLoglevel(-4);
+			vs.traceRays(startPosition, startDirection, scale, 0, 8000, false, options);
 			for (int i = positionBegin, readIndex = 0, j = 0; i < positionEnd; i += 3, ++j)
 			{
 				if (object[j] == this)
@@ -870,7 +939,13 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			System.out.println();*/
 			//System.out.println(Arrays.toString(spacing));
 			VolumeScene vs = getVolumeScene();
-			vs.traceRays(startPosition, startDirection, scale, 0, 8000, false);
+			if (options == null)
+			{
+				options = new VolumeRaytraceOptions();
+				options.setWriteInstance(true);
+				options.setLoglevel(-4);
+			}
+			vs.traceRays(startPosition, startDirection, scale, 0, 8000, false, options);
 			
 			
 			for (int i = fromIndex, readIndex = 0; i < toIndex; i += 3, readIndex += 3)
@@ -947,7 +1022,13 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			System.out.println();*/
 			//System.out.println(Arrays.toString(spacing));
 			VolumeScene vs = getVolumeScene();
-			vs.traceRays(startPosition, startDirection, scale, 0, 8000, false);
+			if (options == null)
+			{
+				options = new VolumeRaytraceOptions();
+				options.setWriteInstance(true);
+				options.setLoglevel(-4);
+			}
+			vs.traceRays(startPosition, startDirection, scale, 0, 8000, false, options );
 			
 			
 			for (int i = fromIndex, readIndex = 0; i < toIndex; i += 3, readIndex += 3)
