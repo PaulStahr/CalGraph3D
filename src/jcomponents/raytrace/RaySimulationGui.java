@@ -2901,8 +2901,12 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
     				break;
     		}
     	}
-    	
-    	updateAllTables();
+    	JFrameUtils.runByDispatcher(new Runnable() {
+    		@Override
+			public void run() {
+            	updateAllTables();    			
+    		}
+    	});
     }
     
     /*private static void fill(Object[] row, GuiOpticalObject goo)

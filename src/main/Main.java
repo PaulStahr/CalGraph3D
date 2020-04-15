@@ -39,16 +39,6 @@ import java.lang.management.OperatingSystemMXBean;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
 
-import jcomponents.ActivateWindow;
-import jcomponents.CalculatorWindow;
-import jcomponents.Interface;
-import jcomponents.raytrace.RaySimulationGui;
-import maths.algorithm.Calculate;
-import data.DataHandler;
-import data.Options;
-import data.ProgrammData;
-import debug.SpeedTests;
-
 import javax.swing.JFrame;
 
 import org.slf4j.Logger;
@@ -58,6 +48,16 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.util.StatusPrinter;
+import data.DataHandler;
+import data.Options;
+import data.ProgrammData;
+import data.raytrace.RaytraceCommandLine;
+import debug.SpeedTests;
+import jcomponents.ActivateWindow;
+import jcomponents.CalculatorWindow;
+import jcomponents.Interface;
+import jcomponents.raytrace.RaySimulationGui;
+import maths.algorithm.Calculate;
 import util.RunTree;
 import util.TimedUpdateHandler;
 
@@ -101,6 +101,7 @@ public class Main
     	String loadProject = null;
     	boolean loadNext = false;
     	boolean console = false;
+    	boolean rayconsole = false;
     	boolean calculator = false;
     	boolean raysim = true;
 		for (String arg : args){
@@ -133,6 +134,8 @@ public class Main
 					return;
 				}else if (sub.equals("console")){
 					console = true;
+				}else if (sub.equals("rayconsole")){
+					rayconsole = true;
 				}else if (sub.equals("raysim")) {
 					raysim = true;
 				}else if (sub.equals("load")){
@@ -160,9 +163,20 @@ public class Main
 		{
 			Console.run();
 		}
+		else if (rayconsole)
+		{
+			init();
+			try {
+				RaytraceCommandLine rcl = new RaytraceCommandLine(System.in, System.out);
+				rcl.run();
+			} catch (IOException e) {
+				logger.error("Error at executing Raytrace Command Line", e);
+			}
+		}
 		else
 		{
 			new Thread() {
+				@Override
 				public void run() {
 					Console.run();
 				}

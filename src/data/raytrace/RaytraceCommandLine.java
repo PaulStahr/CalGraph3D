@@ -2,6 +2,7 @@ package data.raytrace;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -10,22 +11,46 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.jdom2.JDOMException;
+
 import data.raytrace.StackPositionProcessor.Mode;
+import jcomponents.raytrace.RaySimulationGui;
 import maths.OperationCompiler;
 import maths.VariableStack;
 import maths.exception.OperationParseException;
 import util.StringUtils;
 
 public class RaytraceCommandLine {
-	ArrayList<String> split;
+	ArrayList<String> split = new ArrayList<String>();
 	VariableStack vs = new VariableStack();
 	ParseUtil parser = new ParseUtil();
+	private InputStream in;
+	private OutputStream out;
 
 	public void exec(String command, BufferedWriter out) throws IOException
 	{
 		StringUtils.split(command, ' ', split);
 		switch (split.get(0))
 		{
+			case "help":
+			{
+				out.write("load\nmodify\nstp");
+			}
+			case "load":
+			{
+				RaySimulationGui gui = new RaySimulationGui();
+				FileInputStream fis = new FileInputStream(split.get(1));
+				try {
+					gui.loadScene(fis);
+				} catch (JDOMException e) {
+					out.write(e.toString());
+				}
+				finally
+				{
+					fis.close();
+				}
+				gui.setVisible(true);
+			}
 			case "modify":
 			{
 				RaytraceScene scene = RaytraceScene.getScene(split.get(1));
@@ -94,11 +119,11 @@ public class RaytraceCommandLine {
 		split.clear();
 	}
 	
-	public RaytraceCommandLine(InputStream in, OutputStream out) throws IOException
+	public void run() throws IOException
 	{
 		InputStreamReader reader = new InputStreamReader(in);
-		BufferedReader inBuf = new BufferedReader(reader);
 		OutputStreamWriter writer = new OutputStreamWriter(out);
+		BufferedReader inBuf = new BufferedReader(reader);
 		BufferedWriter outBuf = new BufferedWriter(writer);
 		String line;
 		while ((line = inBuf.readLine()) != null)
@@ -109,5 +134,11 @@ public class RaytraceCommandLine {
 				return;
 			}
 		}
+	}
+	
+	public RaytraceCommandLine(InputStream in, OutputStream out)
+	{
+		this.in = in;
+		this.out = out;
 	}
 }
