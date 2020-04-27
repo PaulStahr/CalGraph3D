@@ -24,6 +24,7 @@ package jcomponents;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.InputStream;
+
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
@@ -33,8 +34,8 @@ import org.slf4j.LoggerFactory;
 import data.DataHandler;
 import data.ProgrammData;
 import io.StreamUtil;
-import util.JFrameUtils;
 import jcomponents.util.JComponentSingletonInstantiator;
+import util.JFrameUtils;
 
 /** 
 * Dieses Fenster zeigt die Version und Autoren des Programmes an
@@ -48,7 +49,6 @@ public class Credits extends JFrame
 
 	private static final long serialVersionUID = 6303233656713618087L;
 	private static final JComponentSingletonInstantiator<JFrame> instantiator = new JComponentSingletonInstantiator<JFrame>(Credits.class);
-
     
     public static final ActionListener getOpenWindowListener()
     {

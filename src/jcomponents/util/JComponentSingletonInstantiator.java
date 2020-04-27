@@ -8,11 +8,15 @@ import java.util.function.Supplier;
 
 import javax.swing.JFrame;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import util.JFrameUtils;
 import util.RunnableSupplier;
 import util.data.UniqueObjects;
 
 public class JComponentSingletonInstantiator<T> implements Supplier<T>, ActionListener{
+	private static final Logger logger = LoggerFactory.getLogger(JComponentSingletonInstantiator.class);
 	private WeakReference<T> ref;
 	private final Class<?> cl;
 	
@@ -40,23 +44,17 @@ public class JComponentSingletonInstantiator<T> implements Supplier<T>, ActionLi
 				try {
 					set((T)cl.getConstructor(UniqueObjects.EMPTY_CLASS_ARRAY).newInstance(UniqueObjects.EMPTY_OJECT_ARRAY));
 				} catch (IllegalAccessException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
+					logger.error("Can't instantiate Window", e1);
 				} catch (IllegalArgumentException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
+					logger.error("Can't instantiate Window", e1);
 				} catch (InvocationTargetException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
+					logger.error("Can't instantiate Window", e1);
 				} catch (NoSuchMethodException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
+					logger.error("Can't instantiate Window", e1);
 				} catch (SecurityException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				} catch (InstantiationException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					logger.error("Can't instantiate Window", e1);
+				} catch (InstantiationException e1) {
+					logger.error("Can't instantiate Window", e1);
 				}
 			}
 		};
@@ -72,20 +70,7 @@ public class JComponentSingletonInstantiator<T> implements Supplier<T>, ActionLi
 			((JFrame)get()).setVisible(true);
 			//((JFrame)(cl.getMethod("getInstance", DataHandler.EMPTY_CLASS_ARRAY).invoke(null, DataHandler.EMPTY_OJECT_ARRAY))).setVisible(true);
 		} catch (IllegalArgumentException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} /*catch (IllegalAccessException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} catch (InvocationTargetException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} catch (NoSuchMethodException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} catch (SecurityException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}*/
+			logger.error("Can't instantiate Window", e1);
+		}
 	}
 }
