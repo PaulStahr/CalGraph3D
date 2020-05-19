@@ -2865,7 +2865,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
         				switch (attr.getName())
         				{
         					case "Volume":pipeline.ovo = scene.getVolumeObject(attr.getValue());break;
-        					case "AutoUpdate":pipeline.autoUpdate = Boolean.parseBoolean(attr.getValue());break;
+        					case "AutoUpdate":pipeline.setAutoUpdate(Boolean.parseBoolean(attr.getValue()));break;
         					case "CalculateAtStartup":pipeline.calcuteAtCreation = Boolean.parseBoolean(attr.getValue());break;
         				}
         			}
@@ -2999,7 +2999,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 	    				elem.addContent(child);
 					}
 	    		}
-	    		elem.setAttribute("AutoUpdate", Boolean.toString(pipeline.autoUpdate));
+	    		elem.setAttribute("AutoUpdate", Boolean.toString(pipeline.getAutoUpdate()));
 	    		elem.setAttribute("CalculateAtStartup", Boolean.toString(pipeline.calcuteAtCreation));
 	    		if (pipeline.ovo != null)
 	    		{

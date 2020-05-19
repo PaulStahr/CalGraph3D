@@ -35,13 +35,9 @@ import data.raytrace.VolumePipeline.CalculationCalcuationStep;
 import data.raytrace.VolumePipeline.CalculationStep;
 import data.raytrace.VolumePipeline.GenerationCalculationStep;
 import jcomponents.util.JMathTextField;
-import maths.VariableStack;
-import maths.VariableStack.VariableObserver.PendendList;
 import util.JFrameUtils;
-import util.RunnableRunner;
-import util.TimedUpdateHandler;
 
-public class VolumePipelinePanel extends JPanel implements ActionListener, SceneChangeListener, AncestorListener, Runnable, ItemListener{
+public class VolumePipelinePanel extends JPanel implements ActionListener, SceneChangeListener, AncestorListener, ItemListener{
 	/**
 	 * 
 	 */
@@ -53,25 +49,8 @@ public class VolumePipelinePanel extends JPanel implements ActionListener, Scene
 	private final JButton buttonAddSolveStep = new JButton("Add Solve Step");
 	private final JButton buttonCalculate = new JButton("Calculate");
 	private final JCheckBox checkBoxAutoUpdate = new JCheckBox("Auto update");
-	private final JCheckBox checkBoxRunAtStartup = new JCheckBox();
-	private boolean added = false;
-	public VolumePipeline pipeline = new VolumePipeline();
-	private final VolumeRunnable runnable = new VolumeRunnable();
-	private final class VolumeRunnable extends RunnableRunner.RunnableObject {
-		public VolumeRunnable() {
-			super("VolumePipeline", null);
-		}
-		int begin = 0;
-        @Override
-		public void run(){
-    		try{
-    			pipeline.ovo = (OpticalVolumeObject)volumes.getSelectedItem();
-    			pipeline.pipe(begin);
-            }catch (Exception e){
-            	logger.error("Exception at calculating Graph", e);
-            }
-        }
-    };
+	private final JCheckBox checkBoxRunAtStartup = new JCheckBox("Update at startup");
+	public final VolumePipeline pipeline;
     
     private final Runnable updateRunnable = new Runnable() {
 		
@@ -125,7 +104,7 @@ public class VolumePipelinePanel extends JPanel implements ActionListener, Scene
 				}
 				pipelinePanel.revalidate();
 				JFrameUtils.compareAndSetSelectedItem(volumes,pipeline.ovo);
-				JFrameUtils.compareAndSetSelected(checkBoxAutoUpdate, pipeline.autoUpdate);
+				JFrameUtils.compareAndSetSelected(checkBoxAutoUpdate, pipeline.getAutoUpdate());
 				JFrameUtils.compareAndSetSelected(checkBoxRunAtStartup, pipeline.calcuteAtCreation);
 			}
 			else
@@ -147,7 +126,7 @@ public class VolumePipelinePanel extends JPanel implements ActionListener, Scene
 	
 	public VolumePipelinePanel(RaytraceScene scene)
 	{
-		pipeline.scene = scene;
+		pipeline = new VolumePipeline(scene);
 		updateVolumes();
 		scene.add(this);
 		GroupLayout layout = new GroupLayout(this);
@@ -164,37 +143,10 @@ public class VolumePipelinePanel extends JPanel implements ActionListener, Scene
 		pipelinePanel.setLayout(JFrameUtils.SINGLE_COLUMN_LAYOUT);
 		addAncestorListener(this);
 		setMinimumSize(new Dimension(100, 50));
-		updater = new TimedUpdateHandler() {
-			private final VariableStack.VariableObserver observer = pipeline.scene.vs.createVaribleObserver();
-			private final PendendList allChangedVariables = observer.getPendentVariableList();
-			private int modCount = pipeline.scene.vs.modCount();
-			
-			@Override
-			public void update() {
-				if (pipeline.scene.vs.modCount() != modCount){
-					modCount = pipeline.scene.vs.modCount();
-					observer.updateChanges();
-					for (int i = 0; i < pipeline.vIds.length; ++i)
-					{
-						if (allChangedVariables.hasMatch(pipeline.vIds[i]))
-						{
-							runnable.begin = i;
-							DataHandler.runnableRunner.run(runnable, false);
-							break;
-						}
-					}
-				}
-			}
-			
-			@Override
-			public int getUpdateInterval() {
-				return 10;
-			}
-		};
 		pipeline.addListener(updateRunnable);
+		volumes.addItemListener(this);
 	}
 	
-	private final TimedUpdateHandler updater;
 	public void addStep(PipelineStepPanel step)
 	{
 		pipelinePanel.add(step);
@@ -206,26 +158,15 @@ public class VolumePipelinePanel extends JPanel implements ActionListener, Scene
 		Object source = arg0.getSource();
 		if (source == checkBoxAutoUpdate)
 		{
-			boolean selected = checkBoxAutoUpdate.isSelected();
-			pipeline.autoUpdate = selected;
-			if (selected != added)
-			{
-				if (selected)
-				{
-					DataHandler.timedUpdater.add(updater);
-					pipeline.updateVariableIds();
-				}
-				else
-				{
-					DataHandler.timedUpdater.remove(updater);
-				}
-				added = selected;
-			}
+			pipeline.setAutoUpdate(checkBoxAutoUpdate.isSelected());
 		}
 		else if (source == checkBoxRunAtStartup)
 		{
-			boolean selected = checkBoxRunAtStartup.isSelected();
-			pipeline.calcuteAtCreation = selected;
+			pipeline.calcuteAtCreation = checkBoxRunAtStartup.isSelected();
+		}
+		else if (source == volumes)
+		{
+			pipeline.ovo = (OpticalVolumeObject)volumes.getSelectedItem();
 		}
 	}
 	
@@ -377,8 +318,7 @@ public class VolumePipelinePanel extends JPanel implements ActionListener, Scene
 		else if (source == buttonCalculate)
 		{
 			pipeline.updateVariableIds();
-			
-			DataHandler.runnableRunner.run(this, "Volume Pipeline");
+			DataHandler.runnableRunner.run(pipeline, "Volume Pipeline");
 		}
 	}
 	
@@ -412,11 +352,5 @@ public class VolumePipelinePanel extends JPanel implements ActionListener, Scene
 			ps[i] = (PipelineStepPanel)pipelinePanel.getComponent(i);
 		}
 		return ps;
-	}
-
-	@Override
-	public void run() {
-		runnable.begin = 0;
-		DataHandler.runnableRunner.run(runnable, false);
 	}
 }

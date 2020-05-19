@@ -128,14 +128,14 @@ public abstract class DataHandler
         System.load(fileOut.toString());
 	}
 	
+	private static final maths.ProgramFunction saveFunction = new maths.ProgramFunction("save") {
+		@Override
+		public void run(){
+			save();
+		}
+	};
+
 	static{
-		maths.OperationCompiler.addProgramFunction(new maths.ProgramFunction("save") {
-				@Override
-				public void run(){
-					save();
-				}
-			}
-		);
         UIManager.addPropertyChangeListener(new PropertyChangeListener() {
     		@Override
     		public void propertyChange(PropertyChangeEvent evt) {
@@ -153,7 +153,7 @@ public abstract class DataHandler
     			}
     		}
     	});
-              
+		//maths.OperationCompiler.addProgramFunction(saveFunction);
 	}    
 
     private DataHandler(){}

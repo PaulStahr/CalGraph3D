@@ -7,17 +7,22 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import data.DataHandler;
 import jcomponents.raytrace.Volume;
 import maths.Controller;
 import maths.Operation;
 import maths.OperationCompiler;
+import maths.VariableStack;
+import maths.VariableStack.VariableObserver.PendendList;
 import maths.algorithm.OperationCalculate;
 import maths.exception.OperationParseException;
 import util.JFrameUtils;
 import util.ListTools;
+import util.RunnableRunner;
+import util.TimedUpdateHandler;
 import util.data.SortedIntegerArrayList;
 
-public class VolumePipeline {
+public class VolumePipeline implements Runnable {
 	private static final Logger logger = LoggerFactory.getLogger(VolumePipeline.class);
 	private Volume cachedSteps[] = Volume.EMPTY_VOLUME_ARRAY;
 	private final ArrayList<WeakReference<Runnable> > updateListener = new ArrayList<>();
@@ -25,11 +30,67 @@ public class VolumePipeline {
 	boolean calculating;
 	int currentCalculatingStep;
 	public OpticalVolumeObject ovo;
-	public RaytraceScene scene;
+	public final RaytraceScene scene;
 	public boolean calcuteAtCreation;
-	public boolean autoUpdate;
+	private boolean autoUpdate;
 	public SortedIntegerArrayList vIds[] = SortedIntegerArrayList.EMPTY_SORTED_INTEGER_ARRAY_LIST_ARRAY;
-
+	private class VolumePipelineTimedUpdater implements TimedUpdateHandler{
+		private final VariableStack.VariableObserver observer;
+		private final PendendList allChangedVariables;
+		private int modCount = scene.vs.modCount();
+		
+		public VolumePipelineTimedUpdater(RaytraceScene scene)
+		{
+			observer = scene.vs.createVaribleObserver();
+			allChangedVariables = observer.getPendentVariableList();
+		}
+		
+		@Override
+		public void update() {
+			if (scene.vs.modCount() != modCount){
+				modCount = scene.vs.modCount();
+				observer.updateChanges();
+				for (int i = 0; i < vIds.length; ++i)
+				{
+					if (allChangedVariables.hasMatch(vIds[i]))
+					{
+						runnable.begin = Math.min(i, runnable.begin);
+						DataHandler.runnableRunner.run(runnable, false);
+						break;
+					}
+				}
+			}
+		}
+		
+		@Override
+		public int getUpdateInterval() {
+			return 10;
+		}
+	};
+	
+	public VolumePipeline(RaytraceScene scene)
+	{
+		this.scene = scene;
+		updater = new VolumePipelineTimedUpdater(scene);
+	}
+	
+	public final VolumePipelineTimedUpdater updater;
+	private final VolumeRunnable runnable = new VolumeRunnable();
+	private final class VolumeRunnable extends RunnableRunner.RunnableObject {
+		public VolumeRunnable() {
+			super("VolumePipeline", null);
+		}
+		int begin = 0;
+        @Override
+		public void run(){
+    		try{
+    			pipe(begin);
+            }catch (Exception e){
+            	logger.error("Exception at calculating Graph", e);
+            }
+        }
+    };
+	
 	public static class CalculationStep{}
 	
 	public static class GenerationCalculationStep extends CalculationStep{
@@ -179,5 +240,31 @@ public class VolumePipeline {
 		}
 		calculating = false;
 		updateState();
+	}
+	
+	@Override
+	public void run() {
+		runnable.begin = 0;
+		DataHandler.runnableRunner.run(runnable, false);
+	}
+
+	public void setAutoUpdate(boolean selected) {
+		if (this.autoUpdate != selected)
+		{
+			if (selected)
+			{
+				DataHandler.timedUpdater.add(updater);
+				updateVariableIds();
+			}
+			else
+			{
+				DataHandler.timedUpdater.remove(updater);
+			}
+			this.autoUpdate = selected;
+		}
+	}
+
+	public boolean getAutoUpdate() {
+		return autoUpdate;
 	}
 }
