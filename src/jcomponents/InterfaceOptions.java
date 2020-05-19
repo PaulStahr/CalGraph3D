@@ -21,14 +21,14 @@
  ******************************************************************************/
 package jcomponents;
 
-import javax.swing.*;
-import javax.swing.UIManager.LookAndFeelInfo;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Color;
+import java.awt.EventQueue;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -36,6 +36,28 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 
+import javax.swing.ButtonGroup;
+import javax.swing.GroupLayout;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JSlider;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
+import javax.swing.UIManager.LookAndFeelInfo;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import data.DataHandler;
 import data.Options;
 import data.Options.OptionTreeInnerNode;
 import data.ProgramIcons;
@@ -43,10 +65,9 @@ import jcomponents.util.JColorPickPanel;
 import jcomponents.util.JComponentSingletonInstantiator;
 import opengl.RenderingAlgorithms;
 import scene.Scene;
-import util.SaveLineCreator;
 import util.JFrameUtils;
+import util.SaveLineCreator;
 import util.SaveLineCreator.SaveObject;
-import data.DataHandler;
 /** 
 * @author  Paul Stahr
 * @version 04.02.2012
@@ -88,7 +109,8 @@ public class InterfaceOptions extends JFrame implements ActionListener
     	return instantiator.get();
     }
     
-    public void actionPerformed(ActionEvent e){
+    @Override
+	public void actionPerformed(ActionEvent e){
     	Object source = e.getSource();
     	if (source == buttonOkay)
     	{
@@ -177,7 +199,8 @@ public class InterfaceOptions extends JFrame implements ActionListener
 	    private final JPanelLights panelLight = new JPanelLights();
 	    private final JPanel panelEnvironment = new JPanel();
 
-	    public void actionPerformed(ActionEvent ae){
+	    @Override
+		public void actionPerformed(ActionEvent ae){
 	    	Object source = ae.getSource();
 	    	if (source == radioButtonUseLights)
 	    	{
@@ -230,6 +253,7 @@ public class InterfaceOptions extends JFrame implements ActionListener
             ); 		
     	}
 		
+		@Override
 		public void load(){
 			OptionTreeInnerNode node = Options.getInnerNode("scene");
 			OptionTreeInnerNode environment = Options.getInnerNode(node, "environment");
@@ -241,6 +265,7 @@ public class InterfaceOptions extends JFrame implements ActionListener
 	        setUseCubemap(environment_type == Scene.REFLECTION_MAP);
 		}
 		
+		@Override
 		public void save(){
 			OptionTreeInnerNode node = Options.getInnerNode("scene");
 			OptionTreeInnerNode environment = Options.getInnerNode(node, "environment");
@@ -295,7 +320,8 @@ public class InterfaceOptions extends JFrame implements ActionListener
         	add(textFieldInterfaceUpdate);
         }
         
-        public void load(){
+        @Override
+		public void load(){
 	        int tmp = Options.getInteger("limit_memory", -1);
     		comboBoxLimitMemory.setSelectedIndex(0);
 	        for(int i=0;i<limitMemorySteps.length;i++){
@@ -315,7 +341,8 @@ public class InterfaceOptions extends JFrame implements ActionListener
 	        checkBoxCheckForUpdate.setSelected(Options.getBoolean("auto_check_updates", false));
         }
         
-        public void save(){
+        @Override
+		public void save(){
         	Options.set("limit_memory", limitMemorySteps[comboBoxLimitMemory.getSelectedIndex()]);
         	Options.set("limit_graph_memory", limitGraphMemorySteps[comboBoxLimitGraphMemory.getSelectedIndex()]);
         	Options.set("auto_check_updates", checkBoxCheckForUpdate.isSelected());
@@ -391,7 +418,8 @@ public class InterfaceOptions extends JFrame implements ActionListener
             add(sliderStereoMoved);  	
         }
         
-        public void load(){
+        @Override
+		public void load(){
         	comboBoxRendererApi.setSelectedItem(RenderingAlgorithms.valueOf(Options.getString("rendering_api")));
     		final String layout_manager = Options.getString("layout_manager","");
     		for (int i=0;i<DataHandler.lookAndFeelInfo.length;i++){
@@ -429,7 +457,8 @@ public class InterfaceOptions extends JFrame implements ActionListener
 	        	comboBoxQuality.setSelectedIndex(2);
         }
         
-        public void save(){
+        @Override
+		public void save(){
         	byte energyMode;
             switch (comboBoxEnergyMode.getSelectedIndex()){
             	case 0: energyMode = Scene.MODE_MAX_SPEED; break;
@@ -450,7 +479,7 @@ public class InterfaceOptions extends JFrame implements ActionListener
 				@Override
 				public void run() {
 		        	DataHandler.setLookAndFeel(DataHandler.lookAndFeelInfo[comboBoxLayoutManager.getSelectedIndex()]);
-				}
+				}//TODO move to listener
 			});
         	String quality;
         	
@@ -545,7 +574,8 @@ public class InterfaceOptions extends JFrame implements ActionListener
         	}
         }
         
-        public void load(){
+        @Override
+		public void load(){
         	StringBuilder stringBuilder = new StringBuilder(2);
         	stringBuilder.append('l');
     		Options.OptionTreeInnerNode node = Options.getInnerNode("light");

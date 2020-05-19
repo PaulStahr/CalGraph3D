@@ -30,14 +30,18 @@ package main;
 
 import java.awt.EventQueue;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
+import java.util.ArrayList;
 
 import javax.swing.JFrame;
 
@@ -167,8 +171,8 @@ public class Main
 		{
 			init();
 			try {
-				RaytraceCommandLine rcl = new RaytraceCommandLine(System.in, System.out);
-				rcl.run();
+				RaytraceCommandLine rcl = new RaytraceCommandLine();
+				rcl.run(System.in, new BufferedWriter(new OutputStreamWriter(System.out)), new ArrayList<String>(), new RaytraceCommandLine.ExecEnv(new File("")));
 			} catch (IOException e) {
 				logger.error("Error at executing Raytrace Command Line", e);
 			}

@@ -2,13 +2,13 @@ package data.raytrace;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jdom2.JDOMException;
@@ -24,10 +24,22 @@ public class RaytraceCommandLine {
 	ArrayList<String> split = new ArrayList<String>();
 	VariableStack vs = new VariableStack();
 	ParseUtil parser = new ParseUtil();
-	private InputStream in;
-	private OutputStream out;
 
-	public void exec(String command, BufferedWriter out) throws IOException
+	public static class ExecEnv
+	{
+		public final File scriptDir;
+		
+		public ExecEnv(File scriptDir)
+		{
+			this.scriptDir = scriptDir;
+		}
+	}
+	
+	private void exec_impl(
+			String command,
+			BufferedWriter out,
+			List<String> variables
+	) throws IOException
 	{
 		StringUtils.split(command, ' ', split);
 		switch (split.get(0))
@@ -50,6 +62,14 @@ public class RaytraceCommandLine {
 					fis.close();
 				}
 				gui.setVisible(true);
+			}
+			case "run":
+			{
+				FileInputStream inStream = new FileInputStream(split.get(1));
+				RaytraceCommandLine rcmd = new RaytraceCommandLine();
+				ExecEnv subenv = new ExecEnv(new File(split.get(1)));
+				rcmd.run(inStream, out, split.subList(1, split.size()), subenv);
+				inStream.close();
 			}
 			case "modify":
 			{
@@ -119,26 +139,36 @@ public class RaytraceCommandLine {
 		split.clear();
 	}
 	
-	public void run() throws IOException
+	public void exec(
+		String command,
+		BufferedWriter out,
+		List<String> variables,
+		ExecEnv env
+	)throws IOException
+	{
+		StringBuilder strB = new StringBuilder();
+		for (int i = 0; i < variables.size(); ++i)
+		{
+			strB.append('$').append('{').append(i).append('}');
+			command = command.replace(strB.toString(), variables.get(i));
+			strB.setLength(0);
+		}
+		command = command.replace("${sdir}", env.scriptDir.getAbsolutePath());
+		exec_impl(command, out, variables);
+	}
+	
+	public void run(InputStream in, BufferedWriter out, List<String> variables, ExecEnv env) throws IOException
 	{
 		InputStreamReader reader = new InputStreamReader(in);
-		OutputStreamWriter writer = new OutputStreamWriter(out);
 		BufferedReader inBuf = new BufferedReader(reader);
-		BufferedWriter outBuf = new BufferedWriter(writer);
 		String line;
 		while ((line = inBuf.readLine()) != null)
 		{
-			exec(line, outBuf);
+			exec(line, out, variables, env);
 			if (line.equals("exit"))
 			{
 				return;
 			}
 		}
-	}
-	
-	public RaytraceCommandLine(InputStream in, OutputStream out)
-	{
-		this.in = in;
-		this.out = out;
 	}
 }
