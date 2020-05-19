@@ -21,9 +21,15 @@
  ******************************************************************************/
 package data;
 
-import java.io.*;
-import java.math.BigInteger;
 import java.awt.Color;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,6 +68,7 @@ public abstract class Options
 			{
 				thread = new Thread("Option Update")
 				{
+					@Override
 					public void run()
 					{
 						do{
@@ -323,7 +330,8 @@ public abstract class Options
         }    	
         Runtime.getRuntime().addShutdownHook(new Thread()
 		{
-        	public void run() {
+        	@Override
+			public void run() {
                 save();
             }
 		});
@@ -353,7 +361,9 @@ public abstract class Options
                 dir.delete();
                 dir.mkdir();
             }
-            new XMLOutputter(Format.getPrettyFormat()).output(getDocument(), new FileWriter(dir.getPath() + '/' + "options" + '.' + "xml"));
+            File tmpFile = new File(dir.getPath() + '/' + "options" + '-' + "tmp" + '.' + "xml");
+            new XMLOutputter(Format.getPrettyFormat()).output(getDocument(), new FileWriter(tmpFile));
+            Files.move(tmpFile.toPath(), new File(dir.getPath() + '/' + "options" + '.' + "xml").toPath(), StandardCopyOption.REPLACE_EXISTING);	
         }catch (Exception e){
             logger.error("Can't save Options",e);
             return false;
