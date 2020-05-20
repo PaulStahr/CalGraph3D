@@ -73,6 +73,7 @@ import maths.functions.NumericIfOperation;
 import maths.functions.NumericIntegralOperation;
 import maths.functions.RandomListOperation;
 import maths.functions.RandomMatrixOperation;
+import maths.functions.ReadCsvOperation;
 import maths.functions.ReadOperation;
 import maths.functions.RealPartOperation;
 import maths.functions.RequestOperation;
@@ -512,21 +513,22 @@ public final class OperationCompiler
 		                } case 2:{
 		                	final Operation a = parameter[0], b = parameter[1];
 		                	switch(functionName){
-		                		case "diff":return new DifferentiationOperation(a, b);
-		                		case "format":return new FormatOperation(a, b);
-		                		case "ggt":return new GgtOperation(a, b);
-		                		case "kgv":return new KgVOperation(a, b);
-		                		case "list":return new CreateListOperation(a,b);
-		                		case "min":return new MinimumOperation (a, b);
-		                		case "max":return new MaximumOperation (a, b);
-		                		case "ncr":return new NcrOperation(a, b);
-		                		case "npr":return new NprOperation(a, b);
-		                		case "prod":return new ProductIteratorOperation(a,b);
-		                		case "range":return new CreateListOperation(new UserVariableOperation("tmp"), ArrayOperation.getInstance(new Operation[] {new UserVariableOperation("tmp"), a, b}));
-		                		case "request":return new RequestTimeoutOperation(a, b);
-		                		case "randmat":return new RandomMatrixOperation(a, b);
-		                		case "rotmat":return new CreateRotationOperation(a, b);
-		                        case "affine": return new CreateAffineTransformation(a, b);
+		                		case "diff"		:return new DifferentiationOperation(a, b);
+		                		case "format"	:return new FormatOperation(a, b);
+		                		case "ggt"		:return new GgtOperation(a, b);
+		                		case "kgv"		:return new KgVOperation(a, b);
+		                		case "list"		:return new CreateListOperation(a,b);
+		                		case "min"		:return new MinimumOperation (a, b);
+		                		case "max"		:return new MaximumOperation (a, b);
+		                		case "ncr"		:return new NcrOperation(a, b);
+		                		case "npr"		:return new NprOperation(a, b);
+		                		case "prod"		:return new ProductIteratorOperation(a,b);
+		                		case "range"	:return new CreateListOperation(new UserVariableOperation("tmp"), ArrayOperation.getInstance(new Operation[] {new UserVariableOperation("tmp"), a, b}));
+		                		case "request"	:return new RequestTimeoutOperation(a, b);
+		                		case "randmat"	:return new RandomMatrixOperation(a, b);
+		                		case "rotmat"	:return new CreateRotationOperation(a, b);
+		                        case "affine"	:return new CreateAffineTransformation(a, b);
+		                        case "readcsv"	:return new ReadCsvOperation(a, b);
 		                		case "set":{
 		                        	if (a instanceof UserVariableOperation || a instanceof UserFunctionOperation || a instanceof ArrayIndexOperation)
 		                        		return new SetOperation(b, a);
