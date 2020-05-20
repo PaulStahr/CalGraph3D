@@ -127,6 +127,7 @@ public class GuiTextureObject extends OpticalObject{
 	@Override
 	public void updateValue(SCENE_OBJECT_COLUMN_TYPE ct, VariableAmount variables, ParseUtil parser) throws OperationParseException
 	{
+		boolean reload = false;
 		switch (ct)
 		{
 			case DELETE:break;
@@ -159,14 +160,8 @@ public class GuiTextureObject extends OpticalObject{
 			case LOAD:break;
 			case OPEN:break;
 			case PATH:
-				if (image == null)
-				{
-					try {
-						load(variables, parser);
-					} catch (IOException e) {
-						logger.error("Can't load image \"" + filepath + '\"', e);
-					} 
-				}
+				filepath = new File(parser.parseString(filepathString, variables, controll));
+				reload = true;
 				break;
 			case TRANSFORMATION:
 			{
@@ -181,11 +176,20 @@ public class GuiTextureObject extends OpticalObject{
 		
 		valueChanged(ct, parser);
 		parser.reset();
+		if (reload)
+		{
+			try {
+				load(variables, parser);
+			} catch (IOException e) {
+				logger.error("Can't load image \"" + filepath + '\"', e);
+			} 
+		}
 	}	
 	
 	@Override
 	public void setValue(SCENE_OBJECT_COLUMN_TYPE ct, Object o, VariableAmount variables, ParseUtil parser) throws OperationParseException
 	{
+		boolean reload = false;
 		switch (ct)
 		{
 			case DELETE:break;
@@ -219,14 +223,7 @@ public class GuiTextureObject extends OpticalObject{
 			case PATH:
 				filepath = new File(parser.parseString(o, variables, controll));
 				filepathString = parser.str;
-				if (image == null)
-				{
-					try {
-						load(variables, parser);
-					} catch (IOException e) {
-						logger.error("Can't load image \"" + filepath + '\"', e);
-					} 
-				}
+				reload = true;
 				break;
 			case TRANSFORMATION:
 			{
@@ -243,6 +240,14 @@ public class GuiTextureObject extends OpticalObject{
 		updateIds((byte)ct.ordinal(), parser.op);
 		valueChanged(ct, parser);
 		parser.reset();
+		if (reload)
+		{
+			try {
+				load(variables, parser);
+			} catch (IOException e) {
+				logger.error("Can't load image \"" + filepath + '\"', e);
+			} 
+		}
 	}
 
 	@Override
