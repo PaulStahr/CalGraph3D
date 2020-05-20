@@ -153,8 +153,11 @@ public final class SetOperation extends LinkingOperation
 	@Override
 	public StringBuilder toString(Print type, StringBuilder stringBuilder) {
 		super.toString(type, stringBuilder);
-		for (int i=0;i<indexes.length;i++)
-			indexes[i].toString(type, stringBuilder.append('[')).append(']');
+		if (indexes != null)
+		{
+			for (int i=0;i<indexes.length;i++)
+				indexes[i].toString(type, stringBuilder.append('[')).append(']');
+		}
 		return stringBuilder;
 	}
 

@@ -26,7 +26,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -37,11 +36,10 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
-
 import maths.Operation;
 import maths.OperationCompiler;
-import maths.VariableAmount;
 import maths.OperationCompiler.CompileOptions;
+import maths.VariableAmount;
 import maths.data.ArrayOperation;
 import maths.data.RealLongOperation;
 import maths.data.StringOperation;

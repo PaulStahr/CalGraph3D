@@ -85,8 +85,9 @@ public class VolumePipeline implements Runnable {
     		try{
     			pipe();
             }catch (Exception e){
-            	logger.error("Exception at calculating Graph", e);
+            	logger.error("Exception at calculating Volume", e);
             }
+    		calculating = false;
         }
     };
 	

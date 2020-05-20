@@ -355,7 +355,7 @@ public class VariableStack implements VariableAmount, Iterable<Variable>, Variab
 	public synchronized boolean delById (int id){
     	final int index = getIndexById(id);
     	if (index < 0)
-    		return parent == null ? parent.delById(id) : false;
+    		return parent == null ? false : parent.delById(id);
     	del(index);
     	return true;
     }

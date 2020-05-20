@@ -160,7 +160,7 @@ public class GuiTextureObject extends OpticalObject{
 			case LOAD:break;
 			case OPEN:break;
 			case PATH:
-				filepath = new File(parser.parseString(filepathString, variables, controll));
+				filepath = parser.parseFileString(filepathString, variables, controll);
 				reload = true;
 				break;
 			case TRANSFORMATION:
@@ -221,7 +221,7 @@ public class GuiTextureObject extends OpticalObject{
 			case LOAD:break;
 			case OPEN:break;
 			case PATH:
-				filepath = new File(parser.parseString(o, variables, controll));
+				filepath = parser.parseFileString(o, variables, controll);
 				filepathString = parser.str;
 				reload = true;
 				break;

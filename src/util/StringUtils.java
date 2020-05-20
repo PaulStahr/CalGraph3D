@@ -353,6 +353,11 @@ public class StringUtils {
    	    if(quote){
    	        throw new RuntimeException("Quote was left unclosed");
    	    }
+   	    if (place_next)
+   	    {
+   	    	qargs.add(strB.toString());
+   	    	strB.setLength(0);
+   	    }
 		return qargs;
    	}
    	

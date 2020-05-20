@@ -1,6 +1,7 @@
 package data.raytrace;
 
 import java.awt.Color;
+import java.io.File;
 
 import geometry.Matrixd;
 import geometry.Vector3d;
@@ -108,7 +109,7 @@ public class ParseUtil {
 		throw new IllegalArgumentException("Class:" + o.getClass());
 	}
 	
-	public final String parseString(Object o, VariableAmount variables, Controller controll) throws OperationParseException
+	public final File parseFileString(Object o, VariableAmount variables, Controller controll) throws OperationParseException
 	{
 		if (o == null || o.equals(""))
 		{
@@ -117,11 +118,21 @@ public class ParseUtil {
 		if (o instanceof Operation)
 		{
 			str = (op = (Operation)o).toString();
-			return op.calculate(variables, controll).stringValue();
+			Operation tmp = op.calculate(variables, controll);
+			if (tmp.isString())
+			{
+				return new File(tmp.stringValue());
+			}
+			return null;
 		}
 		if (o instanceof String)
 		{
-			return (op = OperationCompiler.compile(str = (String)o)).calculate(variables, controll).stringValue();
+			Operation tmp = (op = OperationCompiler.compile(str = (String)o)).calculate(variables, controll);
+			if (tmp.isString())
+			{
+				return new File(tmp.stringValue());
+			}
+			return null;
 		}
 		throw new IllegalArgumentException("Class:" + o.getClass());
 	}
