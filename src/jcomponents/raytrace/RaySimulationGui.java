@@ -62,9 +62,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -104,13 +101,7 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 
-import org.jdom2.Attribute;
-import org.jdom2.Document;
-import org.jdom2.Element;
 import org.jdom2.JDOMException;
-import org.jdom2.input.SAXBuilder;
-import org.jdom2.output.Format;
-import org.jdom2.output.XMLOutputter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -135,13 +126,8 @@ import data.raytrace.RaytraceScene;
 import data.raytrace.RaytraceScene.RaySimulationObject;
 import data.raytrace.SurfaceObject;
 import data.raytrace.TextureMapping;
-import data.raytrace.VolumePipeline;
-import data.raytrace.VolumePipeline.CalculationCalcuationStep;
-import data.raytrace.VolumePipeline.CalculationStep;
-import data.raytrace.VolumePipeline.GenerationCalculationStep;
 import data.raytrace.raygen.ImageRayGenerator;
 import data.raytrace.raygen.RayGenerator;
-import geometry.Geometry;
 import geometry.Geometry.NearestPointCalculator;
 import geometry.Vector2d;
 import geometry.Vector3d;
@@ -149,13 +135,12 @@ import io.Drawer;
 import io.Drawer.GraphicsDrawer;
 import io.Drawer.SvgDrawer;
 import io.ObjectExporter;
+import io.raytrace.SceneIO;
 import jcomponents.Interface;
 import jcomponents.InterfaceOptions;
 import jcomponents.LicenseMenu;
 import jcomponents.RecentFileList;
 import jcomponents.panels.CodePadPanel;
-import jcomponents.panels.InterfacePanel;
-import jcomponents.panels.InterfacePanelFactory;
 import jcomponents.panels.SliderPanel;
 import jcomponents.panels.VariablePanel;
 import jcomponents.util.ButtonColumn;
@@ -164,7 +149,6 @@ import jcomponents.util.JMathTextField;
 import jcomponents.util.StandartFCFileFilter;
 import maths.Controller;
 import maths.Operation;
-import maths.Variable;
 import maths.algorithm.Calculate;
 import maths.algorithm.DoubleMatrixUtil;
 import maths.data.ArrayOperation;
@@ -223,18 +207,18 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 	private final DefaultTableModel tableModelVolumes = new TableModel(GuiOpticalVolumeObject.TYPES);
 	private final DefaultTableModel tableModelTextures= new TableModel(GuiTextureObject.TYPES);	
 	private final DefaultTableModel tableModelMeshes= new TableModel(MeshObject.TYPES);	
-	private final JTable tableSurfaces = new JTable(tableModelSurfaces);
-	private final JTable tableVolumes = new JTable(tableModelVolumes);
-	private final JTable tableTextures = new JTable(tableModelTextures);
-	private final JTable tableMeshes = new JTable(tableModelMeshes);
+	public final JTable tableSurfaces = new JTable(tableModelSurfaces);
+	public final JTable tableVolumes = new JTable(tableModelVolumes);
+	public final JTable tableTextures = new JTable(tableModelTextures);
+	public final JTable tableMeshes = new JTable(tableModelMeshes);
 	private final JScrollPane scrollPaneSurfaces = new JScrollPane(tableSurfaces);
     private final JScrollPane scrollPaneVolumes = new JScrollPane(tableVolumes);
 	private final JScrollPane scrollPaneTextures = new JScrollPane(tableTextures);
 	private final JScrollPane scrollPaneMeshes = new JScrollPane(tableMeshes);
-	private final JTextArea textAreaProjectInformation = new JTextArea();
+	public final JTextArea textAreaProjectInformation = new JTextArea();
     int maxBounces = 20;
-    private final VisualizationPanel panelVisualization	= new VisualizationPanel();
-    private final RaytraceScene scene = new RaytraceScene("Unnamed");
+    public final VisualizationPanel panelVisualization	= new VisualizationPanel();
+    public final RaytraceScene scene = new RaytraceScene("Unnamed");
     private final JMenu menuFile = new JMenu("File");
     private final JMenu menuEdit = new JMenu("Edit");
     private final JMenu menuAdd = new JMenu("Add");
@@ -269,7 +253,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
     private final JMenuItem menuItemPointCloudVisualisation = new JMenuItem("Point Cloud Visualization");
     private final JMenuItem menuItemDivergenceVisualisation = new JMenuItem("Divergence Visualization");
     private final LicenseMenu licenseMenu		= new LicenseMenu("Lizenzen");
-	private final JPanel panelTools = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 5));
+	public final JPanel panelTools = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 5));
 	private final SceneObjectLine sceneObjectTrajectories = new SceneObjectLine();
 	private final SceneObjectLine sceneObjectEndpoints = new SceneObjectLine();
 	private final JLabel labelAcceptedFraction = new JLabel();
@@ -703,7 +687,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
  	private final ButtonColumn meshDeleteColumn = new ButtonColumn(tableMeshes,tableAction, MeshObject.TYPES.getVisibleColumnNumber(SCENE_OBJECT_COLUMN_TYPE.DELETE));
  	private final ButtonColumn meshOpenColumn = new ButtonColumn(tableMeshes,tableAction, MeshObject.TYPES.getVisibleColumnNumber(SCENE_OBJECT_COLUMN_TYPE.OPEN));
  	private final ButtonColumn meshSaveColumn = new ButtonColumn(tableMeshes,tableAction, MeshObject.TYPES.getVisibleColumnNumber(SCENE_OBJECT_COLUMN_TYPE.SAVE_TO));
-	private VolumePipelines volumePipelines;
+	public VolumePipelines volumePipelines;
 	private final JPanel selectedObjectPanel = new JPanel();
 	private final GroupLayout layout;
 
@@ -826,7 +810,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		             	{
 		             		 clear();
 		             	}
-		                loadScene(in);
+		                SceneIO.loadScene(in, scene, this);
 		                in.close();
 		                String path = file.getAbsolutePath();
 		                File dir = new File(path.substring(0, path.lastIndexOf('.')));
@@ -937,7 +921,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 			try
 			{
 				FileOutputStream out = new FileOutputStream(file);
-				saveScene(out, false);
+				SceneIO.saveScene(out, false, scene, this);
 				out.close();
 				currentSceneFile = file;
 			}catch (Exception ex)
@@ -1172,7 +1156,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
     	try
 		{
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
-			saveScene(out, true);
+			SceneIO.saveScene(out, true, scene, this);
 			Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(out.toString()), null);
 			out.close();
 		}catch(IOException ex)
@@ -1198,7 +1182,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 				if (content instanceof String){ 
 					
 					ByteArrayInputStream stream = new ByteArrayInputStream(((String)content).getBytes());
-					loadScene(stream);
+					SceneIO.loadScene(stream, scene, this);
 					stream.close();
 					break;
 				}
@@ -1991,7 +1975,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
         selectedObjectPanel.revalidate();
     }
     
-    void updateAllTables()
+    public void updateAllTables()
     {
     	updateSurfaceTable();
 		updateVolumeTable();
@@ -2265,7 +2249,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 	private static Color RAY_BLACK = new Color(0xFF,0,0,0x40);
 	private static Color RAY_RED = new Color(0xFF,0,0,0x40);
 
-    class VisualizationPanel extends JComponent implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
+    public class VisualizationPanel extends JComponent implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
     {
     	 /**
 		 * 
@@ -2275,7 +2259,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		private int selectedAdvanced = -1;
 		private int startX;
 		private int startY;
-		private double scale = 1;
+		public double scale = 1;
 	    private Vector3d originalPosition;
 		private Vector3d originalDirection;
 		private double originalGeometricRadius = Double.NaN;
@@ -2520,7 +2504,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		private final Vector3d v0 = new Vector3d();
 		private final Rectangle bounds = new Rectangle();
 		private final RaySimulationObject rayObject = new RaySimulationObject();
-		private final Vector2d globalPaintOffset = new Vector2d();
+		public final Vector2d globalPaintOffset = new Vector2d();
 		private final GraphicsDrawer gd = new GraphicsDrawer(null, 33);
 		private float volumeVertices[] = UniqueObjects.EMPTY_FLOAT_ARRAY;
 		private float endpos[] = UniqueObjects.EMPTY_FLOAT_ARRAY;
@@ -2771,144 +2755,6 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		public void keyTyped(KeyEvent e) {}
     }
     
-    private final void readXMLValues(Element elem, ArrayList<SCENE_OBJECT_COLUMN_TYPE> ctList, ArrayList<Object> valueList)
-    {
-    	ctList.clear();
-		valueList.clear();
-		for (Attribute attribute : elem.getAttributes())
-		{
-			SCENE_OBJECT_COLUMN_TYPE ct = SCENE_OBJECT_COLUMN_TYPE.getByName(attribute.getName());
-			if (ct != null)
-			{
-				ctList.add(ct);
-				valueList.add(attribute.getValue());
-			}
-		}
-    }
-    
-    public void loadScene(InputStream in) throws JDOMException, IOException
-    {
-    	Document doc = new SAXBuilder().build(in);
-    	Element root = doc.getRootElement();
-    	ArrayList<SCENE_OBJECT_COLUMN_TYPE> ctList = new ArrayList<SCENE_OBJECT_COLUMN_TYPE>();
-    	
-    	ArrayList<Object> valueList = new ArrayList<>();
-    	for (Element elem : root.getChildren())
-    	{
-    		switch( elem.getName())
-    		{
-    			case "row":
-    			case "surface":
-        			readXMLValues(elem, ctList, valueList);
-    	    		scene.add(new GuiOpticalSurfaceObject(ctList, valueList, scene.vs, parser));
-    				break;
-    			case "volume":
-        			readXMLValues(elem, ctList, valueList);
-    	    		scene.add(new GuiOpticalVolumeObject(ctList, valueList, scene.vs, parser));
-    	    		break;
-    			case "texture":
-        			readXMLValues(elem, ctList, valueList);
-    	    		scene.add(new GuiTextureObject(ctList, valueList, scene.vs, parser));
-    	    		break;
-    			case "mesh":
-    	   			readXMLValues(elem, ctList, valueList);
-    	    		scene.add(new MeshObject(ctList, valueList, scene.vs, parser));
-    	    		break;
-    			case "Raybounds":
-    				for (Attribute attribute : elem.getAttributes())
-        			{
-        				if (attribute.getName().equals("Begin"))
-        				{
-        					scene.setForceStartpoint(attribute.getValue());
-        				}
-        				else if (attribute.getName().equals("End"))
-        				{
-        					scene.setForceEndpoint(attribute.getValue());
-        				}
-        			}
-    				break;
-    			case "Environment":
-    				for (Attribute attribute : elem.getAttributes())
-        			{
-        				String attributeName = attribute.getName();
-        				String attributeValue = attribute.getValue();
-        				try
-        				{
-        					switch(attributeName)
-        					{
-        						case "Read":scene.setEnvironmentTexture(attributeValue);break;
-        						case "Write":scene.setEnvironmentTexture(attributeValue);break;
-        						case "renderToTexture":	scene.setRenderToTexture(attributeValue);break;
-        						case  "verifyRefractionIndex": scene.setVerifyRefractionIndices(Boolean.parseBoolean(attributeValue));break;
-        						case "Mapping":scene.setTextureMapping(TextureMapping.getByName(attributeValue));break;
-    	    				}
-        				}catch(IllegalArgumentException e)
-        				{
-        					logger.error("Can't set property " + attributeName + '-' + '>' + attributeValue, e);
-        				}
-        			}
-    				break;
-    			case "Tool":panelTools.add(InterfacePanelFactory.getInstance(elem.getText(), scene.vs));break;
-    			case "Pipeline":
-    				VolumePipeline pipeline = volumePipelines.addPipeline().pipeline;
-    				
-        			for (Element child : elem.getChildren())
-        			{
-        				switch (child.getName())
-        				{
-        					case "Generate":pipeline.steps.add(new VolumePipeline.GenerationCalculationStep(child.getAttributeValue("Bounds")));break;
-        					case "Calculate":pipeline.steps.add(new VolumePipeline.CalculationCalcuationStep(child.getAttributeValue("Ior"), child.getAttributeValue("Translucency"), child.getAttributeValue("EqValue"), child.getAttributeValue("EqGiven")));break;
-        				}
-        			}
-        			for (Attribute attr : elem.getAttributes())
-        			{
-        				switch (attr.getName())
-        				{
-        					case "Volume":pipeline.ovo = scene.getVolumeObject(attr.getValue());break;
-        					case "AutoUpdate":pipeline.setAutoUpdate(Boolean.parseBoolean(attr.getValue()));break;
-        					case "CalculateAtStartup":pipeline.calcuteAtCreation = Boolean.parseBoolean(attr.getValue());break;
-        				}
-        			}
-        			pipeline.updateState();
-        			break;
-    			case "Author":scene.author = elem.getText();break;
-    			case "Epsilon":scene.epsilon = Double.parseDouble(elem.getText());break;
-    			case "Description": textAreaProjectInformation.setText(elem.getValue());break;
-    			case "Variables": 
-        			for (Element child : elem.getChildren())
-        			{
-        				try {
-    						scene.vs.add(new Variable(child.getName(), child.getText()));
-    					} catch (OperationParseException e) {
-    						logger.error("Can't parse variable " + child.getName(), e);
-    					}
-        			}
-        			break;
-    			case "Gui":
-    				for (Attribute attr : elem.getAttributes())
-        			{
-        				try {
-    	    				switch(attr.getName())
-    	    				{
-    	    				case "Position":Geometry.parse(attr.getValue(), panelVisualization.globalPaintOffset);break;
-    	    				case "Scale":panelVisualization.scale = Double.valueOf(attr.getValue());break;
-    	    				}
-        				}catch(ParseException pe)
-        				{
-        					logger.error("Can't parse attribute " + attr.getName(), pe);
-        				}
-        			}
-    				break;
-    		}
-    	}
-    	JFrameUtils.runByDispatcher(new Runnable() {
-    		@Override
-			public void run() {
-            	updateAllTables();    			
-    		}
-    	});
-    }
-    
     /*private static void fill(Object[] row, GuiOpticalObject goo)
     {
     	for (int i = 0; i < COLUMN_TYPE.size(); ++i)
@@ -2917,112 +2763,6 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
     	}
     }*/
     
-    private static final void writeXmlValues(OpticalObject oso, Element elem) {
-    	
-    	COLUMN_TYPES types = oso.getTypes();
-		for (int j = 0; j < types.colSize(); ++j)
-		{
-			SCENE_OBJECT_COLUMN_TYPE ct = types.getCol(j);
-			elem.setAttribute(ct.name, String.valueOf(oso.getValue(ct)));
-		}
-    }
-    
-    private static final <E extends OpticalObject> void writeXmlList(Element root, ArrayList<E> list, JTable table, String elemName, boolean onlySelected)
-    {
-    	for (int i = 0; i < list.size(); ++i)
-    	{
-    		if (!onlySelected || table.isRowSelected(i))
-    		{
-    			Element elem = new Element(elemName);
-    			writeXmlValues(list.get(i), elem);
-				root.addContent(elem);
-    		}
-    	}
-    }
-    
-   	public void saveScene(OutputStream out, boolean onlySelected) throws IOException
-    {
-    	Document doc = new Document();
-    	Element root = new Element("scene");
-    	doc.setRootElement(root); 
-    	
-    	writeXmlList(root, scene.surfaceObjectList, tableSurfaces, "surface", onlySelected);
-    	writeXmlList(root, scene.volumeObjectList, tableVolumes, "volume", onlySelected);
-    	writeXmlList(root, scene.textureObjectList, tableTextures, "texture", onlySelected);
-    	writeXmlList(root, scene.meshObjectList, tableMeshes, "mesh", onlySelected);
-    	if (!onlySelected)
-    	{
-	    	Element elem = new Element("Raybounds");
-	    	elem.setAttribute("Start", scene.getForceStartpointStr());
-	    	elem.setAttribute("End", scene.getForceEndpointStr());
-	    	root.addContent(elem);
-	    	root.addContent(new Element("Description", textAreaProjectInformation.getText()));
-	    	elem = new Element("Environment");
-	    	elem.setAttribute("Read", scene.environmentTextureString == null ? "" : scene.environmentTextureString);
-	    	elem.setAttribute("Write", scene.writableEnvironmentTextureString == null ? "" : scene.writableEnvironmentTextureString);
-	    	elem.setAttribute("RenderToTexture", scene.renderToTextureString == null ? "" : scene.renderToTextureString);
-	    	elem.setAttribute("VerifyRefractionIndex", Boolean.toString(scene.isVerifyRefractionIndexActivated()));
-	    	elem.setAttribute("Mapping", scene.environment_mapping.name);
-	    	root.addContent(elem);
-	    	for (int i = 0; i < panelTools.getComponentCount(); ++i)
-	    	{
-	    		elem = new Element("Tool");
-	    		Component comp = panelTools.getComponent(i);
-	    		if (comp instanceof InterfacePanel)
-				{
-	    			InterfacePanel ip = (InterfacePanel)comp;
-	    			elem.setText(ip.getContent());		
-				}
-	    		root.addContent(elem);
-	    	}
-	    	for (VolumePipelinePanel vp : volumePipelines.getPipelines())
-	    	{
-	    		VolumePipeline pipeline = vp.pipeline;
-	    		elem = new Element("Pipeline");
-	    		for (CalculationStep step : pipeline.steps)
-	    		{
-	    			if (step instanceof CalculationCalcuationStep)
-	    			{
-	    				GenerationCalculationStep gps = (GenerationCalculationStep)step;
-	    				Element child = new Element("Generate");
-	    				child.setAttribute("Bounds", gps.size);
-	    				elem.addContent(child);
-	    			}
-	    			else if (step instanceof CalculationCalcuationStep)
-					{
-	    				CalculationCalcuationStep cps = (CalculationCalcuationStep)step;
-	        			Element child = new Element("Calculate");
-	    				child.setAttribute("Ior", cps.ior);
-	    				child.setAttribute("Translucency", cps.translucency);
-	    				child.setAttribute("EqValue", cps.givenValues);
-	    				child.setAttribute("EqGiven", cps.isGiven);
-	    				elem.addContent(child);
-					}
-	    		}
-	    		elem.setAttribute("AutoUpdate", Boolean.toString(pipeline.getAutoUpdate()));
-	    		elem.setAttribute("CalculateAtStartup", Boolean.toString(pipeline.calcuteAtCreation));
-	    		if (pipeline.ovo != null)
-	    		{
-	    			elem.setAttribute("Volume", pipeline.ovo.id);
-	    		}
-    			root.addContent(elem);
-	    	}
-	    	root.addContent(new Element("Author").setText(scene.author));
-	    	root.addContent(new Element("Epsilon").setText(Double.toString(scene.epsilon)));
-    		elem = new Element("Variables");
-	    	for (int i = 0; i < scene.vs.sizeLocal(); ++i)
-	    	{
-	    		Variable v = scene.vs.get(i);
-	    		elem.addContent(new Element(v.nameObject.string).setText(v.stringValue()));
-	    	}
-	    	root.addContent(elem);
-	    	elem = new Element("Gui");
-	    	elem.setAttribute("Position", panelVisualization.globalPaintOffset.toString());
-	    	elem.setAttribute("Scale", Double.toString(panelVisualization.scale));
-    	}
-    	new XMLOutputter(Format.getPrettyFormat()).output(doc, out);
-    }
-	
 	/*public static BufferedImage toBufferedImage(Image img)
 	{
 	    if (img instanceof BufferedImage)

@@ -14,6 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.jdom2.JDOMException;
 
 import data.raytrace.StackPositionProcessor.Mode;
+import io.raytrace.SceneIO;
 import jcomponents.raytrace.RaySimulationGui;
 import maths.OperationCompiler;
 import maths.VariableStack;
@@ -53,7 +54,7 @@ public class RaytraceCommandLine {
 				RaySimulationGui gui = new RaySimulationGui();
 				FileInputStream fis = new FileInputStream(split.get(1));
 				try {
-					gui.loadScene(fis);
+					SceneIO.loadScene(fis, gui.scene, gui);
 				} catch (JDOMException e) {
 					out.write(e.toString());
 				}

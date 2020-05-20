@@ -136,19 +136,12 @@ public class Main
 						e.printStackTrace();
 					}
 					return;
-				}else if (sub.equals("console")){
-					console = true;
-				}else if (sub.equals("rayconsole")){
-					rayconsole = true;
-				}else if (sub.equals("raysim")) {
-					raysim = true;
-				}else if (sub.equals("load")){
-					loadNext = true;
-				}else if (sub.equals("calculator")){
-					calculator = true;
-				}else if (sub.equals("calgraph")){
-					raysim = false;
-					
+				}else if (sub.equals("console")){		console = true;
+				}else if (sub.equals("rayconsole")){	rayconsole = true;
+				}else if (sub.equals("raysim")) {		raysim = true;
+				}else if (sub.equals("load")){			loadNext = true;
+				}else if (sub.equals("calculator")){	calculator = true;
+				}else if (sub.equals("calgraph")){		raysim = false;
 				}else if (sub.equals("version")){
 					System.out.println("version" + ':' + ProgrammData.getVersion());
 					System.exit(0);
