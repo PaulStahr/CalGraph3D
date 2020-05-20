@@ -24,12 +24,18 @@ public class JFileChooserRecentFiles  extends JFileChooser{
 		super.setAccessory(new RecentFileList(this, DataHandler.getRecentFiles()));
 	}
 
+	public JFileChooserRecentFiles(File filepath) {
+		super(filepath);
+		super.setAccessory(new RecentFileList(this, DataHandler.getRecentFiles()));
+	}
+
 	@Override
 	public void setAccessory(JComponent component)
 	{
 		getAccessory().add(component);
 	}
 	
+	@Override
 	public int showSaveDialog(Component parent)
 	{
 		int ret = super.showSaveDialog(parent);
@@ -42,6 +48,7 @@ public class JFileChooserRecentFiles  extends JFileChooser{
 		return ret;
 	}
 	
+	@Override
 	public int showOpenDialog(Component parent)
 	{
 		int ret = super.showOpenDialog(parent);

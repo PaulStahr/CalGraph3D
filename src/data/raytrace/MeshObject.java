@@ -107,7 +107,7 @@ public class MeshObject extends SurfaceObject {
 		setValues(defaultValues, va, parser);
 	}
 	
-	public MeshObject(ArrayList<SCENE_OBJECT_COLUMN_TYPE> vctList, ArrayList<Object> valueList, VariableAmount va, ParseUtil parser) {
+	public MeshObject(ArrayList<SCENE_OBJECT_COLUMN_TYPE> vctList, ArrayList<? extends Object> valueList, VariableAmount va, ParseUtil parser) {
 		super();
 		setValues(vctList, valueList, va, parser);
 	}

@@ -7,12 +7,12 @@ import geometry.Vector3d;
 import maths.Controller;
 import maths.Operation;
 import maths.OperationCompiler;
+import maths.VariableAmount;
 import maths.algorithm.OperationCalculate;
 import maths.data.ArrayOperation;
 import maths.data.RealDoubleOperation;
 import maths.data.RealLongOperation;
 import maths.exception.OperationParseException;
-import maths.VariableAmount;
 import util.OperationGeometry;
 
 public class ParseUtil {
@@ -85,7 +85,7 @@ public class ParseUtil {
 		{
 			mat.set((Matrixd)o);
 			strB.setLength(0);
-			str = (op = new ArrayOperation((Matrixd)mat)).toString(strB).toString();
+			str = (op = new ArrayOperation(mat)).toString(strB).toString();
 		}
 		else
 		{
@@ -104,6 +104,24 @@ public class ParseUtil {
 		{
 			str = (String)o;
 			return OperationCalculate.toStringArray(OperationCompiler.compile((String)o));
+		}
+		throw new IllegalArgumentException("Class:" + o.getClass());
+	}
+	
+	public final String parseString(Object o, VariableAmount variables, Controller controll) throws OperationParseException
+	{
+		if (o == null || o.equals(""))
+		{
+			return null;
+		}
+		if (o instanceof Operation)
+		{
+			str = (op = (Operation)o).toString();
+			return op.calculate(variables, controll).stringValue();
+		}
+		if (o instanceof String)
+		{
+			return (op = OperationCompiler.compile(str = (String)o)).calculate(variables, controll).stringValue();
 		}
 		throw new IllegalArgumentException("Class:" + o.getClass());
 	}

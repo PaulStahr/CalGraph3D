@@ -44,9 +44,9 @@ import util.JFrameUtils;
 
 public class SceneIO {
 	private static final Logger logger = LoggerFactory.getLogger(SceneIO.class);
-	
+	private static final int version = 0;
     
-    private static final void readXMLValues(Element elem, ArrayList<SCENE_OBJECT_COLUMN_TYPE> ctList, ArrayList<Object> valueList)
+    private static final void readXMLValues(Element elem, ArrayList<SCENE_OBJECT_COLUMN_TYPE> ctList, ArrayList<String> valueList)
     {
     	ctList.clear();
 		valueList.clear();
@@ -68,7 +68,9 @@ public class SceneIO {
     	Element root = doc.getRootElement();
     	ArrayList<SCENE_OBJECT_COLUMN_TYPE> ctList = new ArrayList<SCENE_OBJECT_COLUMN_TYPE>();
     	
-    	ArrayList<Object> valueList = new ArrayList<>();
+    	ArrayList<String> valueList = new ArrayList<>();
+    	String versionString = root.getAttributeValue("version");
+    	int version = versionString == null ? -1 : Integer.parseInt(versionString);
     	for (Element elem : root.getChildren())
     	{
     		switch( elem.getName())
@@ -76,7 +78,12 @@ public class SceneIO {
     			case "row":
     			case "surface":	readXMLValues(elem, ctList, valueList);	scene.add(new GuiOpticalSurfaceObject(	ctList, valueList, scene.vs, parser));break;
     			case "volume":	readXMLValues(elem, ctList, valueList);	scene.add(new GuiOpticalVolumeObject(	ctList, valueList, scene.vs, parser));break;
-    			case "texture":	readXMLValues(elem, ctList, valueList);	scene.add(new GuiTextureObject(			ctList, valueList, scene.vs, parser));break;
+    			case "texture":	readXMLValues(elem, ctList, valueList);
+    			if (version == -1)
+    			{
+    				int index = ctList.indexOf(SCENE_OBJECT_COLUMN_TYPE.PATH);
+    				valueList.set(index, "\"" + valueList.get(index) + "\"");
+    			}														scene.add(new GuiTextureObject(	ctList, valueList, scene.vs, parser));break;
     			case "mesh":	readXMLValues(elem, ctList, valueList);	scene.add(new MeshObject(				ctList, valueList, scene.vs, parser));break;
     			case "Raybounds":
     				for (Attribute attribute : elem.getAttributes())
@@ -203,6 +210,7 @@ public class SceneIO {
     	Document doc = new Document();
     	Element root = new Element("scene");
     	doc.setRootElement(root); 
+    	root.setAttribute("version", Integer.toString(version));
     	writeXmlList(root, scene.surfaceObjectList, gui.tableSurfaces, "surface", onlySelected);
     	writeXmlList(root, scene.volumeObjectList,  gui.tableVolumes, "volume", onlySelected);
     	writeXmlList(root, scene.textureObjectList, gui.tableTextures, "texture", onlySelected);

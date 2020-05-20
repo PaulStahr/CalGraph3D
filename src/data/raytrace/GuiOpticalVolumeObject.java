@@ -19,10 +19,10 @@ import geometry.Matrixd;
 import jcomponents.raytrace.TextureView;
 import jcomponents.raytrace.Volume;
 import maths.Controller;
+import maths.VariableAmount;
 import maths.data.ArrayOperation;
 import maths.exception.OperationParseException;
 import util.ArrayUtil;
-import maths.VariableAmount;
 
 public class GuiOpticalVolumeObject extends OpticalVolumeObject {
     public static final GuiOpticalVolumeObject EMPTY_VOLUME_ARRAY[] = new GuiOpticalVolumeObject[0];
@@ -63,7 +63,7 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 			defaultValues[i] = TYPES.getCol(i).defaultValue;
 		}
 	}
-	public GuiOpticalVolumeObject(ArrayList<SCENE_OBJECT_COLUMN_TYPE> vctList, ArrayList<Object> valueList, VariableAmount va, ParseUtil parser) {
+	public GuiOpticalVolumeObject(ArrayList<SCENE_OBJECT_COLUMN_TYPE> vctList, ArrayList<? extends Object> valueList, VariableAmount va, ParseUtil parser) {
 		super();
 		setValues(vctList, valueList, va, parser);
 	}
@@ -78,6 +78,7 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 		changeListeners.remove(r);
 	}
 	
+	@Override
 	public void valueChanged(SCENE_OBJECT_COLUMN_TYPE ct, ParseUtil parser)
 	{
 		if (!isUpdating)
@@ -96,6 +97,7 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 		}
 	}
 	
+	@Override
 	public void readBinaryFile(String file) throws IOException
 	{
 		super.readBinaryFile(file);
@@ -283,6 +285,7 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 		parser.reset();
 	}
 	
+	@Override
 	public Object getValue(SCENE_OBJECT_COLUMN_TYPE ct)
 	{
 		switch (ct)

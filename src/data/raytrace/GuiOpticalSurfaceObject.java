@@ -33,8 +33,8 @@ import data.raytrace.RaySimulation.SurfaceType;
 import geometry.Vector3d;
 import maths.Controller;
 import maths.Operation;
-import maths.exception.OperationParseException;
 import maths.VariableAmount;
+import maths.exception.OperationParseException;
 
 public class GuiOpticalSurfaceObject extends OpticalSurfaceObject {
 	public static final COLUMN_TYPES TYPES = new COLUMN_TYPES(new SCENE_OBJECT_COLUMN_TYPE[]{
@@ -129,6 +129,7 @@ public class GuiOpticalSurfaceObject extends OpticalSurfaceObject {
 		}
 		
 		
+		@Override
 		public String toString()
 		{
 			return name;
@@ -183,12 +184,13 @@ public class GuiOpticalSurfaceObject extends OpticalSurfaceObject {
 	}
 
 	
-	public GuiOpticalSurfaceObject(List<SCENE_OBJECT_COLUMN_TYPE> coltype, List<Object> content, VariableAmount va, ParseUtil parser)
+	public GuiOpticalSurfaceObject(List<SCENE_OBJECT_COLUMN_TYPE> coltype, List<? extends Object> content, VariableAmount va, ParseUtil parser)
 	{
 		setValues(defaultValues, va, parser);
 		setValues(coltype, content, va, parser);
 	}
 
+	@Override
 	public void valueChanged(SCENE_OBJECT_COLUMN_TYPE ct, ParseUtil parser)
 	{
 		++modCount;
@@ -391,6 +393,7 @@ public class GuiOpticalSurfaceObject extends OpticalSurfaceObject {
 		}
 	}
 
+	@Override
 	public Object getValue(SCENE_OBJECT_COLUMN_TYPE ct)
 	{
 		switch (ct)

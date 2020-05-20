@@ -279,7 +279,7 @@ public abstract class OpticalObject {
 		includedVariableCount = write;
 	}
 	
-	public final void setValues(List<SCENE_OBJECT_COLUMN_TYPE> ct, List<Object> o, VariableAmount va, ParseUtil parser)
+	public final void setValues(List<SCENE_OBJECT_COLUMN_TYPE> ct, List<? extends Object> o, VariableAmount va, ParseUtil parser)
 	{
 		isUpdating = true;
 		if (ct.size() != o.size())

@@ -591,7 +591,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 				{
 					GuiTextureObject current = scene.textureObjectList.get(row);
 					
-					JFileChooser fileChooser= new JFileChooserRecentFiles(current.filepath);
+					JFileChooser fileChooser= new JFileChooserRecentFiles(current.getFile());
 					if(fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION)
 		            {
 						try {
@@ -603,10 +603,8 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 						{
 							try {
 								current.load(scene.vs, parser);
-							} catch (IOException ex) {
-								logger.error("Can't load image " + current.filepath, ex);
-							} catch (OperationParseException ex) {
-								logger.error("Can't load image " + current.filepath, ex);
+							} catch (IOException | OperationParseException ex) {
+								logger.error("Can't load image " + current.getFile(), ex);
 							}
 						}
 		            }
@@ -629,17 +627,21 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 				{
 					GuiTextureObject current = scene.textureObjectList.get(row);
 					
-					JFileChooser fileChooser= new JFileChooserRecentFiles(current.filepath);
+					JFileChooser fileChooser= new JFileChooserRecentFiles(current.getFile().getAbsolutePath());
 					if(fileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION)
 		            {
-						current.filepath = fileChooser.getSelectedFile().getAbsolutePath();
 						if (current.image != null)
 						{
 							try {
 								current.saveTo(fileChooser.getSelectedFile());
-							} catch (IOException e1) {
-								logger.error("Can't save texture", e);
+							} catch (IOException ex) {
+								JFrameUtils.logErrorAndShow("Can't save texture", ex, logger);
 							}
+						}
+						try {
+							current.setValue(SCENE_OBJECT_COLUMN_TYPE.PATH, fileChooser.getSelectedFile(), scene.vs, parser);
+						} catch (OperationParseException ex) {
+							JFrameUtils.logErrorAndShow("Unexpected parse exception", ex, logger);
 						}
 		            }
 				}else if (type == SCENE_OBJECT_COLUMN_TYPE.VIEW)
@@ -753,7 +755,11 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 			JFileChooser fileChooser= new JFileChooserRecentFiles();
 			if(fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION)
 			{
-				to.filepath = fileChooser.getSelectedFile().toString();
+				try {
+					to.setValue(SCENE_OBJECT_COLUMN_TYPE.PATH, fileChooser.getSelectedFile().getAbsolutePath(), scene.vs, parser);
+				} catch (OperationParseException ex) {
+			    	JFrameUtils.logErrorAndShow("Can't read image", ex, logger);
+				}
 				try {
 					to.load(scene.vs, parser);
 				} catch (IOException | OperationParseException e1) {

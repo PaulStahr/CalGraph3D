@@ -17,8 +17,8 @@ import geometry.Matrix3d;
 import geometry.Vector3d;
 import ij.ImagePlus;
 import maths.Controller;
-import maths.exception.OperationParseException;
 import maths.VariableAmount;
+import maths.exception.OperationParseException;
 import util.StringUtils;
 
 public class GuiTextureObject extends OpticalObject{
@@ -46,7 +46,8 @@ public class GuiTextureObject extends OpticalObject{
 			defaultValues[i] = TYPES.getCol(i).defaultValue;
 		}
 	}
-	public String filepath;
+	private File filepath;
+	private String filepathString;
 	public BufferedImage image;
 	public WritableRaster raster;
 	private final ArrayList<TextureObjectChangeListener> changeListeners = new ArrayList<>();
@@ -68,7 +69,7 @@ public class GuiTextureObject extends OpticalObject{
 		setValues(defaultValues, va, parser);
 	}
 
-	public GuiTextureObject(ArrayList<SCENE_OBJECT_COLUMN_TYPE> tctList, ArrayList<Object> valueList, VariableAmount va, ParseUtil parser) {
+	public GuiTextureObject(ArrayList<SCENE_OBJECT_COLUMN_TYPE> tctList, ArrayList<? extends Object> valueList, VariableAmount va, ParseUtil parser) {
 		setValues(defaultValues, va, parser);
 		setValues(tctList, valueList, va, parser);
 	}
@@ -104,6 +105,7 @@ public class GuiTextureObject extends OpticalObject{
 		}
 	}
 	
+	@Override
 	public void valueChanged(SCENE_OBJECT_COLUMN_TYPE ct, ParseUtil parser)
 	{
 		if (!isUpdating)
@@ -215,7 +217,8 @@ public class GuiTextureObject extends OpticalObject{
 			case LOAD:break;
 			case OPEN:break;
 			case PATH:
-				filepath = ParseUtil.parseString(o);
+				filepath = new File(parser.parseString(o, variables, controll));
+				filepathString = parser.str;
 				if (image == null)
 				{
 					try {
@@ -242,6 +245,7 @@ public class GuiTextureObject extends OpticalObject{
 		parser.reset();
 	}
 
+	@Override
 	public Object getValue(SCENE_OBJECT_COLUMN_TYPE visibleCol) {
 		switch (visibleCol)
 		{
@@ -252,7 +256,7 @@ public class GuiTextureObject extends OpticalObject{
 			case LOAD:		return "Load";
 			case OPEN:		return "Open";
 			case FRAME:		return frameString;
-			case PATH:		return filepath;
+			case PATH:		return filepathString;
 			case VIEW:		return "View";
 			case SAVE:		return "Save";
 			case TRANSFORMATION: return transformationStr;
@@ -272,7 +276,7 @@ public class GuiTextureObject extends OpticalObject{
 
 
 	public void load(VariableAmount variable, ParseUtil parser) throws IOException, OperationParseException {
-		load(filepath == null ? null : new File(filepath), variable, parser);
+		load(filepath == null ? null : filepath, variable, parser);
 	}
 	
 	public void load(File file, VariableAmount variables, ParseUtil parser) throws IOException, OperationParseException{
@@ -329,7 +333,8 @@ public class GuiTextureObject extends OpticalObject{
 	public void save() throws IOException
 	{
 		//image.setData(raster);
-		if (!ImageIO.write(image, filepath.substring(filepath.lastIndexOf('.')+1), new File(filepath)))
+		String path = filepath.getAbsolutePath();
+		if (!ImageIO.write(image, path.substring(path.lastIndexOf('.')+1), filepath))
 		{
 			logger.error("Image write returned false");
 		}
@@ -360,5 +365,9 @@ public class GuiTextureObject extends OpticalObject{
 		GuiTextureObject res = new GuiTextureObject(va, parser);
 		res.read(this, va, parser);
 		return res;
+	}
+
+	public File getFile() {
+		return filepath;
 	}
 }
