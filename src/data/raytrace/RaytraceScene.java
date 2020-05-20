@@ -1700,4 +1700,8 @@ public class RaytraceScene {
 	public void setTextureMapping(TextureMapping selectedItem) {
 		environment_mapping = selectedItem;
 	}
+
+	public final String getId() {
+		return id;
+	}
 }

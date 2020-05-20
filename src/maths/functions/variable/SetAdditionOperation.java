@@ -119,7 +119,7 @@ public final class SetAdditionOperation extends LinkingOperation
         			return new ExceptionOperation("Nur Variablen erlaubt");
         		ops[i] = ((UserVariableOperation)b.get(i)).nameObject;
         	}
-        	object.setGlobal(new Variable(nameObject, a, ops));
+        	object.replaceAddGlobal(new Variable(nameObject, a, ops));
             return  a;
         }
         return new SetAdditionOperation(a,b);

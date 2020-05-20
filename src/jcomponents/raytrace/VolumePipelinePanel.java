@@ -156,18 +156,9 @@ public class VolumePipelinePanel extends JPanel implements ActionListener, Scene
 	@Override
 	public void itemStateChanged(ItemEvent arg0) {
 		Object source = arg0.getSource();
-		if (source == checkBoxAutoUpdate)
-		{
-			pipeline.setAutoUpdate(checkBoxAutoUpdate.isSelected());
-		}
-		else if (source == checkBoxRunAtStartup)
-		{
-			pipeline.calcuteAtCreation = checkBoxRunAtStartup.isSelected();
-		}
-		else if (source == volumes)
-		{
-			pipeline.ovo = (OpticalVolumeObject)volumes.getSelectedItem();
-		}
+		if (source == checkBoxAutoUpdate)			{pipeline.setAutoUpdate(checkBoxAutoUpdate.isSelected());}
+		else if (source == checkBoxRunAtStartup)	{pipeline.calcuteAtCreation = checkBoxRunAtStartup.isSelected();}
+		else if (source == volumes)					{pipeline.ovo = (OpticalVolumeObject)volumes.getSelectedItem();}
 	}
 	
 	public class PipelineStepPanel extends JPanel implements MouseListener
@@ -305,21 +296,9 @@ public class VolumePipelinePanel extends JPanel implements ActionListener, Scene
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
 		Object source = arg0.getSource();
-		if (source == buttonAddCalculationStep)
-		{
-			pipelinePanel.add(new CalculationPipelineStepPanel());
-			pipelinePanel.revalidate();
-		}
-		else if (source == buttonAddSolveStep)
-		{
-			pipelinePanel.add(new GeneratePipelineStepPanel());
-			pipelinePanel.revalidate();
-		}
-		else if (source == buttonCalculate)
-		{
-			pipeline.updateVariableIds();
-			DataHandler.runnableRunner.run(pipeline, "Volume Pipeline");
-		}
+		if (source == buttonAddCalculationStep)				{pipelinePanel.add(new CalculationPipelineStepPanel());	pipelinePanel.revalidate();}
+		else if (source == buttonAddSolveStep)				{pipelinePanel.add(new GeneratePipelineStepPanel());	pipelinePanel.revalidate();}
+		else if (source == buttonCalculate)					{pipeline.updateVariableIds();DataHandler.runnableRunner.run(pipeline, "Volume Pipeline");}
 	}
 	
 	private void updateVolumes()
@@ -346,11 +325,6 @@ public class VolumePipelinePanel extends JPanel implements ActionListener, Scene
 	}
 
 	public PipelineStepPanel[] getSteps() {
-		PipelineStepPanel ps[] = new PipelineStepPanel[pipelinePanel.getComponentCount()];
-		for (int i = 0; i < ps.length; ++i)
-		{
-			ps[i] = (PipelineStepPanel)pipelinePanel.getComponent(i);
-		}
-		return ps;
+		return JFrameUtils.getComponents(pipelinePanel, new PipelineStepPanel[pipelinePanel.getComponentCount()]);
 	}
 }

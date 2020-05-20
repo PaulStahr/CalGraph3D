@@ -30,23 +30,23 @@ import maths.data.StringId;
 public interface VariableAmount {
 	public Variable get(String name);
 	
-	public void setGlobal(Variable v);
+	public void replaceAddGlobal(Variable v);
 	
-	public boolean set(Variable v);
+	public boolean assign(Variable v);
 	
 	public void setGlobal(String name, Operation value);
 	
 	public void setGlobal(StringId.StringIdObject name, Operation a);
 
-	public boolean set(int nameId, Operation a);
+	public Variable assign(int nameId, Operation a);
 
-	public void setLocal(StringId.StringIdObject name, Operation value);
+	public Variable setLocal(StringId.StringIdObject name, Operation value);
 	
-	public void setLocal(String name, Operation a);
+	public Variable setLocal(String name, Operation a);
 
-	public void setOrAddLocal(StringId.StringIdObject name, Operation a);
+	public Variable assignAddLocal(StringId.StringIdObject name, Operation a);
 
-	public void setOrAddLocal(Variable var);
+	public void replaceAddLocal(Variable var);
 
 	public boolean add(Variable v);
 	
@@ -63,4 +63,6 @@ public interface VariableAmount {
 	public Variable getById(int nameId);
 
 	public Variable getById(int nameId, int operandCount);
+
+	public Variable assignAddGlobal(Variable v);
 }

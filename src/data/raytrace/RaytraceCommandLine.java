@@ -42,7 +42,7 @@ public class RaytraceCommandLine {
 			List<String> variables
 	) throws IOException
 	{
-		StringUtils.split(command, ' ', split);
+		StringUtils.split_in_args(split, command, 0, command.length(), new StringBuilder());
 		switch (split.get(0))
 		{
 			case "help":
@@ -99,12 +99,6 @@ public class RaytraceCommandLine {
 				{
 					out.write("<scene> <scale> <position_input> <surface_compensation> <output_folder> <mode> <evaluation_texture> <evaluation_object> <range_begin> <range_end> <num_rays> <resolution> <light_source> <position_output> <backward>");
 				}
-				Runnable updateProgressRunnable = new Runnable() {
-					@Override
-					public void run() {
-						
-					}
-				};
 				RaytraceScene scene = RaytraceScene.getScene(split.get(1));
 				double scale = Double.NaN;
 				try
@@ -114,6 +108,7 @@ public class RaytraceCommandLine {
 				StackPositionProcessor spp = new StackPositionProcessor();
 				AtomicInteger progress = new AtomicInteger();
 				try {
+					spp.isRunning = true;
 					spp.evaluate(
 					scene,
 					scale,
@@ -126,12 +121,13 @@ public class RaytraceCommandLine {
 					scene.getSurfaceObject(split.get(8)),
 					split.get(9),
 					split.get(10),
-					updateProgressRunnable,
+					null,
 					Integer.parseInt(split.get(11)),
 					OperationCompiler.compile(split.get(12)),
 					scene.getOpticalObject(split.get(13)),
 					split.get(14),
-					Boolean.parseBoolean(split.get(15)));
+					Boolean.parseBoolean(split.get(15)),
+					null);
 				} catch (NumberFormatException | OperationParseException e) {
 					out.write(e.toString());
 				}

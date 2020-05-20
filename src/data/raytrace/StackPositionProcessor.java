@@ -87,7 +87,7 @@ public class StackPositionProcessor {
 	public void evaluate(
 			final RaytraceScene scene,
 			final double scale,
-			String inputText,
+			String positionFile,
 			boolean surfaceCompensationMode,
 			final String outputFolder,
 			final AtomicInteger progress,
@@ -101,12 +101,35 @@ public class StackPositionProcessor {
 			Operation outputResolution,
 			OpticalObject lightSource,
 			String outputStr,
-			final boolean backward) throws OperationParseException
+			final boolean backward,
+			RaytraceSession session) throws OperationParseException
 	{
+		if (session != null)
+		{
+			StringBuilder strB = new StringBuilder();
+			strB
+			.append("stp").append(' ')
+			.append('"').append(scene.getId()).append('"').append(' ')
+			.append(scale).append(' ')
+			.append('"').append(positionFile).append('"').append(' ')
+			.append(surfaceCompensationMode).append(' ')
+			.append('"').append(outputFolder).append('"').append(' ')
+			.append(mode.toString()).append(' ')
+			.append(gto.getId()).append(' ')
+			.append(evaluationObject.getId()).append(' ')
+			.append(rangeBeginStr).append(' ')
+			.append(rangeEndStr).append(' ')
+			.append(numRays).append(' ')
+			.append(outputResolution.toString()).append(' ')
+			.append(lightSource != null ? lightSource.id : -1).append(' ')
+			.append('"').append(outputStr).append('"').append(' ')
+			.append(backward).append(' ');
+			session.commandExecuted(strB.toString());
+		}
 		Variable variableFrame = new Variable("frame");
-		scene.vs.setGlobal(variableFrame);
+		scene.vs.replaceAddGlobal(variableFrame);
 		try {
-			final DoubleArrayList ial = inputText.length() == 0 ? null : IOUtil.readPositionFile(inputText);
+			final DoubleArrayList ial = positionFile.length() == 0 ? null : IOUtil.readPositionFile(positionFile);
 			
 			
 			int rangeBegin = OperationCompiler.parseInt(rangeBeginStr, 0);
@@ -114,7 +137,7 @@ public class StackPositionProcessor {
 			
 			numIterations = rangeEnd - rangeBegin;
 			progressMax = numIterations;
-			JFrameUtils.runByDispatcher(updateProgressBarRunnable);
+			if (updateProgressBarRunnable != null) {JFrameUtils.runByDispatcher(updateProgressBarRunnable);}
 			
 			if (mode == Mode.CAMERA_TRACK)
 			{
@@ -123,7 +146,7 @@ public class StackPositionProcessor {
 				for (int i = rangeBegin; i < rangeEnd && isRunning; ++i)
 				{
 					progress.set(i - rangeBegin);
-					JFrameUtils.runByDispatcher(updateProgressBarRunnable);
+					if (updateProgressBarRunnable != null) {JFrameUtils.runByDispatcher(updateProgressBarRunnable);}
 					final int index = i * 6;
 					final int num = i;
 					if (ial != null)
@@ -246,7 +269,7 @@ public class StackPositionProcessor {
 									}
 								}
 								ArrayUtil.mult(avarage, idx * 2, idx * 2 + 1, 1. / count);
-								JFrameUtils.runByDispatcher(updateProgressBarRunnable);
+								if (updateProgressBarRunnable != null) {JFrameUtils.runByDispatcher(updateProgressBarRunnable);}
 							}
 						}
 						
@@ -287,8 +310,7 @@ public class StackPositionProcessor {
 					}*/
 					Options.OptionTreeInnerNode raytrace = Options.getInnerNode("raytrace");
 					final int blocksize = Options.getInteger(raytrace, "blocksize", 100000);
-					logger.debug("Starting stack processing: Blocksize " + blocksize);
-					System.out.println("Starting stack processing: Blocksize " + blocksize);
+					if (logger.isDebugEnabled()) {logger.debug("Starting stack processing: Blocksize " + blocksize);}
 					Matrix4d tmp = new Matrix4d();
 					final StringBuilder strB = new StringBuilder();
 					progress.set(0);
@@ -394,7 +416,7 @@ public class StackPositionProcessor {
 									}
 								}
 								progress.addAndGet(toCalculate);
-								JFrameUtils.runByDispatcher(updateProgressBarRunnable);
+								if (updateProgressBarRunnable != null) {JFrameUtils.runByDispatcher(updateProgressBarRunnable);}
 							}
 							
 							@Override
@@ -490,7 +512,7 @@ public class StackPositionProcessor {
 								}
 							}
 							progress.addAndGet(toCalculate);
-							JFrameUtils.runByDispatcher(updateProgressBarRunnable);
+							if (updateProgressBarRunnable != null) {JFrameUtils.runByDispatcher(updateProgressBarRunnable);}
 						}
 						
 						@Override
@@ -572,7 +594,7 @@ public class StackPositionProcessor {
 									}
 								}
 								progress.addAndGet(toCalculate);
-								JFrameUtils.runByDispatcher(updateProgressBarRunnable);
+								if (updateProgressBarRunnable != null) {JFrameUtils.runByDispatcher(updateProgressBarRunnable);}
 							}
 							
 							@Override

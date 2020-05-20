@@ -26,6 +26,7 @@ import data.raytrace.GuiOpticalSurfaceObject;
 import data.raytrace.GuiTextureObject;
 import data.raytrace.OpticalObject;
 import data.raytrace.RaytraceScene;
+import data.raytrace.RaytraceSession;
 import data.raytrace.StackPositionProcessor;
 import data.raytrace.StackPositionProcessor.Mode;
 import data.raytrace.SurfaceObject;
@@ -157,6 +158,7 @@ public class StackPositionProcessorWindow extends JFrame implements ActionListen
 	}
 	
 	private final DoubleArrayList dal = new DoubleArrayList();
+	private RaytraceSession session;
 	
 	@Override
 	public void update() {
@@ -173,9 +175,10 @@ public class StackPositionProcessorWindow extends JFrame implements ActionListen
 		return 50;
 	}
 	
-	public StackPositionProcessorWindow(final RaytraceScene scene)
+	public StackPositionProcessorWindow(final RaytraceScene scene, RaytraceSession session)
 	{
 		this.scene = scene;
+		this.session = session;
 		GroupLayout layout = new GroupLayout(getContentPane());
 		getContentPane().setLayout(layout);
 		comboBoxEvaluationTexture = new TextureComboBox(scene);
@@ -297,7 +300,8 @@ public class StackPositionProcessorWindow extends JFrame implements ActionListen
 				textFieldResolution.get(),
 				(OpticalObject)comboBoxlightSource.getSelectedItem(),
 				buttonPositionOutput.getText(),
-				checkBoxBackward.isSelected());
+				checkBoxBackward.isSelected(),
+				session);
 	}
 	
 

@@ -133,4 +133,15 @@ public class ListTools {
 			list.remove(end);
 		}
 	}
+
+	public static void run(List<WeakReference<Runnable>> updateListener) {
+		for (int i = 0; i < updateListener.size(); ++i)
+		{
+			Runnable current = updateListener.get(i).get();
+			if (current != null)
+			{
+				current.run();
+			}
+		}
+	}
 }

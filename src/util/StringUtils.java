@@ -315,6 +315,47 @@ public class StringUtils {
 		return al;
    	}
    	
+   	public static ArrayList<String> split_in_args(ArrayList<String> qargs, String command, int begin, int end, StringBuilder strB){
+   	    boolean quote = false;
+   	    boolean place_next = false;
+   	    for(; begin < end; ++begin){
+   	    	char c = command.charAt(begin);
+   	        if (c == ' ' && !quote)
+   	        {
+   	        	if (place_next)
+   	        	{
+   	        		qargs.add(strB.toString());
+   	        		strB.setLength(0);
+   	        		place_next = false;
+   	        	}
+   	        }
+   	        else if (c == '\\')
+   	        {
+   	            ++begin;
+   	            if (begin == end)
+   	            {
+   	                throw new RuntimeException("Command ends with escape character");
+   	            }
+   	            place_next = true;
+   	            strB.append(c);
+   	        }
+   	        else if (c == '"')
+   	        {
+   	            quote = !quote;
+   	            place_next = true;
+   	        }
+   	        else
+   	        {
+   	            strB.append(c);
+                place_next = true;
+   	        }
+   	    }
+   	    if(quote){
+   	        throw new RuntimeException("Quote was left unclosed");
+   	    }
+		return qargs;
+   	}
+   	
    	public static final void split(String name, char c, IntegerArrayList ial)
    	{
 		int i = name.indexOf(c);

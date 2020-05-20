@@ -42,7 +42,7 @@ import util.data.UniqueObjects;
 public class VariableStack implements VariableAmount, Iterable<Variable>, VariableListener
 {
 	private static final Logger logger = LoggerFactory.getLogger(VariableStack.class);
-	private final VariableAmount subHeap;
+	private final VariableAmount parent;
 	private int modCount =0;
     private Variable variable[];
     private int length=0;
@@ -84,7 +84,7 @@ public class VariableStack implements VariableAmount, Iterable<Variable>, Variab
      */
     public VariableStack (int length, VariableAmount object){
         variable = new Variable[length];
-        this.subHeap = object;
+        this.parent = object;
     }
     
     public VariableStack(List<Variable> v, VariableAmount object){
@@ -93,19 +93,19 @@ public class VariableStack implements VariableAmount, Iterable<Variable>, Variab
     	for (int i=0;i<length;++i)
     		variable[i] = v.get(i);
     	Arrays.sort(variable, Variable.idComperator);
-    	this.subHeap = object;    	
+    	this.parent = object;    	
     }
     
     public VariableStack(Variable v[], VariableAmount object){
     	variable = Arrays.copyOf(v, v.length);
     	Arrays.sort(variable, Variable.idComperator);
     	length = variable.length;
-    	this.subHeap = object;
+    	this.parent = object;
     }
 
 	@Override
 	public final int modCount(){
-    	return subHeap== null ? modCount : subHeap.modCount() + modCount;	
+    	return parent== null ? modCount : parent.modCount() + modCount;	
     }    
 
     /**
@@ -150,8 +150,8 @@ public class VariableStack implements VariableAmount, Iterable<Variable>, Variab
 
     @Override
 	public void setGlobal(StringId.StringIdObject name, Operation value) {
-    	if (subHeap != null){
-    		subHeap.setGlobal(name, value);
+    	if (parent != null){
+    		parent.setGlobal(name, value);
     		return;
     	}
         final int index = getIndexById(name.id);
@@ -169,33 +169,36 @@ public class VariableStack implements VariableAmount, Iterable<Variable>, Variab
     }
     
     @Override
-	public void setLocal(StringId.StringIdObject name, Operation value) {
+	public Variable setLocal(StringId.StringIdObject name, Operation value) {
         final int index = getIndexById(name.id);
         if (index < 0){
+    		Variable v = new Variable(name, value);
         	synchronized(this){
-        		insertVar(new Variable(name, value), -1-index);
+        		insertVar(v, -1-index);
         	}
+        	return v;
 	    }else{
 	    	Variable v = variable[index];
 	    	if (v != null)
 	    		v.setValue(value);
 	    	else
 	    		logger.error("Null value at setting variable");
+	    	return v;
         }
     }
     
     @Override
-    public void setLocal(String name, Operation value)
+    public Variable setLocal(String name, Operation value)
     {
-    	setLocal(StringId.getStringAndId(name), value);
+    	return setLocal(StringId.getStringAndId(name), value);
     }
     
 	@Override
-	public boolean set(Variable arg) {
+	public boolean assign(Variable arg) {
 		final int index = getIndexById(arg.nameId);
     	if (index < 0)
     	{
-    		return subHeap == null ? false : subHeap.set(arg);
+    		return parent == null ? false : parent.assign(arg);
     	}
     	Variable v = variable[index];
     	if (v != null)
@@ -210,22 +213,22 @@ public class VariableStack implements VariableAmount, Iterable<Variable>, Variab
 	}
     
     @Override
- 	public boolean set(int nameId, Operation value) {
+ 	public Variable assign(int nameId, Operation value) {
     	final int index = getIndexById(nameId);
     	if (index < 0)
     	{
-    		return subHeap == null ? false : subHeap.set(nameId, value);
+    		return parent == null ? null : parent.assign(nameId, value);
     	}
     	Variable v = variable[index];
     	if (v != null)
     		v.setValue(value);
     	else
     		logger.error("Null value at setting variable");
-    	return true;
+    	return v;
     }
      
     @Override
- 	public void setOrAddLocal(StringId.StringIdObject name, Operation value) {
+ 	public Variable assignAddLocal(StringId.StringIdObject name, Operation value) {
         final int index = getIndexById(name.id);
         if (index >= 0)
         {
@@ -234,17 +237,25 @@ public class VariableStack implements VariableAmount, Iterable<Variable>, Variab
 	    		v.setValue(value);
 	    	else
 	    		logger.error("Null value at setting variable");
-        }    
-        else if (subHeap == null || !subHeap.set(name.id, value))
-        {
-        	synchronized(this){
-         		insertVar(new Variable(name, value), -1-index);
-         	}
+	    	return v;
         }
+        if (parent != null)
+        {
+        	Variable v = parent.assign(name.id, value);
+        	if (v != null)
+        	{
+        		return v;
+        	}
+        }
+    	Variable v = new Variable(name, value);
+    	synchronized(this){
+     		insertVar(v, -1-index);
+     	}
+    	return v;
     }
     
-   @Override
-	public void setOrAddLocal(Variable arg) {
+    @Override
+	public void replaceAddLocal(Variable arg) {
        final int index = getIndexById(arg.nameId);
        if (index >= 0)
        {
@@ -259,7 +270,7 @@ public class VariableStack implements VariableAmount, Iterable<Variable>, Variab
 	    		logger.error("Null value at setting variable");
     		}
        }    
-       else if (subHeap == null || !subHeap.set(arg))
+       else if (parent == null || !parent.assign(arg))
        {
        		synchronized(this){
         		insertVar(arg, -1-index);
@@ -276,9 +287,9 @@ public class VariableStack implements VariableAmount, Iterable<Variable>, Variab
      * Fuegt die Variable hinzu oder ersetzt die alte
      */
     @Override
-	public final void setGlobal (Variable v){
-    	if (subHeap != null){
-    		subHeap.setGlobal(v);
+	public final void replaceAddGlobal (Variable v){
+    	if (parent != null){
+    		parent.replaceAddGlobal(v);
     		return;
     	}
         final int index = getIndexById(v.nameId);
@@ -290,6 +301,28 @@ public class VariableStack implements VariableAmount, Iterable<Variable>, Variab
 	    	variable[index].removeAllVariableListener(this);
 	        (variable[index] = v).addVariableListener(this);
 	        modCount ++;
+        }
+    }
+    
+    /**
+     * Fuegt die Variable hinzu oder ersetzt die alte
+     */
+    @Override
+	public final Variable assignAddGlobal (Variable v){
+    	if (parent != null){
+    		return parent.assignAddGlobal(v);
+    	}
+        final int index = getIndexById(v.nameId);
+        if (index < 0){
+        	synchronized(this){
+        		insertVar(v, -1-index);
+        	}
+        	return v;
+	    }else{
+	    	Variable inStack = variable[index];
+	    	inStack.setValue(v.getValue());
+	        modCount ++;
+	        return inStack;
         }
     }
     
@@ -322,7 +355,7 @@ public class VariableStack implements VariableAmount, Iterable<Variable>, Variab
 	public synchronized boolean delById (int id){
     	final int index = getIndexById(id);
     	if (index < 0)
-    		return subHeap == null ? subHeap.delById(id) : false;
+    		return parent == null ? parent.delById(id) : false;
     	del(index);
     	return true;
     }
@@ -346,7 +379,7 @@ public class VariableStack implements VariableAmount, Iterable<Variable>, Variab
      */
     @Override
 	public final int size(){
-        return subHeap == null ? length : subHeap.size() + length;
+        return parent == null ? length : parent.size() + length;
     }
     
     public final int sizeLocal(){
@@ -412,19 +445,19 @@ public class VariableStack implements VariableAmount, Iterable<Variable>, Variab
 	@Override
 	public final Variable getById(int nameId) {
     	final int index = getIndexById(nameId);
-    	return index < 0 ? (subHeap != null ? subHeap.getById(nameId) : null) :  variable[index];
+    	return index < 0 ? (parent != null ? parent.getById(nameId) : null) :  variable[index];
 	}
     
 	@Override
 	public final Variable getById(int nameId, int operandCount) {
     	final int index = getIndexById(nameId, operandCount);
-    	return index < 0 ? (subHeap != null ? subHeap.getById(nameId) : null) :  variable[index];
+    	return index < 0 ? (parent != null ? parent.getById(nameId) : null) :  variable[index];
 	}
     
     @Override
 	public final Variable get (String name){
     	final int index = getIndex(name);
-    	return index < 0 ? (subHeap != null ? subHeap.get(name) : null) :  variable[index];
+    	return index < 0 ? (parent != null ? parent.get(name) : null) :  variable[index];
     }
 
     public final Variable getLocal (String name){

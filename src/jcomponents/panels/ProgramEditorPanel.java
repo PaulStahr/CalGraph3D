@@ -209,7 +209,7 @@ public class ProgramEditorPanel extends InterfacePanel implements ActionListener
 			if (source == buttonOk)
 			{
 				try {
-					stack.setGlobal(new Variable(textFieldName.getText(), "program(\"" + textArea.getText() + '\"' + ')'));
+					stack.replaceAddGlobal(new Variable(textFieldName.getText(), "program(\"" + textArea.getText() + '\"' + ')'));
 				} catch (OperationParseException e) {
 					e.printStackTrace();
 				}

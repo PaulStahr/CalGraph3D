@@ -46,6 +46,7 @@ import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
@@ -349,5 +350,14 @@ public class JFrameUtils{
 		{
 			volumes.setSelectedItem(ovo);
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <E> E[] getComponents(JPanel pipelinePanel, E[] components) {
+		for (int i = 0; i < components.length; ++i)
+		{
+			components[i] = (E)pipelinePanel.getComponent(i);
+		}
+		return components;
 	}
 }

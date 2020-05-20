@@ -7,6 +7,7 @@ import java.lang.ref.WeakReference;
 import java.util.Arrays;
 
 import javax.imageio.ImageIO;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,6 +59,7 @@ public interface VideoImageSupplier {
 			return res;
 		}
 		
+		@Override
 		public void run()
 		{
 			try
@@ -100,6 +102,7 @@ public interface VideoImageSupplier {
 			this.ip = ip;
 		}
 		
+		@Override
 		public synchronized BufferedImage load(int frame)
 		{
 			ip.setT(frame);
@@ -115,13 +118,12 @@ public interface VideoImageSupplier {
 		{
 			super(files.length);
 			this.files = files;
-			System.out.println(Arrays.toString(files));
+			if (logger.isDebugEnabled()) {logger.debug(Arrays.toString(files));}
 		}
 		
+		@Override
 		public BufferedImage load(int frame) throws IOException
 		{
-			//System.out.println("loadframe " + frame + ":" + files[frame]);
-
 			return ImageIO.read(files[frame]);
 		}
 	}

@@ -238,7 +238,7 @@ public class SceneIO {
 	    		elem = new Element("Pipeline");
 	    		for (CalculationStep step : pipeline.steps)
 	    		{
-	    			if (step instanceof CalculationCalcuationStep)
+	    			if (step instanceof GenerationCalculationStep)
 	    			{
 	    				GenerationCalculationStep gps = (GenerationCalculationStep)step;
 	    				Element child = new Element("Generate");

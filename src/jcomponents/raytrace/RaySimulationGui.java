@@ -74,6 +74,7 @@ import javax.swing.DefaultCellEditor;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.GroupLayout;
 import javax.swing.JCheckBox;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
@@ -124,6 +125,8 @@ import data.raytrace.RaySimulation.MaterialType;
 import data.raytrace.RaySimulation.SurfaceType;
 import data.raytrace.RaytraceScene;
 import data.raytrace.RaytraceScene.RaySimulationObject;
+import data.raytrace.RaytraceSession;
+import data.raytrace.RaytraceSession.CommandExecutionListener;
 import data.raytrace.SurfaceObject;
 import data.raytrace.TextureMapping;
 import data.raytrace.raygen.ImageRayGenerator;
@@ -176,7 +179,7 @@ import util.data.UniqueObjects;
 * @author  Paul Stahr
 * @version 04.02.2012
 */
-public class RaySimulationGui extends JFrame implements GuiTextureObject.TextureObjectChangeListener, GuiOpticalVolumeObject.OpticalVolumeObjectChangeListener, GuiOpticalSurfaceObject.OpticalSurfaceObjectChangeListener, MeshObjectChangeListener, ActionListener, ItemListener, RaytraceScene.SceneChangeListener, TableModelListener, ListSelectionListener, WindowListener, DataChangeListener, ContainerListener
+public class RaySimulationGui extends JFrame implements GuiTextureObject.TextureObjectChangeListener, GuiOpticalVolumeObject.OpticalVolumeObjectChangeListener, GuiOpticalSurfaceObject.OpticalSurfaceObjectChangeListener, MeshObjectChangeListener, ActionListener, ItemListener, RaytraceScene.SceneChangeListener, TableModelListener, ListSelectionListener, WindowListener, DataChangeListener, ContainerListener, CommandExecutionListener
 {
 	private static final long serialVersionUID = -8104574201311985756L;
 	private static final Logger logger = LoggerFactory.getLogger(RaySimulationGui.class);
@@ -252,6 +255,8 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
     private final JMenuItem menuItemVolumePipeline = new JMenuItem("Volume Pipeline");
     private final JMenuItem menuItemPointCloudVisualisation = new JMenuItem("Point Cloud Visualization");
     private final JMenuItem menuItemDivergenceVisualisation = new JMenuItem("Divergence Visualization");
+    private final JCheckBoxMenuItem menuItemRecordMacro = new JCheckBoxMenuItem("Record Macro");
+    private final JMenuItem menuItemRunMacro = new JMenuItem("Run Macro");
     private final LicenseMenu licenseMenu		= new LicenseMenu("Lizenzen");
 	public final JPanel panelTools = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 5));
 	private final SceneObjectLine sceneObjectTrajectories = new SceneObjectLine();
@@ -274,6 +279,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 	private static int optionModCount = 0;
 	private int oldOptionModCount = 0;
 	private static float dScale = 1;
+	private final RaytraceSession session = new RaytraceSession();
 	static{
 		Options.addModificationListener(new Runnable() {
 			
@@ -972,7 +978,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		}
 		else if (source == menuItemStackPositionProcessor)
 		{
-			new StackPositionProcessorWindow(scene).setVisible(true);
+			new StackPositionProcessorWindow(scene, session).setVisible(true);
 		}
 		else if (source == menuItemParameterAnalysis)
 		{
@@ -1139,7 +1145,39 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 				System.out.println(Arrays.toString(result));
 			}*/	
 		}
+		else if (source == menuItemRecordMacro)
+		{
+			if (menuItemRecordMacro.isSelected())
+			{
+				session.addListener(this);				
+			}
+			else
+			{
+				session.removeListener(this);
+				MacroWindow mw = new MacroWindow(scene, session);
+				StringBuilder strB = new StringBuilder();
+				for (int i = 0; i < executedCommands.size(); ++i)
+				{
+					strB.append(executedCommands.get(i)).append('\n');
+				}
+				mw.textArea.setText(strB.toString());
+				executedCommands.clear();
+				mw.setVisible(true);
+			}
+		}
+		else if (source == menuItemRunMacro)
+		{
+			MacroWindow mw = new MacroWindow(scene, session);
+			mw.setVisible(true);
+		}
 	}
+    
+    private final ArrayList<String> executedCommands = new ArrayList<String>();
+    
+    @Override
+	public void commandExecuted(String command) {
+    	executedCommands.add(command);
+    }
      
     public void getSelectedLights(ArrayList<OpticalSurfaceObject> objects)
     {
@@ -1480,6 +1518,8 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
     	addTo(menuItemExtras,menuItemVolumePipeline);
     	addTo(menuItemExtras,menuItemPointCloudVisualisation);
     	addTo(menuItemExtras,menuItemDivergenceVisualisation);
+    	addTo(menuItemExtras,menuItemRecordMacro);
+    	addTo(menuItemExtras,menuItemRunMacro);
     	menuItemExtras.add(licenseMenu);
     	menuBar.add(menuFile);
     	menuBar.add(menuEdit);

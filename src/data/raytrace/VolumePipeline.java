@@ -28,7 +28,6 @@ public class VolumePipeline implements Runnable {
 	private final ArrayList<WeakReference<Runnable> > updateListener = new ArrayList<>();
 	public final ArrayList<CalculationStep> steps = new ArrayList<>();
 	boolean calculating;
-	int currentCalculatingStep;
 	public OpticalVolumeObject ovo;
 	public final RaytraceScene scene;
 	public boolean calcuteAtCreation;
@@ -54,7 +53,7 @@ public class VolumePipeline implements Runnable {
 				{
 					if (allChangedVariables.hasMatch(vIds[i]))
 					{
-						runnable.begin = Math.min(i, runnable.begin);
+						begin = Math.min(i, begin);
 						DataHandler.runnableRunner.run(runnable, false);
 						break;
 					}
@@ -76,15 +75,15 @@ public class VolumePipeline implements Runnable {
 	
 	public final VolumePipelineTimedUpdater updater;
 	private final VolumeRunnable runnable = new VolumeRunnable();
+	int begin = 0;
 	private final class VolumeRunnable extends RunnableRunner.RunnableObject {
 		public VolumeRunnable() {
 			super("VolumePipeline", null);
 		}
-		int begin = 0;
         @Override
 		public void run(){
     		try{
-    			pipe(begin);
+    			pipe();
             }catch (Exception e){
             	logger.error("Exception at calculating Graph", e);
             }
@@ -122,32 +121,14 @@ public class VolumePipeline implements Runnable {
 		updateListener.add(new WeakReference<Runnable>(runnable));
 	}
 	
-	public void removeListener(Runnable runnable)
-	{
-		ListTools.removeAll(updateListener, runnable);
-	}
+	public void removeListener(Runnable runnable){ListTools.removeAll(updateListener, runnable);}
 	
-	public boolean isCalculating()
-	{
-		return calculating;
-	}
+	public boolean isCalculating(){return calculating;}
 	
-	public int getCurrentCalculatingStep()
-	{
-		return currentCalculatingStep;
-	}
+	public int getCurrentCalculatingStep(){return begin;}
 	
-	public void updateState()
-	{
-		for (int i = 0; i < updateListener.size(); ++i)
-		{
-			Runnable current = updateListener.get(i).get();
-			if (current != null)
-			{
-				current.run();
-			}
-		}
-	}
+	public void updateState(){ListTools.run(updateListener);}
+	
 	public void updateVariableIds()
     {
     	if (vIds.length != steps.size())
@@ -189,7 +170,7 @@ public class VolumePipeline implements Runnable {
 			}
 		}
     }
-	public void pipe(int begin)
+	public void pipe()
 	{
 		calculating = true;
 		updateState();
@@ -206,29 +187,29 @@ public class VolumePipeline implements Runnable {
 		}
 		try
 		{
-			for (currentCalculatingStep = begin; currentCalculatingStep < steps.size(); ++currentCalculatingStep)
+			for (; begin < steps.size(); ++begin)
 			{
 				updateState();
-				CalculationStep ps = steps.get(currentCalculatingStep);
+				CalculationStep ps = steps.get(begin);
 				if (ps instanceof CalculationCalcuationStep)
 				{
-					if (currentCalculatingStep != 0)
+					if (begin != 0)
 					{
-						cachedSteps[currentCalculatingStep] = cachedSteps[currentCalculatingStep].readOrClone(cachedSteps[currentCalculatingStep - 1]);
+						cachedSteps[begin] = cachedSteps[begin].readOrClone(cachedSteps[begin - 1]);
 					}
 					else
 					{
 						cachedSteps[0].readOrClone(ovo.getVolume());
 					}
 					CalculationCalcuationStep cps = (CalculationCalcuationStep)ps;
-					ovo.editValues(scene.copyActiveSurfaces(), OperationCompiler.compile(cps.ior, (Operation)null), OperationCompiler.compile(cps.translucency, (Operation)null), OperationCompiler.compile(cps.givenValues, (Operation)null), OperationCompiler.compile(cps.isGiven, (Operation)null), scene.vs, cachedSteps[currentCalculatingStep]);
+					ovo.editValues(scene.copyActiveSurfaces(), OperationCompiler.compile(cps.ior, (Operation)null), OperationCompiler.compile(cps.translucency, (Operation)null), OperationCompiler.compile(cps.givenValues, (Operation)null), OperationCompiler.compile(cps.isGiven, (Operation)null), scene.vs, cachedSteps[begin]);
 				}
 				else if (ps instanceof GenerationCalculationStep)
 				{
 					GenerationCalculationStep gps = (GenerationCalculationStep)ps;
 					Controller control = new Controller();
 					int values[] = OperationCalculate.toIntArray(OperationCompiler.compile(gps.size).calculate(scene.vs, control));
-					cachedSteps[currentCalculatingStep] = new Volume(values[0], values[1], values[2]);
+					cachedSteps[begin] = new Volume(values[0], values[1], values[2]);
 				}
 			}
 			ovo.setVolume(cachedSteps[cachedSteps.length - 1]);
@@ -244,7 +225,7 @@ public class VolumePipeline implements Runnable {
 	
 	@Override
 	public void run() {
-		runnable.begin = 0;
+		begin = 0;
 		DataHandler.runnableRunner.run(runnable, false);
 	}
 

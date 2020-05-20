@@ -106,7 +106,7 @@ public final class SetOperation extends LinkingOperation
         if (b instanceof UserVariableOperation){
            	if (a.isArray())
         		a = new ArrayOperation((ArrayOperation)a);
-           	object.setOrAddLocal(nameObject, a);
+           	object.assignAddLocal(nameObject, a);
             return  a;
         }
         if (b instanceof UserFunctionOperation){
@@ -116,7 +116,7 @@ public final class SetOperation extends LinkingOperation
         			return new ExceptionOperation("Nur Variablen erlaubt");
         		ops[i] = ((UserVariableOperation)b.get(i)).nameObject;
         	}
-        	object.setOrAddLocal(new Variable(nameObject, a, ops));
+        	object.replaceAddLocal(new Variable(nameObject, a, ops));
             return  a;
         }
         return new SetOperation(a,b);
