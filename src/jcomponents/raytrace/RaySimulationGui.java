@@ -280,27 +280,28 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 	private int oldOptionModCount = 0;
 	private static float dScale = 1;
 	private final RaytraceSession session = new RaytraceSession();
+	private static final Runnable optionRunnable = new Runnable() {
+		@Override
+		public void run() {
+			optionModCount = Options.modCount();
+			Options.OptionTreeInnerNode raytrace = Options.getInnerNode("raytrace");
+			Options.OptionTreeInnerNode visible = Options.getInnerNode(raytrace, "visible");
+			drawAnchorPoints = Options.getBoolean(visible, "anchor");
+			drawDirectionVector = Options.getBoolean(visible, "direction");
+			drawFocalpoints = Options.getBoolean(visible, "focalpoint");
+			drawMeasure = Options.getBoolean(visible, "measure");
+			dScale = Options.getFloat(raytrace, "dscale");
+			int invisibleAlpha = Options.getInteger(raytrace, "invisible_alpha");
+			LENSE_INVISIBLE = new Color(0,0,0,invisibleAlpha);
+			EMISSION_INVISIBLE = new Color(0,0,0, invisibleAlpha);
+			int rayAlpha = Options.getInteger(raytrace, "ray_alpha");
+			RAY_RED = new Color(255,0,0,rayAlpha);
+			RAY_BLACK = new Color(0,0,0,rayAlpha);
+		}
+	};
 	static{
-		Options.addModificationListener(new Runnable() {
-			
-			@Override
-			public void run() {
-				optionModCount = Options.modCount();
-				Options.OptionTreeInnerNode raytrace = Options.getInnerNode("raytrace");
-				Options.OptionTreeInnerNode visible = Options.getInnerNode(raytrace, "visible");
-				drawAnchorPoints = Options.getBoolean(visible, "anchor");
-				drawDirectionVector = Options.getBoolean(visible, "direction");
-				drawFocalpoints = Options.getBoolean(visible, "focalpoint");
-				drawMeasure = Options.getBoolean(visible, "measure");
-				dScale = Options.getFloat(raytrace, "dscale");
-				int invisibleAlpha = Options.getInteger(raytrace, "invisible_alpha");
-				LENSE_INVISIBLE = new Color(0,0,0,invisibleAlpha);
-				EMISSION_INVISIBLE = new Color(0,0,0, invisibleAlpha);
-				int rayAlpha = Options.getInteger(raytrace, "ray_alpha");
-				RAY_RED = new Color(255,0,0,rayAlpha);
-				RAY_BLACK = new Color(0,0,0,rayAlpha);				
-			}
-		});
+		Options.addModificationListener(optionRunnable);
+		DataHandler.runnableRunner.run(optionRunnable, "Gui Load Options");
 	}
 	
 	public final TimedUpdateHandler rayUpdateHandler = new TimedUpdateHandler() {

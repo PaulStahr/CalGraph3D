@@ -198,7 +198,7 @@ public class Interface extends JFrame implements Graph.GraphListener, ActionList
     private static final ListenerSingleton ls = new ListenerSingleton();
     
 	static{
-		Options.addModificationListener(ls);
+		Options.addInvokeModificationListener(ls);
 	}
     private final TimedUpdateHandler graphUpdateHandler = new TimedUpdateHandler() {
     	
@@ -381,7 +381,7 @@ public class Interface extends JFrame implements Graph.GraphListener, ActionList
 			if (c instanceof JMenu)
 				addRedrawListener((JMenu)c);
 		}
-		Options.addModificationListener(this);
+		Options.addInvokeModificationListener(this);
     }
     
     @Override

@@ -344,10 +344,15 @@ public abstract class Options
         return modCount;
     }
     
-    public synchronized static void addModificationListener(Runnable runnable)
+    public synchronized static void addInvokeModificationListener(Runnable runnable)
     {
     	oml.add(runnable);
     	runnable.run();
+    }
+    
+    public synchronized static void addModificationListener(Runnable runnable)
+    {
+    	oml.add(runnable);
     }
     
     private static final boolean save(){

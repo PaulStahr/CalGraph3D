@@ -69,8 +69,6 @@ import util.TimedUpdateHandler;
 public class Main
 {
 	static {
-
-
 		LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
 		loggerContext.reset();
 		JoranConfigurator configurator = new JoranConfigurator();
@@ -80,11 +78,11 @@ public class Main
 			configurator.setContext(loggerContext);
 			configurator.doConfigure(configStream); // loads logback file
 			configStream.close();
-			} catch (IOException e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (JoranException e) {
-				e.printStackTrace();
-			}
+			e.printStackTrace();
+		}
 		
 
 
