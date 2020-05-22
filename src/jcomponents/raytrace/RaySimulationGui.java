@@ -682,19 +682,19 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
     	JFrameUtils.logErrorAndShow(text, e, logger);
     }
     
- 	private final ButtonColumn surfaceDeleteColumn = new ButtonColumn(tableSurfaces,tableAction, GuiOpticalSurfaceObject.TYPES.getVisibleColumnNumber(SCENE_OBJECT_COLUMN_TYPE.DELETE));
- 	private final ButtonColumn volumeDeleteColumn = new ButtonColumn(tableVolumes,tableAction, GuiOpticalVolumeObject.TYPES.getVisibleColumnNumber(SCENE_OBJECT_COLUMN_TYPE.DELETE));
- 	private final ButtonColumn volumeLoadColumn = new ButtonColumn(tableVolumes,tableAction, GuiOpticalVolumeObject.TYPES.getVisibleColumnNumber(SCENE_OBJECT_COLUMN_TYPE.LOAD));
- 	private final ButtonColumn volumeViewColumn = new ButtonColumn(tableVolumes,tableAction, GuiOpticalVolumeObject.TYPES.getVisibleColumnNumber(SCENE_OBJECT_COLUMN_TYPE.VIEW));
- 	private final ButtonColumn texturOpenColumn = new ButtonColumn(tableTextures,tableAction, GuiTextureObject.TYPES.getVisibleColumnNumber(SCENE_OBJECT_COLUMN_TYPE.OPEN));
- 	private final ButtonColumn texturLoadColumn = new ButtonColumn(tableTextures,tableAction, GuiTextureObject.TYPES.getVisibleColumnNumber(SCENE_OBJECT_COLUMN_TYPE.LOAD));
- 	private final ButtonColumn texturSaveColumn = new ButtonColumn(tableTextures,tableAction, GuiTextureObject.TYPES.getVisibleColumnNumber(SCENE_OBJECT_COLUMN_TYPE.SAVE));
- 	private final ButtonColumn texturSaveToColumn = new ButtonColumn(tableTextures,tableAction, GuiTextureObject.TYPES.getVisibleColumnNumber(SCENE_OBJECT_COLUMN_TYPE.SAVE_TO));
- 	private final ButtonColumn texturViewColumn = new ButtonColumn(tableTextures,tableAction, GuiTextureObject.TYPES.getVisibleColumnNumber(SCENE_OBJECT_COLUMN_TYPE.VIEW));
- 	private final ButtonColumn texturDeleteColumn = new ButtonColumn(tableTextures,tableAction, GuiTextureObject.TYPES.getVisibleColumnNumber(SCENE_OBJECT_COLUMN_TYPE.DELETE));
- 	private final ButtonColumn meshDeleteColumn = new ButtonColumn(tableMeshes,tableAction, MeshObject.TYPES.getVisibleColumnNumber(SCENE_OBJECT_COLUMN_TYPE.DELETE));
- 	private final ButtonColumn meshOpenColumn = new ButtonColumn(tableMeshes,tableAction, MeshObject.TYPES.getVisibleColumnNumber(SCENE_OBJECT_COLUMN_TYPE.OPEN));
- 	private final ButtonColumn meshSaveColumn = new ButtonColumn(tableMeshes,tableAction, MeshObject.TYPES.getVisibleColumnNumber(SCENE_OBJECT_COLUMN_TYPE.SAVE_TO));
+ 	private final ButtonColumn surfaceDeleteColumn 	= new ButtonColumn(tableSurfaces,tableAction, 	GuiOpticalSurfaceObject.TYPES.getVisibleColumnNumber(SCENE_OBJECT_COLUMN_TYPE.DELETE));
+ 	private final ButtonColumn volumeDeleteColumn 	= new ButtonColumn(tableVolumes,tableAction, 	GuiOpticalVolumeObject.TYPES.getVisibleColumnNumber(SCENE_OBJECT_COLUMN_TYPE.DELETE));
+ 	private final ButtonColumn volumeLoadColumn 	= new ButtonColumn(tableVolumes,tableAction, 	GuiOpticalVolumeObject.TYPES.getVisibleColumnNumber(SCENE_OBJECT_COLUMN_TYPE.LOAD));
+ 	private final ButtonColumn volumeViewColumn 	= new ButtonColumn(tableVolumes,tableAction, 	GuiOpticalVolumeObject.TYPES.getVisibleColumnNumber(SCENE_OBJECT_COLUMN_TYPE.VIEW));
+ 	private final ButtonColumn texturOpenColumn	 	= new ButtonColumn(tableTextures,tableAction,	GuiTextureObject.TYPES.getVisibleColumnNumber(SCENE_OBJECT_COLUMN_TYPE.OPEN));
+ 	private final ButtonColumn texturLoadColumn 	= new ButtonColumn(tableTextures,tableAction,	GuiTextureObject.TYPES.getVisibleColumnNumber(SCENE_OBJECT_COLUMN_TYPE.LOAD));
+ 	private final ButtonColumn texturSaveColumn 	= new ButtonColumn(tableTextures,tableAction,	GuiTextureObject.TYPES.getVisibleColumnNumber(SCENE_OBJECT_COLUMN_TYPE.SAVE));
+ 	private final ButtonColumn texturSaveToColumn 	= new ButtonColumn(tableTextures,tableAction,	GuiTextureObject.TYPES.getVisibleColumnNumber(SCENE_OBJECT_COLUMN_TYPE.SAVE_TO));
+ 	private final ButtonColumn texturViewColumn 	= new ButtonColumn(tableTextures,tableAction,	 GuiTextureObject.TYPES.getVisibleColumnNumber(SCENE_OBJECT_COLUMN_TYPE.VIEW));
+ 	private final ButtonColumn texturDeleteColumn 	= new ButtonColumn(tableTextures,tableAction, 	GuiTextureObject.TYPES.getVisibleColumnNumber(SCENE_OBJECT_COLUMN_TYPE.DELETE));
+ 	private final ButtonColumn meshDeleteColumn 	= new ButtonColumn(tableMeshes,tableAction, 	MeshObject.TYPES.getVisibleColumnNumber(SCENE_OBJECT_COLUMN_TYPE.DELETE));
+ 	private final ButtonColumn meshOpenColumn 		= new ButtonColumn(tableMeshes,tableAction, 	MeshObject.TYPES.getVisibleColumnNumber(SCENE_OBJECT_COLUMN_TYPE.OPEN));
+ 	private final ButtonColumn meshSaveColumn 		= new ButtonColumn(tableMeshes,tableAction, 	MeshObject.TYPES.getVisibleColumnNumber(SCENE_OBJECT_COLUMN_TYPE.SAVE_TO));
 	public VolumePipelines volumePipelines;
 	private final JPanel selectedObjectPanel = new JPanel();
 	private final GroupLayout layout;

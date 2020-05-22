@@ -134,6 +134,13 @@ public class RaytraceCommandLine {
 				}
 				break;
 			}
+			case "sleep":
+			{
+				try
+				{
+					Thread.sleep(Integer.parseInt(split.get(1)));
+				}catch(InterruptedException e) {}
+			}
 			case "texture":
 			{
 				RaytraceScene scene = RaytraceScene.getScene(split.get(1));

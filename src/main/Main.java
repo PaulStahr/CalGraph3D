@@ -56,6 +56,7 @@ import data.DataHandler;
 import data.Options;
 import data.ProgrammData;
 import data.raytrace.RaytraceCommandLine;
+import data.raytrace.RaytraceCommandLine.ExecEnv;
 import debug.SpeedTests;
 import jcomponents.ActivateWindow;
 import jcomponents.CalculatorWindow;
@@ -108,7 +109,8 @@ public class Main
     	boolean rayconsole = false;
     	boolean calculator = false;
     	boolean raysim = true;
-		for (String arg : args){
+    	for (int i = 0; i < args.length; ++i){
+			String arg = args[i];
 			if (loadNext){
 				loadProject = arg;
 			}
@@ -142,6 +144,15 @@ public class Main
 				}else if (sub.equals("load")){			loadNext = true;
 				}else if (sub.equals("calculator")){	calculator = true;
 				}else if (sub.equals("calgraph")){		raysim = false;
+				}else if (sub.equals("exec"))
+				{
+					RaytraceCommandLine cmd = new RaytraceCommandLine();
+					ExecEnv env = new ExecEnv(new File("./"));
+					try {
+						cmd.exec(args[++i], new BufferedWriter(new OutputStreamWriter(System.out)), new ArrayList<String>(), env);
+					} catch (IOException e) {
+						logger.error("Error at running script", e);
+					}
 				}else if (sub.equals("version")){
 					System.out.println("version" + ':' + ProgrammData.getVersion());
 					System.exit(0);
