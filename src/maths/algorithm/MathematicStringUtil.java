@@ -126,7 +126,7 @@ public class MathematicStringUtil
     }
 
     public static int lastIndexOf (CharSequence str, int begin, int end, char c){
-        int deth = 0;
+    	int deth = 0;
         boolean isStr = false;
         for (int i=end-1;i>=begin;i--){
             final char charAt = str.charAt(i);
@@ -142,8 +142,8 @@ public class MathematicStringUtil
 	            	case ')':
 	            	case '}':
 	            	case ']': deth--;break;
-                	default: if (deth == 0 && charAt == c) return i;
                 }
+                if (deth == 0 && charAt == c) return i;
             }
         }
         return -1;

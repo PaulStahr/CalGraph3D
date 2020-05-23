@@ -419,7 +419,7 @@ public final class OperationCompiler
 	    	case '!':{
 	    		return new Fakultaet(compileRek(str, begin ,end - 1, opt));
 	    	}case ']':{
-	    		final int index = StringUtils.lastIndexOf(str, begin, end, '[');
+	    		final int index = MathematicStringUtil.lastIndexOf(str, begin, end, '[');//TODO
 	            if (index != -1 && MathematicStringUtil.onlyBrackets(str, index, end, '[', ']'))
 	                return new ArrayIndexOperation(compileRek(str, begin, index, opt), compileRek(str, index + 1, end - 1, opt));
 	            break;
