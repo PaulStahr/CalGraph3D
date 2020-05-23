@@ -91,7 +91,7 @@ public class Main
 	
     private static final String neededJavaVersion = "1.7";
 	private static boolean activated;
-	private static boolean forceActivateWindow = false;
+	private static int forceActivateWindow = 0;
 	private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
 	//while(b,set(t,t+0.00001);set(i,int(rand()*(kard(a)-2))+1);set(j,int(rand()*(kard(a[i])-2))+1);set(a[i][j],(a[i-1][j]+a[i][j-1]+a[i+1][j]+a[i][j+1])*0.25+cos(t+(i+j)*0.1)*0.5+if(i<40˄i>30˄j<40˄j>30,c,0)))
@@ -129,8 +129,8 @@ public class Main
 						}
 					} catch (IOException e) {logger.error("Can't print help", e);}
 					System.exit(0);
-				}else if (sub.equals("activate")){
-					forceActivateWindow = true;
+				}else if (sub.equals("activate")){forceActivateWindow = 1;
+				}else if (sub.equals("nactivate")){forceActivateWindow = -1;
 				}else if (sub.equals("speedtest")){
 					try {
 						SpeedTests.test();
@@ -191,7 +191,7 @@ public class Main
 		}
 		try{
 			init();
-    		if ((!activated && Options.getBoolean("show_actiavation_at_start", true)) || forceActivateWindow){
+    		if ((!activated && Options.getBoolean("show_actiavation_at_start", true) && forceActivateWindow != -1) || forceActivateWindow == 1){
 	    		JFrame frame = ActivateWindow.getInstance();
 	    		frame.setVisible(true);
 	    		while(frame.isVisible()){
