@@ -270,6 +270,7 @@ public class RaytraceCommandLine {
 				}
 				break;
 			}
+			case "exit":System.exit(0);break;
 			case "":	break;
 			//default:	Logger.error("Unknown command", split.get(0));
 		}
