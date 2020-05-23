@@ -44,7 +44,15 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.management.ManagementFactory;
+import java.lang.management.OperatingSystemMXBean;
+import java.lang.ref.WeakReference;
+import java.math.BigInteger;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
+import javax.imageio.ImageIO;
 import javax.swing.GroupLayout;
 import javax.swing.Icon;
 import javax.swing.JButton;
@@ -61,22 +69,6 @@ import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 import javax.swing.filechooser.FileFilter;
 
-import java.lang.management.ManagementFactory;
-import java.lang.management.OperatingSystemMXBean;
-import java.lang.ref.WeakReference;
-import java.math.BigInteger;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-
-import io.ObjectExporter;
-
-import javax.imageio.ImageIO;
-
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.jdom2.JDOMException;
-import org.jdom2.input.SAXBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,6 +77,11 @@ import data.GlobalEventListener;
 import data.Options;
 import data.ProgramIcons;
 import data.ProgrammData;
+import io.ObjectExporter;
+import jcomponents.panels.InterfacePanel;
+import jcomponents.panels.InterfacePanelFactory;
+import jcomponents.util.AddToolMenuItem;
+import jcomponents.util.StandartFCFileFilter;
 import maths.VariableStack;
 import maths.VariableStack.VariableObserver.PendendList;
 import net.ProgramWebServers;
@@ -95,14 +92,10 @@ import opengl.jogamp.JoglCanvas;
 import opengl.lwjgl.LwjglOpenGl;
 import scene.Scene;
 import util.JFrameUtils;
+import util.RunnableSupplier;
 import util.StringUtils;
 import util.TimedUpdateHandler;
 import util.data.SortedIntegerList;
-import util.RunnableSupplier;
-import jcomponents.panels.InterfacePanel;
-import jcomponents.panels.InterfacePanelFactory;
-import jcomponents.util.AddToolMenuItem;
-import jcomponents.util.StandartFCFileFilter;
 /**
  * This class is the main window of the Project
  * 
@@ -614,6 +607,7 @@ public class Interface extends JFrame implements Graph.GraphListener, ActionList
         private final JMenuItem newVersionAviableMenuItem = new JMenuItem("Neue Version Verf\u00FCgbar!");
         private final JMenuItem activateProductMenuItem	= new JMenuItem("Produkt aktivieren");
 
+		@Override
 		public void actionPerformed(ActionEvent ae){
 			Object source = ae.getSource();
 			if (source == showToolsMenuItem)

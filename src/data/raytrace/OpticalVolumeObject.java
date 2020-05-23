@@ -826,7 +826,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			if (native_raytrace)
 			{
 				VolumeRaytraceOptions opt = new VolumeRaytraceOptions();
-				opt.setWriteInstance(true);
+				opt.setWriteInstance(false);
 				opt.setLoglevel(-4);
 				vs = res = new VolumeScene(bounds, ior, translucency, opt);
 			}
@@ -867,7 +867,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			if (options == null)
 			{
 				options = new VolumeRaytraceOptions();
-				options.setWriteInstance(true);
+				options.setWriteInstance(false);
 			}
 			options.setLoglevel(-4);
 			vs.traceRays(startPosition, startDirection, scale, 0, 8000, false, options);
@@ -942,7 +942,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			if (options == null)
 			{
 				options = new VolumeRaytraceOptions();
-				options.setWriteInstance(true);
+				options.setWriteInstance(false);
 				options.setLoglevel(-4);
 			}
 			vs.traceRays(startPosition, startDirection, scale, 0, 8000, false, options);
@@ -1025,7 +1025,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			if (options == null)
 			{
 				options = new VolumeRaytraceOptions();
-				options.setWriteInstance(true);
+				options.setWriteInstance(false);
 				options.setLoglevel(-4);
 			}
 			vs.traceRays(startPosition, startDirection, scale, 0, 8000, false, options );

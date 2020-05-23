@@ -57,6 +57,7 @@ import data.Options;
 import data.ProgrammData;
 import data.raytrace.RaytraceCommandLine;
 import data.raytrace.RaytraceCommandLine.ExecEnv;
+import data.raytrace.RaytraceScene;
 import debug.SpeedTests;
 import jcomponents.ActivateWindow;
 import jcomponents.CalculatorWindow;
@@ -107,6 +108,7 @@ public class Main
     	boolean rayconsole = false;
     	boolean calculator = false;
     	boolean raysim = true;
+    	ArrayList<String> execList = new ArrayList<>();
     	for (int i = 0; i < args.length; ++i){
 			String arg = args[i];
 			if (loadNext){
@@ -142,15 +144,7 @@ public class Main
 				}else if (sub.equals("load")){			loadNext = true;
 				}else if (sub.equals("calculator")){	calculator = true;
 				}else if (sub.equals("calgraph")){		raysim = false;
-				}else if (sub.equals("exec"))
-				{
-					RaytraceCommandLine cmd = new RaytraceCommandLine();
-					ExecEnv env = new ExecEnv(new File("./"));
-					try {
-						cmd.exec(args[++i], new BufferedWriter(new OutputStreamWriter(System.out)), new ArrayList<String>(), env);
-					} catch (IOException e) {
-						logger.error("Error at running script", e);
-					}
+				}else if (sub.equals("exec")){			execList.add(args[++i]);
 				}else if (sub.equals("version")){
 					System.out.println("version" + ':' + ProgrammData.getVersion());
 					System.exit(0);
@@ -158,6 +152,8 @@ public class Main
 					for (String str:ProgrammData.authors)
 						System.out.println(str);
 					System.exit(0);
+				}else{
+					System.out.println("Unknown command-line argument " + arg);
 				}
 					
 			}
@@ -206,7 +202,7 @@ public class Main
 	    	}
     		if (raysim)
     		{
-    			RaySimulationGui gui = new RaySimulationGui();
+    			RaySimulationGui gui = new RaySimulationGui(new RaytraceScene("Unnamed"));
     			gui.setVisible(true);
     		}
     		else
@@ -221,6 +217,17 @@ public class Main
     			{
     				DataHandler.reset(interfaceInstance);
     			}
+    		}
+    		for (int i = 0; i < execList.size(); ++i)
+    		{
+    			RaytraceCommandLine cmd = new RaytraceCommandLine();
+				ExecEnv env = new ExecEnv(new File("./"));
+				System.out.println("exec:" + execList.get(i));
+				try {
+					cmd.exec(execList.get(i), new BufferedWriter(new OutputStreamWriter(System.out)), new ArrayList<String>(), env);
+				} catch (IOException e) {
+					logger.error("Error at running script", e);
+				}
     		}
     	}catch(Exception e){
     		logger.error("Program must exit", e);

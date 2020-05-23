@@ -55,6 +55,7 @@ public class RaytraceCommandLine {
 			case "help":
 			{
 				out.write("load\nmodify\nstp");
+				break;
 			}
 			case "math":
 			{
@@ -71,9 +72,10 @@ public class RaytraceCommandLine {
 			}
 			case "load":
 			{
-				RaySimulationGui gui = new RaySimulationGui();
-				FileInputStream fis = new FileInputStream(split.get(1));
+				RaySimulationGui gui = new RaySimulationGui(new RaytraceScene(split.get(1)));
+				FileInputStream fis = new FileInputStream(split.get(2));
 				try {
+					gui.clear();
 					SceneIO.loadScene(fis, gui.scene, gui);
 				} catch (JDOMException e) {
 					out.write(e.toString());
@@ -83,31 +85,52 @@ public class RaytraceCommandLine {
 					fis.close();
 				}
 				gui.setVisible(true);
+				break;
+			}
+			case "echo":
+			{
+				for (int i = 1; i < split.size(); ++i)
+				{
+					System.out.println(split.get(i));
+				}
+				break;
 			}
 			case "run":
 			{
 				FileInputStream inStream = new FileInputStream(split.get(1));
 				RaytraceCommandLine rcmd = new RaytraceCommandLine();
-				ExecEnv subenv = new ExecEnv(new File(split.get(1)));
+				ExecEnv subenv = new ExecEnv(new File(split.get(1)).getParentFile());
 				rcmd.run(inStream, out, split.subList(1, split.size()), subenv);
 				inStream.close();
+				break;
 			}
 			case "surface":
 			{
+				if (split.size() < 4)
+				{
+					throw new RuntimeException("Not enough arguments " + command);
+				}
 				RaytraceScene scene = RaytraceScene.getScene(split.get(1));
 				if (scene == null)
 				{
 					out.write(new NullPointerException("Scene not found").toString());
+					out.flush();
 				}
 				else
 				{
-					OpticalObject obj = scene.getSurfaceObject(split.get(1));
-					if (obj != null)
+					OpticalObject obj = scene.getSurfaceObject(split.get(2));
+					if (obj == null)
+					{
+						out.write(new NullPointerException("Object not found").toString());
+						out.flush();
+					}
+					else
 					{
 						try {
-							obj.setValue(OpticalObject.SCENE_OBJECT_COLUMN_TYPE.getByName(split.get(2)), split.get(3), scene.vs, parser);
+							obj.setValue(OpticalObject.SCENE_OBJECT_COLUMN_TYPE.getByName(split.get(3)), split.get(4), scene.vs, parser);
 						} catch (NumberFormatException | OperationParseException e) {
 							out.write(e.toString());
+							out.flush();
 						}
 					}
 				}
@@ -115,20 +138,63 @@ public class RaytraceCommandLine {
 			}
 			case "volume":
 			{
+				if (split.size() < 4)
+				{
+					throw new RuntimeException("Not enough arguments " + command);
+				}
 				RaytraceScene scene = RaytraceScene.getScene(split.get(1));
 				if (scene == null)
 				{
 					out.write(new NullPointerException("Scene not found").toString());
+					out.flush();
 				}
 				else
 				{
-					OpticalObject obj = scene.getVolumeObject(split.get(1));
-					if (obj != null)
+					OpticalObject obj = scene.getVolumeObject(split.get(2));
+					if (obj == null)
+					{
+						out.write(new NullPointerException("Object not found").toString());
+						out.flush();
+					}
+					else
 					{
 						try {
-							obj.setValue(OpticalObject.SCENE_OBJECT_COLUMN_TYPE.getByName(split.get(2)), split.get(3), scene.vs, parser);
+							obj.setValue(OpticalObject.SCENE_OBJECT_COLUMN_TYPE.getByName(split.get(3)), split.get(4), scene.vs, parser);
 						} catch (NumberFormatException | OperationParseException e) {
 							out.write(e.toString());
+							out.flush();
+						}
+					}
+				}
+				break;
+			}
+			case "texture":
+			{
+				if (split.size() < 4)
+				{
+					throw new RuntimeException("Not enough arguments " + command);
+				}
+				RaytraceScene scene = RaytraceScene.getScene(split.get(1));
+				if (scene == null)
+				{
+					out.write(new NullPointerException("Scene not found").toString());
+					out.flush();
+				}
+				else
+				{
+					OpticalObject obj = scene.getTexture(split.get(2));
+					if (obj == null)
+					{
+						out.write(new NullPointerException("Object not found").toString());
+						out.flush();
+					}
+					else
+					{
+						try {
+							obj.setValue(OpticalObject.SCENE_OBJECT_COLUMN_TYPE.getByName(split.get(3)), split.get(4), scene.vs, parser);
+						} catch (NumberFormatException | OperationParseException e) {
+							out.write(e.toString());
+							out.flush();
 						}
 					}
 				}
@@ -140,30 +206,6 @@ public class RaytraceCommandLine {
 				{
 					Thread.sleep(Integer.parseInt(split.get(1)));
 				}catch(InterruptedException e) {}
-			}
-			case "texture":
-			{
-				RaytraceScene scene = RaytraceScene.getScene(split.get(1));
-				if (scene == null)
-				{
-					out.write(new NullPointerException("Scene not found").toString());
-				}
-				else
-				{
-					OpticalObject obj = scene.getTexture(split.get(1));
-					if (obj == null)
-					{
-						out.write(new NullPointerException("Object not found").toString());
-					}
-					else
-					{
-						try {
-							obj.setValue(OpticalObject.SCENE_OBJECT_COLUMN_TYPE.getByName(split.get(2)), split.get(3), scene.vs, parser);
-						} catch (NumberFormatException | OperationParseException e) {
-							out.write(e.toString());
-						}
-					}
-				}
 				break;
 			}
 			case "stp":
@@ -242,6 +284,7 @@ public class RaytraceCommandLine {
 	
 	public void run(InputStream in, BufferedWriter out, List<String> variables, ExecEnv env) throws IOException
 	{
+		System.out.println("Variables: " + variables);
 		InputStreamReader reader = new InputStreamReader(in);
 		BufferedReader inBuf = new BufferedReader(reader);
 		String line;

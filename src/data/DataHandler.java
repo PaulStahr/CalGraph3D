@@ -153,7 +153,7 @@ public abstract class DataHandler
     			}
     		}
     	});
-		//maths.OperationCompiler.addProgramFunction(saveFunction);
+        maths.OperationCompiler.addProgramFunction(saveFunction);
 	}    
 
     private DataHandler(){}

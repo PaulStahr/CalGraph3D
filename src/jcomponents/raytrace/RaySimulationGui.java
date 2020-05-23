@@ -221,7 +221,6 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 	public final JTextArea textAreaProjectInformation = new JTextArea();
     int maxBounces = 20;
     public final VisualizationPanel panelVisualization	= new VisualizationPanel();
-    public final RaytraceScene scene = new RaytraceScene("Unnamed");
     private final JMenu menuFile = new JMenu("File");
     private final JMenu menuEdit = new JMenu("Edit");
     private final JMenu menuAdd = new JMenu("Add");
@@ -269,7 +268,6 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
     private final JToggleButton toggleButtonRaytrace = new JToggleButton("Raytraced");
     private final JToggleButton toggleButtonTraceRays = new JToggleButton("Trace Rays");
     private final ParseUtil parser = new ParseUtil();
-    private final GuiTextureObject previewTexture = new GuiTextureObject(scene.vs, parser);
     private final JTabbedPane tapPane = new JTabbedPane();
     private volatile boolean isUpdating = false;
     private boolean advancedView = false;
@@ -280,7 +278,10 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 	private int oldOptionModCount = 0;
 	private static float dScale = 1;
 	private final RaytraceSession session = new RaytraceSession();
-	private static final Runnable optionRunnable = new Runnable() {
+	public final RaytraceScene scene;
+	private final GuiTextureObject previewTexture;
+
+   	private static final Runnable optionRunnable = new Runnable() {
 		@Override
 		public void run() {
 			optionModCount = Options.modCount();
@@ -788,7 +789,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		}
 		else if (source == menuItemNew)
 		{
-			new RaySimulationGui().setVisible(true);
+			new RaySimulationGui(new RaytraceScene("Unnamed")).setVisible(true);
 		}
 		else if (source == menuItemAppend || source == menuItemOpen)
 		{
@@ -1470,7 +1471,9 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		toAdd.addActionListener(this);
 	}
 	
-    public RaySimulationGui(){
+    public RaySimulationGui(RaytraceScene scene){
+    	this.scene = scene;
+    	previewTexture = new GuiTextureObject(scene.vs, parser);
         currentVisualization = panelVisualization;
     	JMenuBar menuBar = new JMenuBar();
     	++DataHandler.openWindows;

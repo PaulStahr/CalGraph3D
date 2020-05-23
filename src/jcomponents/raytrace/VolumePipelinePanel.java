@@ -22,9 +22,6 @@ import javax.swing.JPanel;
 import javax.swing.event.AncestorEvent;
 import javax.swing.event.AncestorListener;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import data.DataHandler;
 import data.ProgramIcons;
 import data.raytrace.OpticalVolumeObject;
@@ -41,7 +38,7 @@ public class VolumePipelinePanel extends JPanel implements ActionListener, Scene
 	/**
 	 * 
 	 */
-	private static final Logger logger = LoggerFactory.getLogger(VolumePipelinePanel.class);
+	//private static final Logger logger = LoggerFactory.getLogger(VolumePipelinePanel.class);
 	private static final long serialVersionUID = -4575960474407342758L;
 	private final JComboBox<OpticalVolumeObject> volumes = new JComboBox<>();
 	private final JPanel pipelinePanel = new JPanel();

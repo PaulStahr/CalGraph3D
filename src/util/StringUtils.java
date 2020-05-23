@@ -337,7 +337,7 @@ public class StringUtils {
    	                throw new RuntimeException("Command ends with escape character");
    	            }
    	            place_next = true;
-   	            strB.append(c);
+   	            strB.append(command.charAt(begin));
    	        }
    	        else if (c == '"')
    	        {

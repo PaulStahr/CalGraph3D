@@ -31,12 +31,10 @@ import java.util.List;
 
 import maths.Operation;
 import maths.OperationCompiler;
-import maths.OperationCompiler.CompileOptions;
 import maths.VariableAmount;
 import maths.data.ArrayOperation;
 import maths.exception.ExceptionOperation;
 import maths.exception.OperationParseException;
-import util.StringUtils;
 
 public class ReadCsvOperation extends FunctionOperation{
 	final Operation a;
@@ -63,9 +61,6 @@ public class ReadCsvOperation extends FunctionOperation{
 			final FileReader reader = new FileReader(file);
 			final BufferedReader inBuf = new BufferedReader(reader);
 			String line;
-			final ArrayList<Operation> lines = new ArrayList<Operation>();
-			StringUtils.StringSplitIterator2 splitIterator = new StringUtils.StringSplitIterator2();
-			final ArrayList<Operation> operationList = new ArrayList<Operation>();
 			final char seperationChars[][] = new char[seperator.size()][];
 			for (int i = 0; i < seperator.size(); ++i)
 			{
@@ -77,8 +72,8 @@ public class ReadCsvOperation extends FunctionOperation{
 				}
 				Arrays.sort(seperationChars[i]);
 			}
-			CompileOptions cp = new CompileOptions();
-			ArrayList operationStack[] = new ArrayList[seperationChars.length];
+			@SuppressWarnings("unchecked")
+			ArrayList<Operation> operationStack[] = new ArrayList[seperationChars.length];
 			for (int i = 0; i < operationStack.length; ++i)
 			{
 				operationStack[i] = new  ArrayList<>();
