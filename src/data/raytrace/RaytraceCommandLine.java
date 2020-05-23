@@ -1,5 +1,6 @@
 package data.raytrace;
 
+import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -11,12 +12,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.imageio.ImageIO;
+
 import org.jdom2.JDOMException;
 
 import data.DataHandler;
 import data.raytrace.StackPositionProcessor.Mode;
 import io.raytrace.SceneIO;
 import jcomponents.raytrace.RaySimulationGui;
+import jcomponents.raytrace.TextureView;
 import maths.Controller;
 import maths.Operation;
 import maths.Operation.CalculationController;
@@ -218,6 +222,7 @@ public class RaytraceCommandLine {
 				if (split.get(1).equals("--help"))
 				{
 					out.write("<scene> <scale> <position_input> <surface_compensation> <output_folder> <mode> <evaluation_texture> <evaluation_object> <range_begin> <range_end> <num_rays> <resolution> <light_source> <position_output> <backward>");
+					out.flush();
 				}
 				RaytraceScene scene = RaytraceScene.getScene(split.get(1));
 				double scale = Double.NaN;
@@ -250,6 +255,18 @@ public class RaytraceCommandLine {
 					null);
 				} catch (NumberFormatException | OperationParseException e) {
 					out.write(e.toString());
+					out.flush();
+				}
+				BufferedImage img = spp.getImg();
+				if (split.size() > 16)
+				{
+					String file = split.get(16);
+					ImageIO.write(img, file.substring(file.lastIndexOf('.') + 1), new File(file));
+				}
+				else
+				{
+					TextureView tv = new TextureView(spp.getImg());
+					tv.setVisible(true);
 				}
 				break;
 			}

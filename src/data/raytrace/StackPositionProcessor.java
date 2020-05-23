@@ -52,6 +52,7 @@ public class StackPositionProcessor {
 	public volatile boolean isRunning = false;
 	private int numIterations;
 	private int progressMax = 0;
+	private BufferedImage img;
 	private class SingleThreadLocal
 	{
 		RayGenerator gen;
@@ -627,12 +628,9 @@ public class StackPositionProcessor {
 						}
 					}
 					ArrayUtil.normalizeTo(imageColorArray, 0, imageColorArray.length, 255);
-					BufferedImage img2 = new BufferedImage(trWidth, trHeight, BufferedImage.TYPE_4BYTE_ABGR);
-					ImageUtil.setRGB(img2.getRaster(), imageColorArray, new int[4], 4, 5);
-					TextureView tv = new TextureView(img2);
-					tv.setVisible(true);
+					img = new BufferedImage(trWidth, trHeight, BufferedImage.TYPE_4BYTE_ABGR);
+					ImageUtil.setRGB(img.getRaster(), imageColorArray, new int[4], 4, 5);
 				}
-			
 				break;
 			case CAMERA_TRACK:
 				break;
@@ -646,11 +644,14 @@ public class StackPositionProcessor {
 			logger.error("Input Output error", e1);
 		} catch (OutOfMemoryError e1) {
 			logger.error("Not enough memory", e1);
-		}
-		
+		}	
 	}
 
 	public int getProgressMax() {
 		return progressMax;
+	}
+
+	public BufferedImage getImg() {
+		return img;
 	}
 }

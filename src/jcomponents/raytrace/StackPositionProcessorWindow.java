@@ -302,6 +302,9 @@ public class StackPositionProcessorWindow extends JFrame implements ActionListen
 				buttonPositionOutput.getText(),
 				checkBoxBackward.isSelected(),
 				session);
+	
+		TextureView tv = new TextureView(spp.getImg());
+		tv.setVisible(true);
 	}
 	
 
