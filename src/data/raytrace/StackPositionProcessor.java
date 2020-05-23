@@ -129,12 +129,18 @@ public class StackPositionProcessor {
 		Variable variableFrame = new Variable("frame");
 		scene.vs.replaceAddGlobal(variableFrame);
 		try {
-			final DoubleArrayList ial = positionFile.length() == 0 ? null : IOUtil.readPositionFile(positionFile);
+			final DoubleArrayList dal = positionFile.length() == 0 ? null : IOUtil.readPositionFile(positionFile);
+			Controller control = new Controller();
 			
-			
-			int rangeBegin = OperationCompiler.parseInt(rangeBeginStr, 0);
-			int rangeEnd = OperationCompiler.parseInt(rangeEndStr, ial == null ? 0 : mode == Mode.CAMERA_TRACK ? ial.size() / 6 : ial.size() / 2);
-			
+			int rangeBegin = 0;
+			int rangeEnd = dal == null ? 0 : mode == Mode.CAMERA_TRACK ? dal.size() / 6 : dal.size() / 2;
+			try
+			{
+				rangeBegin = (int)OperationCompiler.compile(rangeBeginStr).calculate(scene.vs, control).longValue();
+				rangeEnd = (int)OperationCompiler.compile(rangeEndStr).calculate(scene.vs, control).longValue();
+			}
+			catch(Exception e)
+			{}
 			numIterations = rangeEnd - rangeBegin;
 			progressMax = numIterations;
 			if (updateProgressBarRunnable != null) {JFrameUtils.runByDispatcher(updateProgressBarRunnable);}
@@ -149,13 +155,13 @@ public class StackPositionProcessor {
 					if (updateProgressBarRunnable != null) {JFrameUtils.runByDispatcher(updateProgressBarRunnable);}
 					final int index = i * 6;
 					final int num = i;
-					if (ial != null)
+					if (dal != null)
 					{
-						scene.cameraViewRunnable.gen.position.set(ial, index);
+						scene.cameraViewRunnable.gen.position.set(dal, index);
 			   			scene.cameraViewRunnable.gen.position.multiply(dScale);
-						scene.cameraViewRunnable.gen.rotation.setRadians(ial, index + 3);
-						Interface.scene.cameraPosition.set(ial, index);
-						Interface.scene.cameraRotation.setRadians(ial, index + 3);
+						scene.cameraViewRunnable.gen.rotation.setRadians(dal, index + 3);
+						Interface.scene.cameraPosition.set(dal, index);
+						Interface.scene.cameraRotation.setRadians(dal, index + 3);
 					}
 					
 					synchronized(scene.cameraViewRunnable)
@@ -188,7 +194,6 @@ public class StackPositionProcessor {
 			{
 				throw new NullPointerException("Invalid output Resolution");
 			}
-			Controller control = new Controller();
 			outputResolution = outputResolution.calculate(scene.vs, control);
 			final int trWidth = (int)(outputResolution.get(0).longValue()), trHeight = (int)(outputResolution.get(1).longValue());
 			switch(mode)
@@ -229,8 +234,8 @@ public class StackPositionProcessor {
 								int idx = i - from;
 								if (source instanceof OpticalSurfaceObject)
 								{
-									double azimuth = ial.getD(i * 2);
-									double elevation = ial.getD(i * 2 + 1);
+									double azimuth = dal.getD(i * 2);
+									double elevation = dal.getD(i * 2 + 1);
 									if (Double.isNaN(azimuth) || Double.isNaN(elevation))
 									{
 										continue;
@@ -241,7 +246,7 @@ public class StackPositionProcessor {
 								{
 									MeshObject mesh = (MeshObject)source;
 									mesh.mat.set(mat);
-									setTransformation(tmp, ial.getD(i * 6), ial.getD(i * 6 + 1), ial.getD(i * 6 + 2) * scale, ial.getD(i * 6 + 3), ial.getD(i * 6 + 4), ial.getD(i * 6 + 5) * scale);
+									setTransformation(tmp, dal.getD(i * 6), dal.getD(i * 6 + 1), dal.getD(i * 6 + 2) * scale, dal.getD(i * 6 + 3), dal.getD(i * 6 + 4), dal.getD(i * 6 + 5) * scale);
 									mesh.mat.dotr(tmp);
 									try {
 										mesh.updateValue(SCENE_OBJECT_COLUMN_TYPE.TRANSFORMATION, threadLocal.variables, parser);
@@ -327,10 +332,10 @@ public class StackPositionProcessor {
 						//gto.setImage(ImageUtil.deepCopy(bi));
 						if (source instanceof OpticalSurfaceObject)
 						{
-							if (ial != null)
+							if (dal != null)
 							{
-								double azimuth = ial.getD(i * 2);
-								double elevation = ial.getD(i * 2 + 1);
+								double azimuth = dal.getD(i * 2);
+								double elevation = dal.getD(i * 2 + 1);
 								if (Double.isNaN(azimuth) || Double.isNaN(elevation))
 								{
 									continue;
@@ -342,7 +347,7 @@ public class StackPositionProcessor {
 						{
 							MeshObject mesh = (MeshObject)source;
 							mesh.mat.set(mat);
-							setTransformation(tmp, ial.getD(i * 6), ial.getD(i * 6 + 1), ial.getD(i * 6 + 2) * scale, ial.getD(i * 6 + 3), ial.getD(i * 6 + 4), ial.getD(i * 6 + 5) * scale);
+							setTransformation(tmp, dal.getD(i * 6), dal.getD(i * 6 + 1), dal.getD(i * 6 + 2) * scale, dal.getD(i * 6 + 3), dal.getD(i * 6 + 4), dal.getD(i * 6 + 5) * scale);
 							mesh.mat.dotr(tmp);
 							try {
 								ParseUtil parser = new ParseUtil();
