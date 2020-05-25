@@ -5,6 +5,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -221,7 +222,7 @@ public class RaytraceCommandLine {
 				}
 				if (split.get(1).equals("--help"))
 				{
-					out.write("<scene> <scale> <position_input> <surface_compensation> <output_folder> <mode> <evaluation_texture> <evaluation_object> <range_begin> <range_end> <num_rays> <resolution> <light_source> <position_output> <backward>");
+					out.write("<scene> <scale> <position_input> <surface_compensation> <output_folder> <mode> <evaluation_texture> <evaluation_object> <range_begin> <range_end> <num_rays> <resolution> <light_source> <position_output> <backward> --output <output> --nfactor <noralization factor>");
 					out.flush();
 				}
 				RaytraceScene scene = RaytraceScene.getScene(split.get(1));
@@ -258,15 +259,37 @@ public class RaytraceCommandLine {
 					out.flush();
 				}
 				BufferedImage img = spp.getImg();
-				if (split.size() > 16)
+				for (int i = 15; i < split.size(); ++i)
 				{
-					String file = split.get(16);
-					ImageIO.write(img, file.substring(file.lastIndexOf('.') + 1), new File(file));
-				}
-				else
-				{
-					TextureView tv = new TextureView(spp.getImg());
-					tv.setVisible(true);
+					String str = split.get(i);
+					if (str.length() > 2 && str.charAt(0) == '-' && str.charAt(1) == '-')
+					{
+						switch(str.substring(2))
+						{
+							case "output":
+							{
+								String file = split.get(++i);
+								ImageIO.write(img, file.substring(file.lastIndexOf('.') + 1), new File(file));
+								break;
+							}
+							case "show":
+							{
+								TextureView tv = new TextureView(spp.getImg());
+								tv.setVisible(true);
+								break;
+							}
+							case "nfactor":
+							{
+								String file = split.get(++i);
+								FileWriter writer = new FileWriter(file);
+								BufferedWriter outBuf = new BufferedWriter(writer);
+								outBuf.write(String.valueOf(spp.getNormalizationFactor()));
+								outBuf.close();
+								writer.close();
+								break;
+							}
+						}
+					}
 				}
 				break;
 			}

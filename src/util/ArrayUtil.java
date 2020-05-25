@@ -270,22 +270,20 @@ public class ArrayUtil {
 		}*/
 	}
 
-	public static void normalizeTo(float[] imageColorArray, int begin, int end, float to) {
+	/*
+	 * Normalizes the array in a way, that the highest value is equal to to
+	 * Returns the scaling factor which was needed to achive this
+	 * 
+	 */
+	public static float normalizeTo(float[] imageColorArray, int begin, int end, float to) {
 		float max = max(imageColorArray, begin, end);
 		if (max == 0)
 		{
-			return;
+			return 0;
 		}
 		float mult = to / max;
-		for (;begin < end; ++begin)
-		{
-			imageColorArray[begin] *= mult;			
-		}
-		/*long mult = ((long)to * (long)Integer.MAX_VALUE) / max;
-		for (; begin != end; ++begin)
-		{
-			imageColorArray[begin] = (int)(((long)imageColorArray[begin] * mult) >> 31) ;
-		}*/
+		mult(imageColorArray, begin, end, mult);
+		return mult;
 	}
 
 	public static void multAdd(float[] in, int iBegin, int iEnd, int[] out, int oBegin, int mult) {

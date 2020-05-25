@@ -348,6 +348,44 @@ public class ArrayTools {
 		return find (data, 0, data.length, elem);
 	}
 	
+	public static interface ObjectToIntTransform<T>
+	{
+		public int toInt(T o);
+	}
+	
+	
+	public static <T> int binarySearch(List<T> a, int fromIndex, int toIndex, int key, ObjectToIntTransform<T> tr) {
+		int low = fromIndex;
+		int high = toIndex - 1;
+		while (low <= high) {
+			int mid = (low + high) >>> 1;
+			int midVal = tr.toInt(a.get(mid));
+			if (midVal < key)
+				low = mid + 1;
+			else if (midVal > key)
+				high = mid - 1;
+			else
+				return mid;
+		}
+		return -(low + 1);
+	}
+	
+	public static <T> int binarySearch(T[] a, int fromIndex, int toIndex, int key, ObjectToIntTransform<T> tr) {
+		int low = fromIndex;
+		int high = toIndex - 1;
+		while (low <= high) {
+			int mid = (low + high) >>> 1;
+			int midVal = tr.toInt(a[mid]);
+			if (midVal < key)
+				low = mid + 1;
+			else if (midVal > key)
+				high = mid - 1;
+			else
+				return mid;
+		}
+		return -(low + 1);
+	}
+		
 	/*private static class UnmodifiableSortedArrayListWithComparator<E>extends AbstractList<E> implements RandomAccess{
 		private final E[] array;
 		private int length;

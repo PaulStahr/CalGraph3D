@@ -53,6 +53,7 @@ public class StackPositionProcessor {
 	private int numIterations;
 	private int progressMax = 0;
 	private BufferedImage img;
+	private float normalizationFactor;
 	private class SingleThreadLocal
 	{
 		RayGenerator gen;
@@ -62,6 +63,11 @@ public class StackPositionProcessor {
 		float startpoints[];
 		float startdirs[];
 		float color[];
+	}
+	
+	public float getNormalizationFactor()
+	{
+		return normalizationFactor;
 	}
 	
 	public static Matrix4d getTransformation(double azimuth0, double elevation0, double distance0, double azimuth1, double elevation1, double distance1)
@@ -627,7 +633,7 @@ public class StackPositionProcessor {
 							imageColorArray[i * 5 + 4] = 0;
 						}
 					}
-					ArrayUtil.normalizeTo(imageColorArray, 0, imageColorArray.length, 255);
+					normalizationFactor = ArrayUtil.normalizeTo(imageColorArray, 0, imageColorArray.length, 255);
 					img = new BufferedImage(trWidth, trHeight, BufferedImage.TYPE_4BYTE_ABGR);
 					ImageUtil.setRGB(img.getRaster(), imageColorArray, new int[4], 4, 5);
 				}
