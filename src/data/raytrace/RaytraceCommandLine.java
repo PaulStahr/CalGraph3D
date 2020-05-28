@@ -16,6 +16,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.imageio.ImageIO;
 
 import org.jdom2.JDOMException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import data.DataHandler;
 import data.raytrace.StackPositionProcessor.Mode;
@@ -30,6 +32,7 @@ import maths.exception.OperationParseException;
 import util.StringUtils;
 
 public class RaytraceCommandLine {
+	private static final Logger logger = LoggerFactory.getLogger(RaytraceCommandLine.class);
 	ArrayList<String> split = new ArrayList<String>();
 	ParseUtil parser = new ParseUtil();
 	CalculationController control = new Controller();
@@ -54,6 +57,7 @@ public class RaytraceCommandLine {
 		{
 			return;
 		}
+		if (logger.isDebugEnabled()) {logger.debug("Running command " + command);}
 		StringUtils.split_in_args(split, command, 0, command.length(), new StringBuilder());
 		switch (split.get(0))
 		{
