@@ -24,6 +24,7 @@ import data.raytrace.StackPositionProcessor.Mode;
 import io.raytrace.SceneIO;
 import jcomponents.raytrace.RaySimulationGui;
 import jcomponents.raytrace.TextureView;
+import logging.LockbackUtil;
 import maths.Controller;
 import maths.Operation;
 import maths.Operation.CalculationController;
@@ -205,6 +206,23 @@ public class RaytraceCommandLine {
 							out.write(e.toString());
 							out.flush();
 						}
+					}
+				}
+				break;
+			}
+			case "loglevel":
+			{
+				if (split.size() > 1)
+				{
+					LockbackUtil.setLoglevel(split.get(1));
+				}
+				else
+				{
+					ArrayList<String> tmp = new ArrayList<String>();
+					LockbackUtil.getLogLevel(tmp);
+					for (int i = 0; i < tmp.size(); ++i)
+					{
+						out.write(tmp.get(i));
 					}
 				}
 				break;
