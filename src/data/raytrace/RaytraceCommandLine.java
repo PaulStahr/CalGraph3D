@@ -254,6 +254,7 @@ public class RaytraceCommandLine {
 				fc.threeDim = Boolean.parseBoolean(split.get(5)); 
 				fc.numElevations = Integer.parseInt(split.get(6));
 				fc.scene = scene;
+				fc.wait = true;
 				fc.run();
 				for (int i = 7; i < split.size(); ++i)
 				{

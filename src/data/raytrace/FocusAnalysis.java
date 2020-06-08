@@ -10,6 +10,7 @@ import geometry.Vector2d;
 import geometry.Vector3d;
 import jcomponents.raytrace.RaySimulationData;
 import util.RunnableRunner;
+import util.RunnableRunner.ParallelRangeRunnable;
 import util.data.DoubleArrayList;
 
 public class FocusAnalysis {
@@ -38,6 +39,7 @@ public class FocusAnalysis {
 	public int height;
 	public float[] values;
 	public int[] pixelCount;
+	public boolean wait = false;
 
 	public void setFinishRunnable(Runnable runnable)
 	{
@@ -79,8 +81,7 @@ public class FocusAnalysis {
 		values = new float[width * height];
 		pixelCount = new int[width * height];
 		vertices = new double[startIndex[numElevations] * 3];
-		DataHandler.runnableRunner.runParallel(
-		new RunnableRunner.ParallelRangeRunnable() {
+		ParallelRangeRunnable prr = new RunnableRunner.ParallelRangeRunnable() {
 			
 
 			@Override
@@ -228,6 +229,14 @@ public class FocusAnalysis {
 					finishRunnable.run();
 				}
 			}
-		}, "Focus Heatmap", null, 0, 100, 10);
+		};
+		if (wait)
+		{
+			DataHandler.runnableRunner.runParallelAndWait(prr, "Focus Heatmap", null, 0, 100, 10);
+		}
+		else
+		{
+			DataHandler.runnableRunner.runParallel(prr, "Focus Heatmap", null, 0, 100, 10);
+		}
 	}
 }
