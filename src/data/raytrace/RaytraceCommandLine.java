@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -263,8 +264,9 @@ public class RaytraceCommandLine {
 						case "tableout" : 
 						{
 							FileWriter writer = new FileWriter(split.get(i + 1));
-							BufferedWriter outBuf = new BufferedWriter(writer);
-							IOUtil.writeColumnTable(new String[] {"elevation"}, new Object[] {fc.elevations}, outBuf);
+							BufferedWriter outBuf = new BufferedWriter(writer);System.out.println("Elevation " + Arrays.toString(fc.elevations));
+							IOUtil.writeColumnTable(new String[] {"elevation", "destination_elevation", "variance", "count_per_arc", "focal_distance"}, 
+									new Object[] {fc.elevations, fc.surfaceElevation, fc.avaragedByIncomingArc, fc.focalDistance}, outBuf);
 							outBuf.close();
 							writer.close();
 							++i;
