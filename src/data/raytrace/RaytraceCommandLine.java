@@ -240,7 +240,9 @@ public class RaytraceCommandLine {
 			{
 				if (split.get(1).equals("--help"))
 				{
-					System.out.println("<scene> <source> <destination> <raycount> <threedim> <elevations> (tableout <file>)");
+					out.write("<scene> <source> <destination> <raycount> <threedim> <elevations> (tableout <file>)");
+					out.flush();
+					break;
 				}
 				final FocusAnalysis fc = new FocusAnalysis();
 				RaytraceScene scene = RaytraceScene.getScene(split.get(1));
@@ -283,6 +285,7 @@ public class RaytraceCommandLine {
 				{
 					out.write("<scene> <scale> <position_input> <surface_compensation> <output_folder> <mode> <evaluation_texture> <evaluation_object> <range_begin> <range_end> <num_rays> <resolution> <light_source> <position_output> <backward> --output <output> --nfactor <noralization factor>");
 					out.flush();
+					break;
 				}
 				RaytraceScene scene = RaytraceScene.getScene(split.get(1));
 				double scale = Double.NaN;

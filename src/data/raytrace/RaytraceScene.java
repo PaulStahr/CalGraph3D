@@ -609,7 +609,7 @@ public class RaytraceScene {
 	
 
 
-	public GuiOpticalSurfaceObject getActiveEmissionObject(String string) {
+	public GuiOpticalSurfaceObject getActiveEmissionObject(String id) {
 		int index = getIndex(id, activeEmissions);
 		return index == -1 ? null : activeEmissions[index];
 	}
