@@ -30,6 +30,7 @@ import maths.Operation;
 import maths.Operation.CalculationController;
 import maths.OperationCompiler;
 import maths.exception.OperationParseException;
+import util.IOUtil;
 import util.StringUtils;
 
 public class RaytraceCommandLine {
@@ -235,6 +236,42 @@ public class RaytraceCommandLine {
 				}catch(InterruptedException e) {}
 				break;
 			}
+			case "focus_analysis":
+			{
+				if (split.get(1).equals("--help"))
+				{
+					System.out.println("<scene> <source> <destination> <raycount> <threedim> <elevations> (tableout <file>)");
+				}
+				final FocusAnalysis fc = new FocusAnalysis();
+				RaytraceScene scene = RaytraceScene.getScene(split.get(1));
+				fc.lightSource = scene.getActiveSurfaceObject(split.get(2));
+				fc.endpoint = scene.getActiveSurfaceObject(split.get(3));
+				fc.raycount = Integer.parseInt(split.get(4));
+				fc.width = 512;
+				fc.height = 512;
+				fc.threeDim = Boolean.parseBoolean(split.get(5)); 
+				fc.numElevations = Integer.parseInt(split.get(6));
+				fc.scene = scene;
+				fc.run();
+				for (int i = 5; i < split.size(); ++i)
+				{
+					switch(split.get(i))
+					{
+						case "tableout" : 
+						{
+							FileWriter writer = new FileWriter(split.get(i + 1));
+							BufferedWriter outBuf = new BufferedWriter(writer);
+							IOUtil.writeColumnTable(new String[] {"elevation"}, new Object[] {fc.elevations}, outBuf);
+							outBuf.close();
+							writer.close();
+							++i;
+							break;
+						}
+						default: throw new RuntimeException("Unknown Command");
+					}
+				}
+				break;
+			}
 			case "stp":
 			{
 				for (int i = 0; i < split.size(); ++i)
@@ -310,6 +347,7 @@ public class RaytraceCommandLine {
 								writer.close();
 								break;
 							}
+							default: throw new IllegalArgumentException();
 						}
 					}
 				}
