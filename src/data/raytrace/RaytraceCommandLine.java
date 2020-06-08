@@ -266,7 +266,7 @@ public class RaytraceCommandLine {
 							FileWriter writer = new FileWriter(split.get(i + 1));
 							BufferedWriter outBuf = new BufferedWriter(writer);System.out.println("Elevation " + Arrays.toString(fc.elevations));
 							IOUtil.writeColumnTable(new String[] {"elevation", "destination_elevation", "variance", "count_per_arc", "focal_distance"}, 
-									new Object[] {fc.elevations, fc.surfaceElevation, fc.avaragedByIncomingArc, fc.focalDistance}, outBuf);
+									new Object[] {fc.elevations, fc.surfaceElevation, fc.avaragedByIncomingArc, fc.avarageCountPerArc, fc.focalDistance}, outBuf);
 							outBuf.close();
 							writer.close();
 							++i;
