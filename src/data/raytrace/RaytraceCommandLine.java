@@ -255,7 +255,7 @@ public class RaytraceCommandLine {
 				fc.numElevations = Integer.parseInt(split.get(6));
 				fc.scene = scene;
 				fc.run();
-				for (int i = 5; i < split.size(); ++i)
+				for (int i = 7; i < split.size(); ++i)
 				{
 					switch(split.get(i))
 					{
