@@ -1629,18 +1629,12 @@ public class RaytraceScene {
 					direction.y += (Math.random() - 0.5) * dirnorm;
 					direction.z += (Math.random() - 0.5) * dirnorm;
 				}
-				if (trajectory != null)
-				{
-					position.write(trajectory, b + trajectoryWriteIndex);
-				}
+				if (trajectory != null){position.write(trajectory, b + trajectoryWriteIndex);}
 			}
 			else
 			{
 				position.add(direction, 10000);
-				if (trajectory != null)
-				{
-					position.write(trajectory, b + trajectoryWriteIndex);
-				}
+				if (trajectory != null){position.write(trajectory, b + trajectoryWriteIndex);}
 				return res;
 			}
 		}

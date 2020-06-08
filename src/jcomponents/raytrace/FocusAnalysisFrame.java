@@ -65,8 +65,8 @@ public class FocusAnalysisFrame extends JFrame  implements ActionListener{
 		{
 			buttonCalculate.setEnabled(false);
 			final FocusAnalysis fc = new FocusAnalysis();
-			fc.endpoint = (OpticalSurfaceObject)scene.forceStartpoint;
-			if (fc.endpoint == null)
+			fc.destination = (OpticalSurfaceObject)scene.forceStartpoint;
+			if (fc.destination == null)
 			{
 				buttonCalculate.setEnabled(true);
 				JOptionPane.showMessageDialog(this, "No endobject");

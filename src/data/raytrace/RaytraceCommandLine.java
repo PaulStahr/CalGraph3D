@@ -247,7 +247,7 @@ public class RaytraceCommandLine {
 				final FocusAnalysis fc = new FocusAnalysis();
 				RaytraceScene scene = RaytraceScene.getScene(split.get(1));
 				fc.lightSource = scene.getActiveEmissionObject(split.get(2));
-				fc.endpoint = scene.getActiveSurfaceObject(split.get(3));
+				fc.destination = scene.getActiveSurfaceObject(split.get(3));
 				fc.raycount = Integer.parseInt(split.get(4));
 				fc.width = 512;
 				fc.height = 512;

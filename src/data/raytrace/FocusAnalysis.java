@@ -34,7 +34,7 @@ public class FocusAnalysis {
 	public boolean threeDim;
 	public int[] faces;
 	public RaytraceScene scene;
-	public OpticalSurfaceObject endpoint;
+	public OpticalSurfaceObject destination;
 	public int width;
 	public int height;
 	public float[] values;
@@ -62,6 +62,10 @@ public class FocusAnalysis {
 		if (lightSource == null)
 		{
 			throw new NullPointerException("No light Source");
+		}
+		if (destination == null)
+		{
+			throw new NullPointerException("No Destination");
 		}
 		final double multElevation = lightSource.getMaxArcOpen() / numElevations;
 		for (int i = 0; i < numElevations; ++i)
@@ -108,13 +112,13 @@ public class FocusAnalysis {
 						Arrays.fill(rsd.lastObject, null);
 						weightPoint.set(0,0,0);
 						gen.setArcs(elevations[i], azimuths[i][j]);
-						scene.calculateRays(0, raycount, raycount, gen, 0, 0, null, null, rsd.endpoints, rsd.enddirs, null, null, rsd.accepted, rsd.bounces, rsd.lastObject, maxBounces, false, currentRay, RaytraceScene.UNACCEPTED_DELETE);
+						scene.calculateRays(0, raycount, raycount, gen, 0, 0, null, null, rsd.endpoints, rsd.enddirs, rsd.endcolor, null, rsd.accepted, rsd.bounces, rsd.lastObject, maxBounces, false, currentRay, RaytraceScene.UNACCEPTED_DELETE);
 						
 						int count = 0;
 						npc.reset();
 						for (int k = 0; k < raycount; ++k)
 						{
-							if (rsd.lastObject[k] == endpoint && rsd.accepted[k] == RaytraceScene.STATUS_ACCEPTED)
+							if (rsd.lastObject[k] == destination && rsd.accepted[k] == RaytraceScene.STATUS_ACCEPTED)
 							{
 								weightPoint.add(rsd.endpoints, k * 3);
 								npc.addPoint(rsd.endpoints, rsd.enddirs, k * 3);
@@ -124,13 +128,13 @@ public class FocusAnalysis {
 						npc.calculate();
 						npc.get(focalPoint);
 						focalPoint.write(vertices, (startIndex[i] + j) * 3);
-						focalDistance[i] += Math.sqrt(endpoint.midpoint.distanceQ(focalPoint));
+						focalDistance[i] += Math.sqrt(destination.midpoint.distanceQ(focalPoint));
 						countPerArc += count;
 						weightPoint.multiply(1/(double)count);
 						double variance = 0;
 						for (int k = 0; k < raycount; ++k)
 						{
-							if (rsd.lastObject[k] == endpoint && rsd.accepted[k] == RaytraceScene.STATUS_ACCEPTED)
+							if (rsd.lastObject[k] == destination && rsd.accepted[k] == RaytraceScene.STATUS_ACCEPTED)
 							{
 								focalHitpointDistance[i] += Math.sqrt(focalPoint.distanceQ(rsd.endpoints, k * 3));
 								double dist = weightPoint.distanceQ(rsd.endpoints, k * 3);
@@ -147,11 +151,11 @@ public class FocusAnalysis {
 
 						for (int k = 0; k < raycount; ++k)
 						{
-							if (rsd.lastObject[k] == endpoint && rsd.accepted[k] == RaytraceScene.STATUS_ACCEPTED)
+							if (rsd.lastObject[k] == destination && rsd.accepted[k] == RaytraceScene.STATUS_ACCEPTED)
 							{							
 								position.set(rsd.endpoints, k * 3);
 								direction.set(rsd.enddirs,  k * 3);
-								endpoint.getTextureCoordinates(position, direction, tc);
+								destination.getTextureCoordinates(position, direction, tc);
 								double diffx = tc.x - 0.5, diffy = tc.y - 0.5;
 								dal.add(Math.sqrt(diffx * diffx + diffy * diffy) * (2 * Math.PI));
 								//System.out.println(position + ' ' + tc);
