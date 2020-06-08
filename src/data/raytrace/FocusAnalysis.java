@@ -57,8 +57,12 @@ public class FocusAnalysis {
 		surfaceElevationVariance = new double[numElevations];
 		azimuths = new double[numElevations][];
 		startIndex = new int[numElevations + 1];
+		if (lightSource == null)
+		{
+			throw new NullPointerException("No light Source");
+		}
 		final double multElevation = lightSource.getMaxArcOpen() / numElevations;
-		for (int i = 0; i < 100; ++i)
+		for (int i = 0; i < numElevations; ++i)
 		{
 			double elevation = i * multElevation;
 			elevations[i] = elevation;

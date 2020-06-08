@@ -35,6 +35,7 @@ public class RaytraceScene {
 	public final ArrayList<GuiTextureObject> textureObjectList = new ArrayList<GuiTextureObject>();
 	public final ArrayList<MeshObject> meshObjectList = new ArrayList<MeshObject>();
 	private GuiOpticalSurfaceObject activeSurfaces[] = GuiOpticalSurfaceObject.EMPTY_SURFACE_ARRAY;
+	private GuiOpticalSurfaceObject activeEmissions[] = GuiOpticalSurfaceObject.EMPTY_SURFACE_ARRAY;
 	private OpticalObject activeLights[] = OpticalObject.EMPTY_ARRAY;
 	private GuiOpticalVolumeObject activeVolumes[] = GuiOpticalVolumeObject.EMPTY_VOLUME_ARRAY;
 	private MeshObject activeMeshes[] = MeshObject.EMPTY_MESH_ARRAY;
@@ -414,6 +415,7 @@ public class RaytraceScene {
 		{
 			lastSceneUpdate = updateCount;
 			activeSurfaces = getActiveSurfaces(activeSurfaces);
+			activeEmissions = getActiveEmissions(activeEmissions);
 			activeLights = getActiveLightSources(activeLights);
 			activeVolumes = getActiveVolumes(false, activeVolumes);
 			activeTextures = getActiveTextures(activeTextures);
@@ -605,65 +607,48 @@ public class RaytraceScene {
 		return -1;		
 	}
 	
+
+
+	public GuiOpticalSurfaceObject getActiveEmissionObject(String string) {
+		int index = getIndex(id, activeEmissions);
+		return index == -1 ? null : activeEmissions[index];
+	}
+	
 	public GuiOpticalSurfaceObject getActiveSurfaceObject(String id)
 	{
 		int index = getIndex(id, activeSurfaces);
-		if (index != -1)
-		{
-			return activeSurfaces[index];
-		}
-		return null;
+		return index == -1 ? null : activeSurfaces[index];
 	}
 		
 	public GuiOpticalVolumeObject getActiveVolumeObject(String id)
 	{
 		int index = getIndex(id, activeVolumes);
-		if (index != -1)
-		{
-			return activeVolumes[index];
-		}
-		return null;
+		return index == -1 ? null : activeVolumes[index];
 	}
 	
 	
 	public MeshObject getActiveMeshObject(String id)
 	{
 		int index = getIndex(id, activeMeshes);
-		if (index != -1)
-		{
-			return activeMeshes[index];
-		}
-		return null;
+		return index == -1 ? null : activeMeshes[index];
 	}
 		
 	public GuiOpticalSurfaceObject getSurfaceObject(String id)
 	{
 		int index = getIndex(id, surfaceObjectList);
-		if (index != -1)
-		{
-			return surfaceObjectList.get(index);
-		}
-		return null;
+		return index == -1 ? null : surfaceObjectList.get(index);
 	}
 	
 	public GuiOpticalVolumeObject getVolumeObject(String id)
 	{
 		int index = getIndex(id, volumeObjectList);
-		if (index != -1)
-		{
-			return volumeObjectList.get(index);
-		}
-		return null;
+		return index == -1 ? null : volumeObjectList.get(index);
 	}
 	
 	public GuiTextureObject getTexture(String id)
 	{
 		int index = getIndex(id, textureObjectList);
-		if (index != -1)
-		{
-			return textureObjectList.get(index);
-		}
-		return null;
+		return index == -1 ? null : textureObjectList.get(index);
 	}
 	
 	private final OpticalSurfaceObjectChangeListener osoc = new OpticalSurfaceObjectChangeListener() {
@@ -1016,6 +1001,31 @@ public class RaytraceScene {
 		for (int i = 0; i < surfaceObjectList.size(); ++i)
 		{
 			if (surfaceObjectList.get(i).active && (surfaceObjectList.get(i).materialType != MaterialType.EMISSION))
+			{
+				res[count++] = surfaceObjectList.get(i);
+			}
+		}
+		return res;
+	}
+
+    private GuiOpticalSurfaceObject[] getActiveEmissions(GuiOpticalSurfaceObject res[])
+	{
+		int count = 0;
+		for (int i = 0; i < surfaceObjectList.size(); ++i)
+		{
+			if (surfaceObjectList.get(i).active && (surfaceObjectList.get(i).materialType == MaterialType.EMISSION))
+			{
+				++count;
+			}
+		}
+		if (res == null || res.length != count)
+		{
+			res = new GuiOpticalSurfaceObject[count];
+		}
+		count = 0;
+		for (int i = 0; i < surfaceObjectList.size(); ++i)
+		{
+			if (surfaceObjectList.get(i).active && (surfaceObjectList.get(i).materialType == MaterialType.EMISSION))
 			{
 				res[count++] = surfaceObjectList.get(i);
 			}
