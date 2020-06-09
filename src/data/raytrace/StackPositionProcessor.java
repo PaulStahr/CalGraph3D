@@ -194,7 +194,7 @@ public class StackPositionProcessor {
 				gto.load(scene.vs, parser);
 			}
 			OpticalObject source = gen.getSource();
-			final Matrix4d mat = gen.getSource() instanceof MeshObject ? ((MeshObject)source).mat : null;
+			final Matrix4d mat = gen.getSource() instanceof MeshObject ? ((MeshObject)source).meshToGlobal : null;
 			final RunnableRunner.ThreadLocal<SingleThreadLocal> stl = DataHandler.runnableRunner.new ThreadLocal<>();
 			
 			if (outputResolution == null)
@@ -252,9 +252,9 @@ public class StackPositionProcessor {
 								else if (source instanceof MeshObject)	
 								{
 									MeshObject mesh = (MeshObject)source;
-									mesh.mat.set(mat);
+									mesh.meshToGlobal.set(mat);
 									setTransformation(tmp, dal.getD(i * 6), dal.getD(i * 6 + 1), dal.getD(i * 6 + 2) * scale, dal.getD(i * 6 + 3), dal.getD(i * 6 + 4), dal.getD(i * 6 + 5) * scale);
-									mesh.mat.dotr(tmp);
+									mesh.meshToGlobal.dotr(tmp);
 									try {
 										mesh.updateValue(SCENE_OBJECT_COLUMN_TYPE.TRANSFORMATION, threadLocal.variables, parser);
 									} catch (OperationParseException e) {
@@ -353,9 +353,9 @@ public class StackPositionProcessor {
 						else if (source instanceof MeshObject)	
 						{
 							MeshObject mesh = (MeshObject)source;
-							mesh.mat.set(mat);
+							mesh.meshToGlobal.set(mat);
 							setTransformation(tmp, dal.getD(i * 6), dal.getD(i * 6 + 1), dal.getD(i * 6 + 2) * scale, dal.getD(i * 6 + 3), dal.getD(i * 6 + 4), dal.getD(i * 6 + 5) * scale);
-							mesh.mat.dotr(tmp);
+							mesh.meshToGlobal.dotr(tmp);
 							try {
 								ParseUtil parser = new ParseUtil();
 								mesh.updateValue(SCENE_OBJECT_COLUMN_TYPE.TRANSFORMATION, scene.vs, parser);

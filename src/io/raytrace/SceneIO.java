@@ -26,6 +26,7 @@ import data.raytrace.MeshObject;
 import data.raytrace.OpticalObject;
 import data.raytrace.OpticalObject.COLUMN_TYPES;
 import data.raytrace.OpticalObject.SCENE_OBJECT_COLUMN_TYPE;
+import data.raytrace.OpticalVolumeObject;
 import data.raytrace.ParseUtil;
 import data.raytrace.RaytraceScene;
 import data.raytrace.TextureMapping;
@@ -38,13 +39,17 @@ import jcomponents.panels.InterfacePanel;
 import jcomponents.panels.InterfacePanelFactory;
 import jcomponents.raytrace.RaySimulationGui;
 import jcomponents.raytrace.VolumePipelinePanel;
+import maths.Controller;
+import maths.OperationCompiler;
 import maths.Variable;
+import maths.data.Characters;
 import maths.exception.OperationParseException;
+import maths.functions.TransposeOperation;
 import util.JFrameUtils;
 
 public class SceneIO {
 	private static final Logger logger = LoggerFactory.getLogger(SceneIO.class);
-	private static final int version = 0;
+	private static final int version = 1;
     
     private static final void readXMLValues(Element elem, ArrayList<SCENE_OBJECT_COLUMN_TYPE> ctList, ArrayList<String> valueList)
     {
@@ -79,7 +84,7 @@ public class SceneIO {
     			case "surface":	readXMLValues(elem, ctList, valueList);	scene.add(new GuiOpticalSurfaceObject(	ctList, valueList, scene.vs, parser));break;
     			case "volume":	readXMLValues(elem, ctList, valueList);	scene.add(new GuiOpticalVolumeObject(	ctList, valueList, scene.vs, parser));break;
     			case "texture":	readXMLValues(elem, ctList, valueList);
-    			if (version == -1)
+    			if (version < 0)
     			{
     				int index = ctList.indexOf(SCENE_OBJECT_COLUMN_TYPE.PATH);
     				valueList.set(index, "\"" + valueList.get(index) + "\"");
@@ -172,6 +177,23 @@ public class SceneIO {
         			}
     				break;
     			default:	logger.warn("Unknown File entry", elem.getName());
+    		}
+    	}
+    	if (version < 1)
+    	{
+    		Controller control = new Controller();
+    		for (OpticalVolumeObject volume : scene.volumeObjectList)
+    		{
+    			GuiOpticalVolumeObject gov = (GuiOpticalVolumeObject)volume;
+    			try {
+					gov.setValue(SCENE_OBJECT_COLUMN_TYPE.TRANSFORMATION, new TransposeOperation(OperationCompiler.compile(gov.transformationStr)).calculate(scene.vs, control), scene.vs, parser);
+				} catch (OperationParseException e) {
+					try {
+						gov.setValue(SCENE_OBJECT_COLUMN_TYPE.TRANSFORMATION, new StringBuilder().append(Characters.HIGH_T).append('(').append(gov.transformationStr).append(')').toString(), scene.vs, parser);
+					} catch (OperationParseException e1) {
+						logger.error("Can't load file in fallback-mode");
+					}
+				}
     		}
     	}
     	JFrameUtils.runByDispatcher(new Runnable() {

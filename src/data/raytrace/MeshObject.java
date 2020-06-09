@@ -40,8 +40,8 @@ public class MeshObject extends SurfaceObject {
 	private String transformationStr;
 	private String colorStr;
 	private static final Logger logger = LoggerFactory.getLogger(MeshObject.class);
-	public final Matrix4d mat = new Matrix4d();
-	public final Matrix4d inverse = new Matrix4d();
+	public final Matrix4d meshToGlobal = new Matrix4d();
+	public final Matrix4d globalToMesh = new Matrix4d();
 	//public double inverserowdotprods[] = new double[3];
 	private final ArrayList<MeshObjectChangeListener> changeListeners = new ArrayList<>();
 	private final Vector3d weightPoint = new Vector3d();
@@ -148,7 +148,7 @@ public class MeshObject extends SurfaceObject {
 		position.x = vertices[f0]     * gamma + vertices[f1]     * alpha + vertices[f2]     * beta;
 		position.y = vertices[f0 + 1] * gamma + vertices[f1 + 1] * alpha + vertices[f2 + 1] * beta;
 		position.z = vertices[f0 + 2] * gamma + vertices[f1 + 2] * alpha + vertices[f2 + 2] * beta;
-		mat.transformAffine(position);
+		meshToGlobal.rdotAffine(position);
 	}
 	
 	public final void getNormal(int face, double alpha, double beta, Vector3d direction)
@@ -159,7 +159,7 @@ public class MeshObject extends SurfaceObject {
 		direction.x = vertexNormals[f0]     * gamma + vertexNormals[f1]     * alpha + vertexNormals[f2]     * beta;
 		direction.y = vertexNormals[f0 + 1] * gamma + vertexNormals[f1 + 1] * alpha + vertexNormals[f2 + 1] * beta;
 		direction.z = vertexNormals[f0 + 2] * gamma + vertexNormals[f1 + 2] * alpha + vertexNormals[f2 + 2] * beta;
-		inverse.transform(direction);
+		globalToMesh.ldot(direction);
 	}
 	
 	public final void getTextureCoord(int face, double alpha, double beta, Vector2d position)
@@ -179,12 +179,12 @@ public class MeshObject extends SurfaceObject {
 	@Override
 	public Intersection getIntersection(Vector3d position, Vector3d direction, Intersection intersection, double lowerBound, double upperBound) {
 		//Geometry.calcTriangleMeshVertexFaceNormals(vertices, faces, vertexNormals, faceNormals);
-		final double px = inverse.transformX(position.x, position.y, position.z, 1);
-		final double py = inverse.transformY(position.x, position.y, position.z, 1);
-		final double pz = inverse.transformZ(position.x, position.y, position.z, 1);
-		double dx = inverse.transformX(direction.x, direction.y, direction.z, 0);
-		double dy = inverse.transformY(direction.x, direction.y, direction.z, 0);
-		double dz = inverse.transformZ(direction.x, direction.y, direction.z, 0);
+		final double px = globalToMesh.rdotAffineX(position.x, position.y, position.z);
+		final double py = globalToMesh.rdotAffineY(position.x, position.y, position.z);
+		final double pz = globalToMesh.rdotAffineZ(position.x, position.y, position.z);
+		double dx = globalToMesh.rdotX(direction.x, direction.y, direction.z);
+		double dy = globalToMesh.rdotY(direction.x, direction.y, direction.z);
+		double dz = globalToMesh.rdotZ(direction.x, direction.y, direction.z);
 		double invDirLen = Math.sqrt(dx * dx + dy * dy + dz * dz);
 		lowerBound *= invDirLen;
 		upperBound *= invDirLen;
@@ -254,8 +254,8 @@ public class MeshObject extends SurfaceObject {
 		}
 		if (intersection.object == this)
 		{
-			mat.transformAffine(intersection.position);
-			mat.transform(intersection.normal);
+			meshToGlobal.rdotAffine(intersection.position);
+			meshToGlobal.rdot(intersection.normal);
 			intersection.distance = upperBound * invDirLen;
 			return intersection;
 		}
@@ -264,13 +264,8 @@ public class MeshObject extends SurfaceObject {
 	
 	public void applyMatrix()
 	{
-		inverse.invert(mat);
-		/*for (int i = 0; i < 3; ++i)
-		{
-			inverse.getRow(i, midpoint);
-			//inverserowdotprods[i] = midpoint.dot();
-		}*/
-		mat.getCol(3, midpoint);
+		globalToMesh.invert(meshToGlobal);
+		meshToGlobal.getCol(3, midpoint);
 	}
 	
 	@Override
@@ -287,7 +282,7 @@ public class MeshObject extends SurfaceObject {
 				parser.parsePositionString(o, midpoint, variables, controll);
 				positionStr = parser.str;
 				DataHandler.globalVariables.setGlobal(id.concat("_pos"), parser.op);
-	    		mat.setCol(3,midpoint);
+	    		meshToGlobal.setCol(3,midpoint);
 	    		applyMatrix();
 				break;
 			}
@@ -304,7 +299,7 @@ public class MeshObject extends SurfaceObject {
 			case INVERT_INOUT:invertInsideOutside = ParseUtil.parseBoolean(o);break;
 			case TRANSFORMATION:
 			{
-				parser.parseMat(o, mat, variables, controll);
+				parser.parseMat(o, meshToGlobal, variables, controll);
 				transformationStr = parser.str;
 				applyMatrix();
 				break;
@@ -338,7 +333,7 @@ public class MeshObject extends SurfaceObject {
 			{
 				parser.parsePositionString(positionStr, midpoint, variables, controll);
 				DataHandler.globalVariables.setGlobal(id.concat("_pos"), parser.op);
-	    		mat.setCol(3,midpoint);
+	    		meshToGlobal.setCol(3,midpoint);
 	    		applyMatrix();
 				break;
 			}
@@ -354,7 +349,7 @@ public class MeshObject extends SurfaceObject {
 			case INVERT_INOUT:break;
 			case TRANSFORMATION:
 			{
-				parser.parseMat(transformationStr, mat, variables, controll);
+				parser.parseMat(transformationStr, meshToGlobal, variables, controll);
 				applyMatrix();
 				break;
 			}
@@ -538,7 +533,7 @@ public class MeshObject extends SurfaceObject {
 	{
 		for (int i = 0; i < this.vertices.length; i += 3)
 		{
-			mat.transformAffine(this.vertices[i], this.vertices[i + 1], this.vertices[i + 2], vertices, i);
+			meshToGlobal.rdotAffine(this.vertices[i], this.vertices[i + 1], this.vertices[i + 2], vertices, i);
 		}
 	}
 

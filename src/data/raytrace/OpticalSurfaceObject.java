@@ -44,7 +44,8 @@ public abstract class OpticalSurfaceObject extends SurfaceObject{
 	public double directionLength;
 	public double directionLengthQ;
 	public double invDirectionLengthQ;
-	private final Matrix4d mat = new Matrix4d(1);
+	private final Matrix4d matGlobalToSurface = new Matrix4d(1);
+	private final Matrix4d matSurfaceToGlobal = new Matrix4d(1);
 	public double invDirectionLength;
 	private double dotProdUpperBound;
 	private double dotProdLowerBound;
@@ -78,20 +79,22 @@ public abstract class OpticalSurfaceObject extends SurfaceObject{
 		return dotProdLowerBound;
 	}
 	
+	@Override
 	public void getTextureCoordinates(Vector3d position, Vector3d dir, Vector2d out)
 	{
-		double dirx = position.x - midpoint.x, diry = position.y - midpoint.y, dirz = position.z - midpoint.z;
 		if (mapLocal)
 		{
-			//System.out.println(dirx + " " + diry + " " + dirz);
-			double tmp0 = mat.transformX(dirx, diry, dirz);
-			double tmp1 = mat.transformY(dirx, diry, dirz);
-			double tmp2 = mat.transformZ(dirx, diry, dirz);
-			dirx = tmp0;
-			diry = tmp1;
-			dirz = tmp2;
+			double x = position.x, y = position.y, z = position.z;
+			double tmp0 = matGlobalToSurface.rdotAffineX(x, y, z);
+			double tmp1 = matGlobalToSurface.rdotAffineY(x, y, z);
+			double tmp2 = matGlobalToSurface.rdotAffineZ(x, y, z);
+			textureMapping.mapCartToTex(tmp0, tmp1, tmp2, out);
 		}
-		textureMapping.mapCartToTex(dirx, diry, dirz, out);
+		else
+		{
+			double dirx = position.x - midpoint.x, diry = position.y - midpoint.y, dirz = position.z - midpoint.z;
+			textureMapping.mapCartToTex(dirx, diry, dirz, out);
+		}
 	}
 	
 
@@ -167,8 +170,9 @@ public abstract class OpticalSurfaceObject extends SurfaceObject{
 			
 		}
 		
-		Geometry.getOrthorgonalMatrix(direction, mat);
-		mat.setCol(3, midpoint);
+		Geometry.getOrthorgonalZMatrix(direction, matSurfaceToGlobal); //Creates a matrix with mat*e1=direction and mat*e2 and mat*e3 orthorgonal
+		matSurfaceToGlobal.setCol(3, midpoint);
+		matGlobalToSurface.invert(matSurfaceToGlobal);
 		if (surf != SurfaceType.CYLINDER)
 		{
 			dotProdLowerBound2 = dotProdLowerBound * directionLength;
@@ -256,12 +260,12 @@ public abstract class OpticalSurfaceObject extends SurfaceObject{
 				for (int rhoi = 0; rhoi < latitudes; ++rhoi, index += 3)
 				{
 					double rho = rhoi * s;
-					mat.transformAffine(r * Math.sin(rho), r * Math.cos(rho), z, vertices, index);
+					matSurfaceToGlobal.rdotAffine(r * Math.sin(rho), r * Math.cos(rho), z, vertices, index);
 				}
 			}
 			else
 			{
-				mat.transformAffine(0, 0,z, vertices, index);
+				matSurfaceToGlobal.rdotAffine(0, 0,z, vertices, index);
 				index += 3;
 			}
 		}

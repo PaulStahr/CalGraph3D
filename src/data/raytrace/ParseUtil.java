@@ -71,10 +71,21 @@ public class ParseUtil {
 			str = (op = OperationCalculate.toList((double[][])o)).toString(strB).toString();
 			mat.setRowMajor((double[][])o);
 		}
+		else if (o instanceof ArrayOperation)
+		{
+			op = (ArrayOperation)o;
+			boolean success = OperationGeometry.parseMatRowMajor(op.calculate(variables, controll), mat);
+			strB.setLength(0);
+			str = op.toString(strB).toString();
+			if (!success)
+			{
+				throw new OperationParseException(str);
+			}
+		}
 		else if (o instanceof String)
 		{
 			op = OperationCompiler.compile((String)o);
-			boolean success = OperationGeometry.parseMat(op.calculate(variables, controll), mat);
+			boolean success = OperationGeometry.parseMatRowMajor(op.calculate(variables, controll), mat);
 			strB.setLength(0);
 			str = op.toString(strB).toString();
 			if (!success)

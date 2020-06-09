@@ -167,7 +167,7 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
     	public void clickedRemove(Graph graph);
     }
     private Variable vars[];
-    private final Matrix4d mat= new Matrix4d();
+    private final Matrix4d graphToGlobal = new Matrix4d();
     private SceneObject glObject = null;
     private Color color = Color.BLACK;
     private String function0=StringUtils.EMPTY, function1=StringUtils.EMPTY, function2=StringUtils.EMPTY, colorFunction = StringUtils.EMPTY, steps0="200", min0="-10", max0="10", steps1="200", min1="-10", max1="10", transformation = StringUtils.EMPTY;
@@ -665,7 +665,7 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
         final double min1 = min1Op.calculate(DataHandler.globalVariables, control).doubleValue();
         final double max1 = max1Op.calculate(DataHandler.globalVariables, control).doubleValue();
         final int steps1 =(int)steps1Op.calculate(DataHandler.globalVariables, control).longValue();
-        final boolean useMatrix = OperationGeometry.parseMat(transformationOp.calculate(DataHandler.globalVariables, control), mat);
+        final boolean useMatrix = OperationGeometry.parseMatRowMajor(transformationOp.calculate(DataHandler.globalVariables, control), graphToGlobal);
         
         final GraphKind kind = this.kind;
     	control.calculateLoop(false);
@@ -819,7 +819,7 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
                         v0.setValue(opsVar0[i]);
                         final Operation tmp = operation0.calculate(variableStack, control);
                         final double re = tmp.doubleValue(), imag = tmp.doubleValueImag();
-                        mat.transformAffine(x, re, imag, vertices, i * 3);                    }                	
+                        graphToGlobal.rdotAffine(x, re, imag, vertices, i * 3);                    }                	
                 }else{
                     for (int i=0;i<steps0;i++){
                         v0.setValue(opsVar0[i]);
@@ -836,11 +836,11 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
             	control.calculateLoop(true);
             	control.calculateRandom(true);
                 final float vertices[] = glObjectLine.getVertices();
-                if (mat != null){
+                if (graphToGlobal != null){
                     for (int i=0;i<steps0;i++){
                         v0.setValue(opsVar0[i]);
                         final double tmp0 =operation0.calculate(variableStack, control).doubleValue(), tmp1 = operation1.calculate(variableStack, control).doubleValue();
-                        mat.transformAffine(tmp0, tmp1, 0, vertices, i * 3);                    }            		
+                        graphToGlobal.rdotAffine(tmp0, tmp1, 0, vertices, i * 3);                    }            		
                 }else{
                     for (int i=0;i<steps0;i++){
                         v0.setValue(opsVar0[i]);
@@ -861,7 +861,7 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
                         v0.setValue(opsVar0[i]);
                         final double t = opsVar0[i].value;
                         final double result = operation0.calculate(variableStack, control).doubleValue(), x = Math.sin(t)*result, y = Math.cos(t)*result;
-                        mat.transformAffine(x, y, 0, vertices, i * 3);
+                        graphToGlobal.rdotAffine(x, y, 0, vertices, i * 3);
                     }
                 }else{
                     for (int i=0;i<steps0;i++){
@@ -889,7 +889,7 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
                 		if (useMatrix){
                 			for (int i=0;i<length;i++){
                 				final double x = operation0.get(i).doubleValue(), y = operation1.get(i).doubleValue();
-                                mat.transformAffine(x, y, 0, vertices, i * 3);                        
+                                graphToGlobal.rdotAffine(x, y, 0, vertices, i * 3);                        
                             }
                 		}else{
                 			for (int i=0;i<length;i++){
@@ -911,7 +911,7 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
                     for (int i=0;i<steps0;i++){
                         v0.setValue(opsVar0[i]);
                         final double x = operation0.calculate(variableStack, control).doubleValue(), y = operation1.calculate(variableStack, control).doubleValue(), z = operation2.calculate(variableStack, control).doubleValue();
-                        mat.transformAffine(x, y, z, vertices, i * 3);      			
+                        graphToGlobal.rdotAffine(x, y, z, vertices, i * 3);      			
                     }
                 }else{
                 	for (int i=0;i<steps0;i++){
@@ -943,9 +943,9 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
                             final double y = op.doubleValue();
                             v1.setValue(op);                            
                             final double z = tmp0.calculate(variableStack, control).doubleValue();
-                            vertexX[index]=(float)mat.transformX(x, y, z, 1);
-                            vertexY[index]=(float)mat.transformY(x, y, z, 1);
-                            vertexZ[index]=(float)mat.transformZ(x, y, z, 1);
+                            vertexX[index]=(float)graphToGlobal.rdotX(x, y, z, 1);
+                            vertexY[index]=(float)graphToGlobal.rdotY(x, y, z, 1);
+                            vertexZ[index]=(float)graphToGlobal.rdotZ(x, y, z, 1);
                         }
                     }else{
                         //final float x = (float)opsVar0[i].doubleValue();
@@ -978,9 +978,9 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
                         for (int j=0;j<steps1;j++, index++){
                             v1.setValue(opsVar1[j]);
                             final double x = tmp0.calculate(variableStack, control).doubleValue(), y = tmp1.calculate(variableStack, control).doubleValue(), z = tmp2.calculate(variableStack, control).doubleValue();
-                            vertexX[index]=(float)mat.transformX(x, y, z, 1);
-                            vertexY[index]=(float)mat.transformY(x, y, z, 1);
-                            vertexZ[index]=(float)mat.transformZ(x, y, z, 1);
+                            vertexX[index]=(float)graphToGlobal.rdotX(x, y, z, 1);
+                            vertexY[index]=(float)graphToGlobal.rdotY(x, y, z, 1);
+                            vertexZ[index]=(float)graphToGlobal.rdotZ(x, y, z, 1);
                         }
                     }else{
                         for (int j=0;j<steps1;j++, index++){
@@ -1010,7 +1010,7 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
                     if (useMatrix){
             			for (int i=0;i<length;i++){         				
                             final double x = operation0.get(i).doubleValue(), y = operation1.get(i).doubleValue(), z = operation2.get(i).doubleValue();
-                            mat.transformAffine(x, y, z, vertices, i * 3);                        
+                            graphToGlobal.rdotAffine(x, y, z, vertices, i * 3);                        
                         }
             		}else{
             			for (int i=0;i<length;i++){
@@ -1143,27 +1143,27 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
 		                        for (int j=0;j<steps1;j++, index++){
 		                        	final double vl1 = opsVar1[j].value;
 		                            variable1.setValue(opsVar1[j]);
-		                            vertex0[index]=(float)mat.transformX(vl0, vl1, tmp0.calculate(variableStack, control).doubleValue(), 1);
-		                            vertex1[index]=(float)mat.transformY(vl0, vl1, tmp0.calculate(variableStack, control).doubleValue(), 1);
-		                            vertex2[index]=(float)mat.transformZ(vl0, vl1, tmp0.calculate(variableStack, control).doubleValue(), 1);
+		                            vertex0[index]=(float)graphToGlobal.rdotX(vl0, vl1, tmp0.calculate(variableStack, control).doubleValue(), 1);
+		                            vertex1[index]=(float)graphToGlobal.rdotY(vl0, vl1, tmp0.calculate(variableStack, control).doubleValue(), 1);
+		                            vertex2[index]=(float)graphToGlobal.rdotZ(vl0, vl1, tmp0.calculate(variableStack, control).doubleValue(), 1);
 		                        }
 		                        break;
                     		}case 1:{
                     			for (int j=0;j<steps1;j++, index++){
 		                        	final double vl1 = opsVar1[j].value;
 		                            variable1.setValue(opsVar1[j]);
-                                    vertex0[index]=(float)mat.transformX(vl0, tmp0.calculate(variableStack, control).doubleValue(), vl1, 1);
-                                    vertex1[index]=(float)mat.transformY(vl0, tmp0.calculate(variableStack, control).doubleValue(), vl1, 1);
-                                    vertex2[index]=(float)mat.transformZ(vl0, tmp0.calculate(variableStack, control).doubleValue(), vl1, 1);
+                                    vertex0[index]=(float)graphToGlobal.rdotX(vl0, tmp0.calculate(variableStack, control).doubleValue(), vl1, 1);
+                                    vertex1[index]=(float)graphToGlobal.rdotY(vl0, tmp0.calculate(variableStack, control).doubleValue(), vl1, 1);
+                                    vertex2[index]=(float)graphToGlobal.rdotZ(vl0, tmp0.calculate(variableStack, control).doubleValue(), vl1, 1);
                     			}
                     			break;
                     		}case 0:{
                                 for (int j=0;j<steps1;j++, index++){
 		                        	final double vl1 = opsVar1[j].value;
 		                            variable1.setValue(opsVar1[j]);
-                                    vertex0[index]=(float)mat.transformX(tmp0.calculate(variableStack, control).doubleValue(), vl0, vl1, 1);
-                                    vertex1[index]=(float)mat.transformY(tmp0.calculate(variableStack, control).doubleValue(), vl0, vl1, 1);
-                                    vertex2[index]=(float)mat.transformZ(tmp0.calculate(variableStack, control).doubleValue(), vl0, vl1, 1);
+                                    vertex0[index]=(float)graphToGlobal.rdotX(tmp0.calculate(variableStack, control).doubleValue(), vl0, vl1, 1);
+                                    vertex1[index]=(float)graphToGlobal.rdotY(tmp0.calculate(variableStack, control).doubleValue(), vl0, vl1, 1);
+                                    vertex2[index]=(float)graphToGlobal.rdotZ(tmp0.calculate(variableStack, control).doubleValue(), vl0, vl1, 1);
                                 }
                                 break;
                     		}
@@ -1193,9 +1193,9 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
                             final double x = Math.cos(value0)*value1;
                             final double y = Math.sin(value0)*value1;
                             final double z = tmp0.calculate(variableStack, control).doubleValue();
-                            vertexX[index]=(float)mat.transformX(x, y, z, 1);
-                            vertexY[index]=(float)mat.transformY(x, y, z, 1);
-                            vertexZ[index]=(float)mat.transformZ(x, y, z, 1);
+                            vertexX[index]=(float)graphToGlobal.rdotX(x, y, z, 1);
+                            vertexY[index]=(float)graphToGlobal.rdotY(x, y, z, 1);
+                            vertexZ[index]=(float)graphToGlobal.rdotZ(x, y, z, 1);
                         }
                     }else{
                         for (int j=0;j<steps1;j++, index++){
@@ -1241,9 +1241,9 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
 	                        for (int j=0;j<steps1;j++, index++){
 	                            v2.setValue(opsVar1[j]);
 	                            final double x = tmp0.calculate(variableStack, control).doubleValue(), y = tmp1.calculate(variableStack, control).doubleValue(), z = tmp2.calculate(variableStack, control).doubleValue();
-	                            vertexX[index]=(float)mat.transformX(x, y, z, 1);
-	                            vertexY[index]=(float)mat.transformY(x, y, z, 1);
-	                            vertexZ[index]=(float)mat.transformZ(x, y, z, 1);
+	                            vertexX[index]=(float)graphToGlobal.rdotX(x, y, z, 1);
+	                            vertexY[index]=(float)graphToGlobal.rdotY(x, y, z, 1);
+	                            vertexZ[index]=(float)graphToGlobal.rdotZ(x, y, z, 1);
 	                        }
 	                    }else{
 	                        for (int j=0;j<steps1;j++, index++){

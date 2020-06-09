@@ -11,6 +11,7 @@ import java.awt.image.Raster;
 import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
+
 import javax.imageio.ImageIO;
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBoxMenuItem;
@@ -33,11 +34,11 @@ import geometry.Vector3d;
 import jcomponents.RecentFileList;
 import jcomponents.util.ImageUtil;
 import jcomponents.util.JMathTextField;
-import maths.Operation;
 import maths.Controller;
+import maths.Operation;
+import maths.Operation.CalculationController;
 import maths.Variable;
 import maths.VariableStack;
-import maths.Operation.CalculationController;
 import maths.algorithm.Calculate;
 import maths.data.ArrayOperation;
 import maths.data.RealLongOperation;
@@ -160,24 +161,24 @@ public class TextureView extends JFrame implements ActionListener, ItemListener{
 			
 			if (op != null)
 			{
-				OperationGeometry.parseMat(op.calculate(null, null), inputTransformation = new Matrix3d());
+				OperationGeometry.parseMatRowMajor(op.calculate(null, null), inputTransformation = new Matrix3d());
 			}
 			op = mappingCartTransformation.get();
 			if (op != null)
 			{
-				OperationGeometry.parseMat(op.calculate(null, null), cartTransformation = new Matrix4d());
+				OperationGeometry.parseMatRowMajor(op.calculate(null, null), cartTransformation = new Matrix4d());
 			}
 			op = mappingOutputTransformation.get();
 			if (op != null)
 			{
-				OperationGeometry.parseMat(op.calculate(null, null), outputTransformation = new Matrix3d());
+				OperationGeometry.parseMatRowMajor(op.calculate(null, null), outputTransformation = new Matrix3d());
 			}
 			for (int y = 0; y < outHeight; ++y)
 			{
 				for (int x = 0; x < outWidth; ++x)
 				{
-					double xd = (double)x * invOutWidth;
-					double yd = (double)y * invOutHeight; 
+					double xd = x * invOutWidth;
+					double yd = y * invOutHeight; 
 					if (outputTransformation != null)
 					{
 						double tmpx = outputTransformation.transformAffineX(xd, yd);
@@ -187,7 +188,7 @@ public class TextureView extends JFrame implements ActionListener, ItemListener{
 					outputTextureMapping.mapTexToCart(xd, yd, v3);
 					if (cartTransformation != null)
 					{
-						cartTransformation.transformAffine(v3);
+						cartTransformation.rdotAffine(v3);
 					}
 					inputTextureMapping.mapCartToTex(v3.x, v3.y, v3.z, v);
 					if (inputTransformation != null)

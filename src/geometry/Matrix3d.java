@@ -22,15 +22,15 @@
 package geometry;
 
 public class Matrix3d implements Matrixd{
-	public double x0, x1, x2, y0, y1, y2, z0, z1, z2;
+	public double m00, m01, m02, m10, m11, m12, m20, m21, m22;
 
 	
 	public Matrix3d(){this(1,0,0,0,1,0,0,0,1);}
 	
 	public Matrix3d(double x0, double x1, double x2, double y0, double y1, double y2, double z0, double z1, double z2){
-		this.x0 = x0;this.x1 = x1;this.x2 = x2;
-		this.y0 = y0;this.y1 = y1;this.y2 = y2;
-		this.z0 = z0;this.z1 = z1;this.z2 = z2;
+		this.m00 = x0;this.m01 = x1;this.m02 = x2;
+		this.m10 = y0;this.m11 = y1;this.m12 = y2;
+		this.m20 = z0;this.m21 = z1;this.m22 = z2;
 	}
 	
 	public final void transform(Rotation3 rot){
@@ -42,58 +42,63 @@ public class Matrix3d implements Matrixd{
 	
 	public final void transform(Vector3f v){
 		final float x = v.x, y = v.y, z = v.z;
-		v.x = (float)(x0 * x + y0 * y + z0 * z);
-		v.y = (float)(x1 * x + y1 * y + z1 * z);
-		v.z = (float)(x2 * x + y2 * y + z2 * z);
+		v.x = (float)(m00 * x + m10 * y + m20 * z);
+		v.y = (float)(m01 * x + m11 * y + m21 * z);
+		v.z = (float)(m02 * x + m12 * y + m22 * z);
 	}
 	
 	public final double getNewX(double x, double y, double z){
-		return x0 * x + y0 * y + z0 * z;
+		return m00 * x + m10 * y + m20 * z;
 	}
 
 	public final double getNewY(double x, double y, double z){
-		return x1 * x + y1 * y + z1 * z;
+		return m01 * x + m11 * y + m21 * z;
 	}
 
 	public final double getNewZ(double x, double y, double z){
-		return x2 * x + y2 * y + z2 * z;
+		return m02 * x + m12 * y + m22 * z;
 	}
 	
+	@Override
 	public final double get(int x, int y) {
 		switch(x){
-			case 0:switch(y){case 0:return x0;case 1:return x1;case 2:return x2;default: throw new ArrayIndexOutOfBoundsException(y);}
-			case 1:switch(y){case 0:return y0;case 1:return y1;case 2:return y2;default: throw new ArrayIndexOutOfBoundsException(y);}
-			case 2:switch(y){case 0:return z0;case 1:return z1;case 2:return z2;default: throw new ArrayIndexOutOfBoundsException(y);}
+			case 0:switch(y){case 0:return m00;case 1:return m01;case 2:return m02;default: throw new ArrayIndexOutOfBoundsException(y);}
+			case 1:switch(y){case 0:return m10;case 1:return m11;case 2:return m12;default: throw new ArrayIndexOutOfBoundsException(y);}
+			case 2:switch(y){case 0:return m20;case 1:return m21;case 2:return m22;default: throw new ArrayIndexOutOfBoundsException(y);}
 		}
 		throw new ArrayIndexOutOfBoundsException(x);
 	}
 
+	@Override
 	public final int cols() {return 3;}
 	
+	@Override
 	public final int rows() {return 3;}
 
 	
+	@Override
 	public final void setRowMajor(final double mat[][]){
-		x0 = mat[0][0]; x1 = mat[1][0]; x2 = mat[2][0];
-		y0 = mat[0][1]; y1 = mat[1][1]; y2 = mat[2][1];
-		z0 = mat[0][2]; z1 = mat[1][2]; z2 = mat[2][2];
+		m00 = mat[0][0]; m01 = mat[1][0]; m02 = mat[2][0];
+		m10 = mat[0][1]; m11 = mat[1][1]; m12 = mat[2][1];
+		m20 = mat[0][2]; m21 = mat[1][2]; m22 = mat[2][2];
 	}
 
 	
+	@Override
 	public final void set(int x, int y, double value){
 		switch(x){
-			case 0:switch(y){case 0:x0 = value;return;case 1:x1 = value;return;case 2:x2 = value;return;default: throw new ArrayIndexOutOfBoundsException(y);}
-			case 1:switch(y){case 0:y0 = value;return;case 1:y1 = value;return;case 2:y2 = value;return;default: throw new ArrayIndexOutOfBoundsException(y);}
-			case 2:switch(y){case 0:z0 = value;return;case 1:z1 = value;return;case 2:z2 = value;return;default: throw new ArrayIndexOutOfBoundsException(y);}
+			case 0:switch(y){case 0:m00 = value;return;case 1:m01 = value;return;case 2:m02 = value;return;default: throw new ArrayIndexOutOfBoundsException(y);}
+			case 1:switch(y){case 0:m10 = value;return;case 1:m11 = value;return;case 2:m12 = value;return;default: throw new ArrayIndexOutOfBoundsException(y);}
+			case 2:switch(y){case 0:m20 = value;return;case 1:m21 = value;return;case 2:m22 = value;return;default: throw new ArrayIndexOutOfBoundsException(y);}
 		}
 		throw new ArrayIndexOutOfBoundsException(x);
 	}
 
 
 	public final void set(Matrix3d o) {
-		this.x0 = o.x0;this.x1 = o.x1;this.x2 = o.x2;
-		this.y0 = o.y0;this.y1 = o.y1;this.y2 = o.y2;
-		this.z0 = o.z0;this.z1 = o.z1;this.z2 = o.z2;
+		this.m00 = o.m00;this.m01 = o.m01;this.m02 = o.m02;
+		this.m10 = o.m10;this.m11 = o.m11;this.m12 = o.m12;
+		this.m20 = o.m20;this.m21 = o.m21;this.m22 = o.m22;
 	}
 
 	
@@ -118,21 +123,21 @@ public class Matrix3d implements Matrixd{
 	
 	public final void transformAffine(Vector2d v){
 		final double x = v.x, y = v.y;
-		v.x = x0 * x + y0 * y + z0;
-		v.y = x1 * x + y1 * y + z1;
+		v.x = m00 * x + m10 * y + m20;
+		v.y = m01 * x + m11 * y + m21;
 	}
 
 	public final double transformAffineX(double x, double y) {
-		return x0 * x + y0 * y + z0;
+		return m00 * x + m10 * y + m20;
 	}
 	
 	public final double transformAffineY(double x, double y) {
-		return x1 * x + y1 * y + z1;
+		return m01 * x + m11 * y + m21;
 	}
 
-	public void set(double x0, double x1, double x2, double y0, double y1, double y2, double z0, double z1, double z2){
-		this.x0 = x0;this.x1 = x1;this.x2 = x2;
-		this.y0 = y0;this.y1 = y1;this.y2 = y2;
-		this.z0 = z0;this.z1 = z1;this.z2 = z2;
+	public void setRowMajor(double m00, double m01, double m02, double m10, double m11, double m12, double m20, double m21, double m22){
+		this.m00 = m00;this.m01 = m01;this.m02 = m02;
+		this.m10 = m10;this.m11 = m11;this.m12 = m12;
+		this.m20 = m20;this.m21 = m21;this.m22 = m22;
 	}
 }

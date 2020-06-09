@@ -102,7 +102,7 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 	{
 		super.readBinaryFile(file);
 		strB.setLength(0);
-		transformationStr = new ArrayOperation((Matrixd)mat).toString(strB).toString();
+		transformationStr = new ArrayOperation((Matrixd)unitVolumeToGlobal).toString(strB).toString();
 		strB.setLength(0);
 		positionStr = new ArrayOperation(midpoint).toString(strB).toString();
 		valueChanged(SCENE_OBJECT_COLUMN_TYPE.TRANSFORMATION, null);
@@ -115,7 +115,7 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 	{
 		super.readDycom(file);
 		strB.setLength(0);
-		transformationStr = new ArrayOperation((Matrixd)mat).toString(strB).toString();
+		transformationStr = new ArrayOperation((Matrixd)unitVolumeToGlobal).toString(strB).toString();
 		strB.setLength(0);
 		positionStr = new ArrayOperation(midpoint).toString(strB).toString();
 		valueChanged(SCENE_OBJECT_COLUMN_TYPE.TRANSFORMATION, null);
@@ -138,7 +138,7 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 			{
 				parser.parsePositionString(positionStr, midpoint, variables, controll);
 				DataHandler.globalVariables.setGlobal(id.concat("_pos"), parser.op);
-	    		mat.setCol(3,midpoint);
+	    		unitVolumeToGlobal.setCol(3,midpoint);
 	    		applyMatrix();
 				break;
 			}
@@ -149,7 +149,7 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 			}
 			case TRANSFORMATION:
 			{
-				parser.parseMat(transformationStr, mat, variables, controll);
+				parser.parseMat(transformationStr, unitVolumeToGlobal, variables, controll);
 				applyMatrix();
 				break;
 			}
@@ -250,7 +250,7 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 				parser.parsePositionString(o, midpoint, variables, controll);
 				positionStr = parser.str;
 				DataHandler.globalVariables.setGlobal(id.concat("_pos"), parser.op);
-	    		mat.setCol(3,midpoint);
+	    		unitVolumeToGlobal.setCol(3,midpoint);
 	    		applyMatrix();
 				break;
 			}
@@ -262,7 +262,7 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 			}
 			case TRANSFORMATION:
 			{
-				parser.parseMat(o, mat, variables, controll);
+				parser.parseMat(o, unitVolumeToGlobal, variables, controll);
 				transformationStr = parser.str;
 				applyMatrix();
 				break;

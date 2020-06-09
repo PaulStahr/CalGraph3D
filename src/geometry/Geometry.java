@@ -942,18 +942,18 @@ public class Geometry {
     {
     	double s = 2 / vec.dot();
     	double vy = s * vec.y, vz = s * vec.z, vw = s * vec.w;
-    	mat.x0 = 1 - vy * vec.y;
-    	mat.y1 = 1 - vz * vec.z;
-    	mat.z2 = 1 - vw * vec.w;
+    	mat.m00 = 1 - vy * vec.y;
+    	mat.m11 = 1 - vz * vec.z;
+    	mat.m22 = 1 - vw * vec.w;
     	double syz = vec.y * vz, syw = vec.y * vw, szw = vec.z * vw;
     	double axw = vec.x * vw, axz = vec.x * vz, axy = vec.x * vy;
     	
-    	mat.x1 = syz - axw;
-    	mat.x2 = syw + axz;
-    	mat.y2 = szw - axy;
-    	mat.x1 = syz + axw;
-    	mat.x2 = syw - axz;
-    	mat.y2 = szw + axy;
+    	mat.m01 = syz - axw;
+    	mat.m02 = syw + axz;
+    	mat.m12 = szw - axy;
+    	mat.m01 = syz + axw;
+    	mat.m02 = syw - axz;
+    	mat.m12 = szw + axy;
     }
     
     public static final void rotMatrixToQuat(Matrix3d mat, Vector4d vec) {}
@@ -1091,7 +1091,7 @@ public class Geometry {
     	return result;
     }
     
-    public static final void getOrthorgonalMatrix(Vector3d in, Matrixd out) {
+    public static final void getOrthorgonalZMatrix(Vector3d in, Matrixd out) {
     	double dirlength = Math.sqrt(in.dot());
     	double qx = in.x * in.x;
 		double qy = in.y * in.y;
@@ -1124,11 +1124,13 @@ public class Geometry {
     	n1x *= mult; n1y *= mult; n1z *= mult;
     	if (out instanceof Matrix3d)
     	{
-    		((Matrix3d)out).set(n0x, n0y, n0z, n1x, n1y, n1z, in.x, in.y, in.z);
+    		((Matrix3d)out).setRowMajor(n0x, n1x, in.x, n0y, n1y, in.y, n0z, n1z, in.z);
+    		//((Matrix3d)out).set(n0x, n0y, n0z, n1x, n1y, n1z, in.x, in.y, in.z);
     	}
     	if (out instanceof Matrix4d)
     	{
-    		((Matrix4d)out).set(n0x, n0y, n0z, n1x, n1y, n1z, in.x, in.y, in.z);
+    		((Matrix4d)out).setRowMajor(n0x, n1x, in.x, n0y, n1y, in.y, n0z, n1z, in.z);
+    		//((Matrix4d)out).set(n0x, n0y, n0z, n1x, n1y, n1z, in.x, in.y, in.z);
     	}
     }
     
@@ -1179,9 +1181,9 @@ public class Geometry {
 		nx *= len; ny *= len; nz *= len;
 		
 		double onemincos = Math.sqrt(scale) - cos;
-		m.x0 = (nx * nx * onemincos + cos);
-		m.y1 = (ny * ny * onemincos + cos);
-		m.z2 = (nz * nz * onemincos + cos);
+		m.m00 = (nx * nx * onemincos + cos);
+		m.m11 = (ny * ny * onemincos + cos);
+		m.m22 = (nz * nz * onemincos + cos);
 		/*Symmetric part*/
 		double sx = ny * nz * onemincos;
 		double sy = nx * nz * onemincos;
@@ -1190,12 +1192,12 @@ public class Geometry {
 		double asx = nx * sin;
 		double asy = ny * sin;
 		double asz = nz * sin;
-		m.x1 = sz + asz;
-		m.y0 = sz - asz;
-		m.x2 = sy - asy;
-		m.z0 = sy + asy;
-		m.y2 = sx - asx;
-		m.z1 = sx + asx;
+		m.m01 = sz + asz;
+		m.m10 = sz - asz;
+		m.m02 = sy - asy;
+		m.m20 = sy + asy;
+		m.m12 = sx - asx;
+		m.m21 = sx + asx;
 	}
 
 	public static void toCart(Vector3d vec, double azimuth, double elevation, double distance) {

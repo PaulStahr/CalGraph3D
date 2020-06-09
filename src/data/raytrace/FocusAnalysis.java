@@ -156,8 +156,10 @@ public class FocusAnalysis {
 								position.set(rsd.endpoints, k * 3);
 								direction.set(rsd.enddirs,  k * 3);
 								destination.getTextureCoordinates(position, direction, tc);
-								double diffx = tc.x - 0.5, diffy = tc.y - 0.5;
-								dal.add(Math.sqrt(diffx * diffx + diffy * diffy) * (2 * Math.PI));
+								//double diffx = tc.x - 0.5, diffy = tc.y - 0.5;
+								//dal.add(Math.sqrt(diffx * diffx + diffy * diffy) * (2 * Math.PI));//TODO better take angle directly?
+								double diffx = position.x - destination.midpoint.x, diffy = position.y - destination.midpoint.y, diffz = position.z = destination.midpoint.z;
+								dal.add(Math.acos(destination.directionNormalized.dot(diffx, diffy, diffz)/Math.sqrt(diffx * diffx + diffy * diffy + diffz * diffz)));
 								//System.out.println(position + ' ' + tc);
 								int x = (int)(tc.x * width);
 								int y = (int)(tc.y * height);

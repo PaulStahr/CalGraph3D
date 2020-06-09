@@ -3,7 +3,7 @@ import geometry.Matrixd;
 import maths.Operation;
 
 public class OperationGeometry {
-    public static final boolean parseMat (final Operation op, Matrixd mat){
+    public static final boolean parseMatRowMajor (final Operation op, Matrixd mat){
     	int cols = mat.cols(), rows = mat.rows();
     	if (!(op instanceof maths.data.ArrayOperation)||op.size() != rows)
     		return false;

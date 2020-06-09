@@ -508,6 +508,7 @@ public final class OperationCompiler
 		                        case "sleep":	return new SleepOperation(a);
 		                        case "tan":    	return new TangensOperation(a);
 		                        case "tanh":   	return new TangensHyperbolicOperation(a);
+		                        case "transpose":return new TransposeOperation(a);
 		                	}
 		                    break;
 		                } case 2:{
