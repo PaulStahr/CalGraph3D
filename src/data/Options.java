@@ -98,44 +98,31 @@ public abstract class Options
 		set(root, key, value);
 	}
 	
-	public static synchronized void set(OptionTreeNode root, String key, Object value)
+	public static synchronized void set(OptionTreeNode root, String key, Object value) //TODO seperate into set and setCreate
 	{
 		OptionTreeNode otn = createNode(key, root, value);
-		/*if (otn == null)
+		if (value instanceof String)
 		{
-			otn = 
-		}*/
-		if (otn instanceof OptionTreeLeafBigInteger)
-		{
-			((OptionTreeLeafBigInteger)otn).value = (BigInteger)value;
-		}
-		else if (otn instanceof OptionTreeLeafString)
-		{
-			((OptionTreeLeafString)otn).value = (String)value;				
-		}
-		else if (otn instanceof OptionTreeLeafColor)
-		{
-			((OptionTreeLeafColor)otn).value = (Color)value;				
-		}
-		else if (otn instanceof OptionTreeLeafDouble)
-		{
-			((OptionTreeLeafDouble)otn).value = (double)value;				
-		}
-		else if (otn instanceof OptionTreeLeafInteger)
-		{
-			((OptionTreeLeafInteger)otn).value = value instanceof Integer ? (int)value : (byte)value;				
-		}
-		else if (otn instanceof OptionTreeLeafBoolean)
-		{
-			((OptionTreeLeafBoolean)otn).value = (boolean)value;			
-		}
-		else if (otn instanceof OptionTreeLeafFloat)
-		{
-			((OptionTreeLeafFloat)otn).value = (float)value;			
+			String str = (String)value;
+			if (otn instanceof OptionTreeLeafBigInteger)		{((OptionTreeLeafBigInteger)otn).value = new BigInteger(str);			}
+			else if (otn instanceof OptionTreeLeafString)		{((OptionTreeLeafString)otn).value = str;			}
+			else if (otn instanceof OptionTreeLeafColor)		{((OptionTreeLeafColor)otn).value = new Color(Integer.parseInt(str));	}
+			else if (otn instanceof OptionTreeLeafDouble)		{((OptionTreeLeafDouble)otn).value = Double.parseDouble(str);			}
+			else if (otn instanceof OptionTreeLeafInteger)		{((OptionTreeLeafInteger)otn).value = Integer.parseInt(str);			}
+			else if (otn instanceof OptionTreeLeafBoolean)		{((OptionTreeLeafBoolean)otn).value = Boolean.parseBoolean(str);		}
+			else if (otn instanceof OptionTreeLeafFloat)		{((OptionTreeLeafFloat)otn).value = Float.parseFloat(str);				}
+			else		{										throw new IllegalArgumentException("missmatched type for key " + key + ':' + value.getClass().getName() + " should be " + otn.typeValue());}			
 		}
 		else
 		{
-			throw new IllegalArgumentException("missmatched type for key " + key + ':' + value.getClass().getName() + " should be " + otn.typeValue());
+			if (otn instanceof OptionTreeLeafBigInteger)		{((OptionTreeLeafBigInteger)otn).value = (BigInteger)value;	}
+			else if (otn instanceof OptionTreeLeafString)		{((OptionTreeLeafString)otn).value = (String)value;			}
+			else if (otn instanceof OptionTreeLeafColor)		{((OptionTreeLeafColor)otn).value = (Color)value;			}
+			else if (otn instanceof OptionTreeLeafDouble)		{((OptionTreeLeafDouble)otn).value = (double)value;				}
+			else if (otn instanceof OptionTreeLeafInteger)		{((OptionTreeLeafInteger)otn).value = value instanceof Integer ? (int)value : (byte)value;}
+			else if (otn instanceof OptionTreeLeafBoolean)		{((OptionTreeLeafBoolean)otn).value = (boolean)value;		}
+			else if (otn instanceof OptionTreeLeafFloat)		{((OptionTreeLeafFloat)otn).value = (float)value;			}
+			else		{										throw new IllegalArgumentException("missmatched type for key " + key + ':' + value.getClass().getName() + " should be " + otn.typeValue());}
 		}
 		optionsUpdated();
 		otn.lastModification = modCount;

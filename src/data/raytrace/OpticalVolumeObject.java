@@ -43,6 +43,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import data.DataHandler;
+import data.Options;
 import data.raytrace.RaySimulation.MaterialType;
 import geometry.Geometry;
 import geometry.Matrix4d;
@@ -731,6 +732,23 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 	DoubleArrayList vertexPositions = new DoubleArrayList();//TODO private final
 	IntegerArrayList faceIndices = new IntegerArrayList();
 	private VolumeRaytraceOptions options;
+	private static int raytraceLoglevel;
+	private static Boolean raytraceWriteInstance;
+	private static Runnable optionRunnable = new Runnable()
+	{
+		@Override
+		public void run() {
+			Options.OptionTreeNode raytrace = Options.getNode("raytrace");
+			raytraceLoglevel = Options.getInteger(raytrace, "loglevel");
+			raytraceWriteInstance = Options.getBoolean(raytrace, "writeinstance");
+		}
+
+	};
+	
+	static {
+		Options.addInvokeModificationListener(optionRunnable);
+	}
+	
 	public void updateMesh()
 	{
 		vertexPositions.clear();
@@ -830,8 +848,8 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			if (native_raytrace)
 			{
 				VolumeRaytraceOptions opt = new VolumeRaytraceOptions();
-				opt.setWriteInstance(false);
-				opt.setLoglevel(-4);
+				opt.setWriteInstance(raytraceWriteInstance);
+				opt.setLoglevel(raytraceLoglevel);
 				vs = res = new VolumeScene(bounds, ior, translucency, opt);
 			}
 		}
@@ -868,12 +886,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 				}
 			}
 			VolumeScene vs = getVolumeScene();
-			if (options == null)
-			{
-				options = new VolumeRaytraceOptions();
-				options.setWriteInstance(false);
-			}
-			options.setLoglevel(-4);
+			initOptions();
 			vs.traceRays(startPosition, startDirection, scale, 0, 8000, false, options);
 			for (int i = positionBegin, readIndex = 0, j = 0; i < positionEnd; i += 3, ++j)
 			{
@@ -894,6 +907,15 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		{
 			logger.error("Error in volume tracing", e);
 		}
+	}
+
+	private void initOptions() {
+		if (options == null)
+		{
+			options = new VolumeRaytraceOptions();
+		}
+		options.setWriteInstance(raytraceWriteInstance);
+		options.setLoglevel(raytraceLoglevel);
 	}
 
 	public void calculateRays(float position[], float direction[], int fromIndex, int toIndex)
@@ -920,12 +942,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 				startPosition.put(writeIndex + 2, clip((int)tmp.x, 0x10000, maxX));
 			}
 			VolumeScene vs = getVolumeScene();
-			if (options == null)
-			{
-				options = new VolumeRaytraceOptions();
-				options.setWriteInstance(false);
-				options.setLoglevel(-4);
-			}
+			initOptions();
 			vs.traceRays(startPosition, startDirection, scale, 0, 8000, false, options);
 			for (int i = fromIndex, readIndex = 0; i < toIndex; i += 3, readIndex += 3)
 			{
@@ -967,15 +984,8 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 				startPosition.put(writeIndex + 2, clip((int)tmp.x, 0x10000, maxX));
 			}
 			VolumeScene vs = getVolumeScene();
-			if (options == null)
-			{
-				options = new VolumeRaytraceOptions();
-				options.setWriteInstance(false);
-				options.setLoglevel(-4);
-			}
+			initOptions();
 			vs.traceRays(startPosition, startDirection, scale, 0, 8000, false, options );
-			
-			
 			for (int i = fromIndex, readIndex = 0; i < toIndex; i += 3, readIndex += 3)
 			{
 				Buffers.getRev(startDirection, tmp, readIndex);

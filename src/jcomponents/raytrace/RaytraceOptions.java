@@ -31,6 +31,11 @@ public class RaytraceOptions extends OptionPanel
 	private final JTextField textField3dScale = new JTextField();
 	private final JLabel labelBlocksize = new JLabel("Blocksize");
 	private final JTextField textFieldBlocksize = new JTextField();
+	private final JLabel labelRaytraceMessageLevel = new JLabel("Raytrace Loglevel");
+	private final JTextField textFieldRaytraceLoglevel = new JTextField();
+	private final JLabel labelRaytraceWriteInstance = new JLabel("Raytrace Write Instance");
+	private final JCheckBox checkBoxRaytraceWriteInstance = new JCheckBox();
+	
 	public static final JComponentSingletonInstantiator<RaytraceOptions> instantiator = new JComponentSingletonInstantiator<RaytraceOptions>(RaytraceOptions.class);
 
 	
@@ -53,8 +58,13 @@ public class RaytraceOptions extends OptionPanel
 		add(textField3dScale);
 		add(labelBlocksize);
 		add(textFieldBlocksize);
+		add(labelRaytraceMessageLevel);
+		add(textFieldRaytraceLoglevel);
+		add(labelRaytraceWriteInstance);
+		add(checkBoxRaytraceWriteInstance);
 	}
 	
+	@Override
 	public void save()
 	{
 		Options.OptionTreeInnerNode raytrace = Options.getInnerNode("raytrace");
@@ -67,9 +77,12 @@ public class RaytraceOptions extends OptionPanel
 		Options.set(visible, "measure", checkBoxDrawMesure.isSelected());
 		Options.set(raytrace, "dscale", Float.parseFloat(textField3dScale.getText()));
 		Options.set(raytrace, "blocksize", Integer.parseInt(textFieldBlocksize.getText()));
+		Options.set(raytrace, "loglevel", Integer.parseInt(textFieldRaytraceLoglevel.getText()));
+		Options.set(raytrace, "writeinstance", checkBoxRaytraceWriteInstance.isSelected());
 		Options.triggerUpdates();
 	}
 	
+	@Override
 	public void load()
 	{
 		Options.OptionTreeInnerNode raytrace = Options.getInnerNode("raytrace");
@@ -82,5 +95,7 @@ public class RaytraceOptions extends OptionPanel
 		checkBoxDrawMesure.setSelected(Options.getBoolean(visible, "measure"));
 		textField3dScale.setText(Float.toString(Options.getFloat(raytrace, "dscale")));
 		textFieldBlocksize.setText(Integer.toString(Options.getInteger(raytrace, "blocksize")));
+		textFieldRaytraceLoglevel.setText(Integer.toString(Options.getInteger(raytrace, "loglevel")));
+		checkBoxRaytraceWriteInstance.setSelected(Options.getBoolean(raytrace, "writeinstance"));
 	}
 }

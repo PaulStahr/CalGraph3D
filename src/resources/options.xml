@@ -107,6 +107,8 @@
   	  <focalpoint type="bool">true</focalpoint>
   	  <measure type="bool">true</measure>
     </visible>
+    <loglevel type="int">0</loglevel>
+    <writeinstance type="bool">false</writeinstance>
     <dscale type="float">0.01</dscale>
   	<blocksize type="int">20000</blocksize>
   	<invisible_alpha type="int">64</invisible_alpha>

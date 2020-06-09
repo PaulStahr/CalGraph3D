@@ -59,7 +59,6 @@ public class FocusAnalysis {
 		destinationElevationVariance = new double[numElevations];
 		azimuths = new double[numElevations][];
 		startIndex = new int[numElevations + 1];
-		vertices = new double[startIndex[startIndex.length - 1] * 3];
 		if (lightSource == null)
 		{
 			throw new NullPointerException("No light Source");

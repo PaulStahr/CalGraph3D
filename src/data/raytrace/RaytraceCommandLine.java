@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import data.DataHandler;
+import data.Options;
 import data.raytrace.StackPositionProcessor.Mode;
 import io.raytrace.SceneIO;
 import jcomponents.raytrace.RaySimulationGui;
@@ -236,6 +237,17 @@ public class RaytraceCommandLine {
 					Thread.sleep(Integer.parseInt(split.get(1)));
 				}catch(InterruptedException e) {}
 				break;
+			}
+			case "option":
+			{
+				if (split.size() == 2)
+				{
+					out.write(Options.getNode(split.get(1)).toString());
+				}
+				else
+				{
+					Options.set(split.get(1), split.get(2));
+				}
 			}
 			case "focus_analysis":
 			{
