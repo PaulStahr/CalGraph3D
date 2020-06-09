@@ -182,7 +182,7 @@ public class FocusAnalysis {
 					acceptedRatio[i] = (double)lineAcceptedCount / azimuths[i].length;
 					focalDistances[i] = lineFocalDistance / lineAcceptedCount;
 					destinationElevationAveraged[i] = dal.average();
-					destinationElevationVariance[i] = Math.sqrt(dal.diffSumQ(destinationElevationAveraged[i]) / dal.size());
+					destinationElevationVariance[i] = dal.diffSumQ(destinationElevationAveraged[i]) / dal.size();
 					System.out.println();
 				}
 			}
