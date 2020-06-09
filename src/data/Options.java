@@ -258,7 +258,7 @@ public abstract class Options
     {
     	try
     	{
-    		InputStream stream = DataHandler.getResourceAsStream('/' + "options" + '.' + "xml");
+    		InputStream stream = DataHandler.getResourceAsStream("options" + '.' + "xml");
             readStructure(stream);
             stream.close();
         }

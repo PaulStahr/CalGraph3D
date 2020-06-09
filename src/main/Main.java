@@ -75,7 +75,7 @@ public class Main
 		JoranConfigurator configurator = new JoranConfigurator();
 		InputStream configStream;
 		try {
-			configStream = DataHandler.getResourceAsStream("/logback.xml");
+			configStream = DataHandler.getResourceAsStream("logback.xml");
 			configurator.setContext(loggerContext);
 			configurator.doConfigure(configStream); // loads logback file
 			configStream.close();
