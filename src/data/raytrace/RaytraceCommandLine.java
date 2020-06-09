@@ -345,8 +345,10 @@ public class RaytraceCommandLine {
 						{
 							case "output":
 							{
-								String file = split.get(++i);
-								ImageIO.write(img, file.substring(file.lastIndexOf('.') + 1), new File(file));
+								String filename = split.get(++i);
+								File file = new File(filename);
+								file.getParentFile().mkdirs();
+								ImageIO.write(img, filename.substring(filename.lastIndexOf('.') + 1), file);
 								break;
 							}
 							case "show":
@@ -357,7 +359,9 @@ public class RaytraceCommandLine {
 							}
 							case "nfactor":
 							{
-								String file = split.get(++i);
+								String filename = split.get(++i);
+								File file = new File(filename);
+								file.getParentFile().mkdirs();
 								FileWriter writer = new FileWriter(file);
 								BufferedWriter outBuf = new BufferedWriter(writer);
 								outBuf.write(String.valueOf(spp.getNormalizationFactor()));
