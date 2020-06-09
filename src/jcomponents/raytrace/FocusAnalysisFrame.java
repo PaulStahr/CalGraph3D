@@ -74,6 +74,7 @@ public class FocusAnalysisFrame extends JFrame  implements ActionListener{
 			}
 			fc.raycount = Integer.parseInt(textFieldRaycount.getText());
 			fc.width = 400; fc.height = 400;
+			fc.scene = scene;
 
 			if (scene.getActiveLightCount() == 0)
 			{

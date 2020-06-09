@@ -28,7 +28,7 @@ public class FocusAnalysis {
 	int acceptedRayCounts[];
 	public double destinationElevationVariance[];
 	double azimuths[][];
-	int startIndex[] = new int[101];
+	int startIndex[];
 	public double vertices[] = new double[startIndex[startIndex.length - 1] * 3];
 	int numElevations = 100;
 	public boolean threeDim;
@@ -99,7 +99,7 @@ public class FocusAnalysis {
 				RayGenerator gen = new RayGenerator();
 				gen.threeDimensional = true;
 				gen.setSource(lightSource);
-				DoubleArrayList dal = new DoubleArrayList();
+				DoubleArrayList destinationElevations = new DoubleArrayList();
 				
 				NearestPointCalculator npc = new NearestPointCalculator(3);
 				Vector3d focalPoint = new Vector3d();
@@ -109,7 +109,7 @@ public class FocusAnalysis {
 					double rayLineFocalHitpointDistance = 0;
 					double lineFocalDistance = 0;
 					int lineAcceptedCount = 0;
-					dal.clear();
+					destinationElevations.clear();
 					for (int j = 0; j < azimuths[i].length; ++j)
 					{
 						Arrays.fill(rsd.lastObject, null);//TODO popably much unecessary memory
@@ -158,7 +158,7 @@ public class FocusAnalysis {
 								position.set(rsd.endpoints, k * 3);
 								direction.set(rsd.enddirs,  k * 3);
 								destination.getTextureCoordinates(position, direction, tc);
-								dal.add(destination.directionNormalized.acosDistance(position, destination.midpoint));
+								destinationElevations.add(destination.directionNormalized.acosDistance(position, destination.midpoint));
 								/*{
 									double dx = tc.x - 0.5, dy = tc.y - 0.5;
 									double elev = Math.sqrt(dx * dx + dy * dy) * (2 * Math.PI);
@@ -181,8 +181,8 @@ public class FocusAnalysis {
 					destinationEucledeanVariance[i] = Math.sqrt(lineVariance / lineAcceptedCount);
 					acceptedRatio[i] = (double)lineAcceptedCount / azimuths[i].length;
 					focalDistances[i] = lineFocalDistance / lineAcceptedCount;
-					destinationElevationAveraged[i] = dal.average();
-					destinationElevationVariance[i] = dal.diffSumQ(destinationElevationAveraged[i]) / dal.size();
+					destinationElevationAveraged[i] = destinationElevations.average();
+					destinationElevationVariance[i] = destinationElevations.diffSumQ(destinationElevationAveraged[i]) / destinationElevations.size();
 					System.out.println();
 				}
 			}
@@ -240,11 +240,11 @@ public class FocusAnalysis {
 		};
 		if (wait)
 		{
-			DataHandler.runnableRunner.runParallelAndWait(prr, "Focus Heatmap", null, 0, 100, 10);
+			DataHandler.runnableRunner.runParallelAndWait(prr, "Focus Heatmap", null, 0, numElevations, 10);
 		}
 		else
 		{
-			DataHandler.runnableRunner.runParallel(prr, "Focus Heatmap", null, 0, 100, 10);
+			DataHandler.runnableRunner.runParallel(prr, "Focus Heatmap", null, 0, numElevations, 10);
 		}
 	}
 }
