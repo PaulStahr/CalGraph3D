@@ -21,7 +21,6 @@
  ******************************************************************************/
 package geometry;
 
-import geometry.Vector3f;
 import util.data.DoubleList;
 
 /** 
@@ -50,7 +49,8 @@ public final class Vector3d implements Vectord
         this.z=z;
     }
     
-    public double getD(int index)
+    @Override
+	public double getD(int index)
     {
     	switch (index)
     	{
@@ -246,7 +246,8 @@ public void sub(final Vector3d vektor){
         return Math.sqrt(dot());
     }
     
-    public final double dot() {
+    @Override
+	public final double dot() {
     	return x * x + y * y + z * z;
     }
 
@@ -565,7 +566,8 @@ public void sub(final Vector3d vektor){
 		return xDiff * xDiff + yDiff * yDiff + zDiff * zDiff;
 	}
 	
-    public final String toString()
+    @Override
+	public final String toString()
     {
     	return toString(new StringBuilder()).toString();    	
     }
@@ -593,6 +595,7 @@ public void sub(final Vector3d vektor){
 		z += data[index + 2] * scalar;
 	}
 
+	@Override
 	public void add(double[] data, int index) {
 		x += data[index];
 		y += data[index + 1];
@@ -615,6 +618,11 @@ public void sub(final Vector3d vektor){
 
 	public final double dot(float[] data, int i) {
 		return data[i] * x + data[i + 1] * y + data[i + 2] * z;
+	}
+
+	public double acosDistance(Vector3d position, Vector3d midpoint) {
+		double diffx = position.x - midpoint.x, diffy = position.y - midpoint.y, diffz = position.z = midpoint.z;
+		return Math.acos(dot(diffx, diffy, diffz)/Math.sqrt((diffx * diffx + diffy * diffy + diffz * diffz)*dot()));
 	}
 
 }

@@ -19,14 +19,14 @@ public class FocusAnalysis {
 	int maxBounces = 10;
 	public GuiOpticalSurfaceObject lightSource;
 	public int raycount;
-	public double elevations[];
-	public double avaragedByIncomingArc[];
-	public double avarageCountPerArc[];
-	public double focalDistance[];
-	public double focalHitpointDistance[];
-	public double surfaceElevation[];
-	int acceptedRayCount[];
-	public double surfaceElevationVariance[];
+	public double sourceElevations[];
+	public double destinationEucledeanVariance[];
+	public double acceptedRatio[];
+	public double focalDistances[];
+	public double focalHitpointDistances[];
+	public double destinationElevationAveraged[];
+	int acceptedRayCounts[];
+	public double destinationElevationVariance[];
 	double azimuths[][];
 	int startIndex[] = new int[101];
 	public double vertices[] = new double[startIndex[startIndex.length - 1] * 3];
@@ -37,7 +37,7 @@ public class FocusAnalysis {
 	public OpticalSurfaceObject destination;
 	public int width;
 	public int height;
-	public float[] values;
+	public float[] pixelVariance;
 	public int[] pixelCount;
 	public boolean wait = false;
 
@@ -48,15 +48,15 @@ public class FocusAnalysis {
 	
 	public void run()
 	{
-		elevations = new double[numElevations];
-		avaragedByIncomingArc = new double[numElevations];
-		avarageCountPerArc = new double[numElevations];
-		avarageCountPerArc = new double[numElevations];
-		focalDistance = new double[numElevations];
-		focalHitpointDistance = new double[numElevations];
-		surfaceElevation = new double[numElevations];
-		acceptedRayCount = new int[numElevations];
-		surfaceElevationVariance = new double[numElevations];
+		sourceElevations = new double[numElevations];
+		destinationEucledeanVariance = new double[numElevations];
+		acceptedRatio = new double[numElevations];
+		acceptedRatio = new double[numElevations];
+		focalDistances = new double[numElevations];
+		focalHitpointDistances = new double[numElevations];
+		destinationElevationAveraged = new double[numElevations];
+		acceptedRayCounts = new int[numElevations];
+		destinationElevationVariance = new double[numElevations];
 		azimuths = new double[numElevations][];
 		startIndex = new int[numElevations + 1];
 		if (lightSource == null)
@@ -71,7 +71,7 @@ public class FocusAnalysis {
 		for (int i = 0; i < numElevations; ++i)
 		{
 			double elevation = i * multElevation;
-			elevations[i] = elevation;
+			sourceElevations[i] = elevation;
 			int jsteps = threeDim ? 1 + (int)(Math.sin(elevation) * numElevations) : 2;
 			azimuths[i] = new double[jsteps];
 			double jstep = Math.PI * 2 / jsteps;
@@ -82,7 +82,7 @@ public class FocusAnalysis {
 			}
 			startIndex[i + 1] = startIndex[i] + jsteps;
 		}
-		values = new float[width * height];
+		pixelVariance = new float[width * height];
 		pixelCount = new int[width * height];
 		vertices = new double[startIndex[numElevations] * 3];
 		ParallelRangeRunnable prr = new RunnableRunner.ParallelRangeRunnable() {
@@ -95,7 +95,7 @@ public class FocusAnalysis {
 				Vector2d tc = new Vector2d();
 				RaySimulationData rsd = new RaySimulationData(raycount, false);
 				RaySimulationObject currentRay = new RaySimulationObject();
-				Vector3d weightPoint = new Vector3d();
+				Vector3d bundleWeightPoint = new Vector3d();
 				RayGenerator gen = new RayGenerator();
 				gen.threeDimensional = true;
 				gen.setSource(lightSource);
@@ -103,51 +103,53 @@ public class FocusAnalysis {
 				
 				NearestPointCalculator npc = new NearestPointCalculator(3);
 				Vector3d focalPoint = new Vector3d();
+				double lineVariance = 0;
 				for (int i = from; i < to; ++i)
 				{
-					int countPerArc = 0;
+					double rayLineFocalHitpointDistance = 0;
+					double lineFocalDistance = 0;
+					int lineAcceptedCount = 0;
 					dal.clear();
 					for (int j = 0; j < azimuths[i].length; ++j)
 					{
-						Arrays.fill(rsd.lastObject, null);
-						weightPoint.set(0,0,0);
-						gen.setArcs(elevations[i], azimuths[i][j]);
+						Arrays.fill(rsd.lastObject, null);//TODO popably much unecessary memory
+						bundleWeightPoint.set(0,0,0);
+						gen.setArcs(sourceElevations[i], azimuths[i][j]);
 						scene.calculateRays(0, raycount, raycount, gen, 0, 0, null, null, rsd.endpoints, rsd.enddirs, rsd.endcolor, null, rsd.accepted, rsd.bounces, rsd.lastObject, maxBounces, false, currentRay, RaytraceScene.UNACCEPTED_DELETE);
 						
-						int count = 0;
+						int bundleAcceptedCount = 0;
 						npc.reset();
 						for (int k = 0; k < raycount; ++k)
 						{
 							if (rsd.lastObject[k] == destination && rsd.accepted[k] == RaytraceScene.STATUS_ACCEPTED)
 							{
-								weightPoint.add(rsd.endpoints, k * 3);
+								bundleWeightPoint.add(rsd.endpoints, k * 3);
 								npc.addPoint(rsd.endpoints, rsd.enddirs, k * 3);
-								++count;
+								++bundleAcceptedCount;
 							}
 						}
 						npc.calculate();
 						npc.get(focalPoint);
 						focalPoint.write(vertices, (startIndex[i] + j) * 3);
-						focalDistance[i] += Math.sqrt(destination.midpoint.distanceQ(focalPoint));
-						countPerArc += count;
-						weightPoint.multiply(1/(double)count);
-						double variance = 0;
+						lineFocalDistance += Math.sqrt(destination.midpoint.distanceQ(focalPoint));
+						lineAcceptedCount += bundleAcceptedCount;
+						bundleWeightPoint.multiply(1/(double)bundleAcceptedCount);
+						double bundleVariance = 0;
+						if (bundleAcceptedCount == 0)
+						{
+							continue;
+						}
 						for (int k = 0; k < raycount; ++k)
 						{
 							if (rsd.lastObject[k] == destination && rsd.accepted[k] == RaytraceScene.STATUS_ACCEPTED)
 							{
-								focalHitpointDistance[i] += Math.sqrt(focalPoint.distanceQ(rsd.endpoints, k * 3));
-								double dist = weightPoint.distanceQ(rsd.endpoints, k * 3);
-								variance += dist;
-								avaragedByIncomingArc[i] += dist;
+								rayLineFocalHitpointDistance += Math.sqrt(focalPoint.distanceQ(rsd.endpoints, k * 3));
+								double dist = bundleWeightPoint.distanceQ(rsd.endpoints, k * 3);
+								bundleVariance += dist;
 							}
 						}
-						if (count == 0)
-						{
-							continue;
-						}
-						variance = Math.sqrt(variance / count);
-						System.out.print(new StringBuilder().append('(').append(variance).append(' ').append(count).append(')'));
+						bundleVariance = Math.sqrt(bundleVariance / bundleAcceptedCount);
+						System.out.print(new StringBuilder().append('(').append(bundleVariance).append(' ').append(bundleAcceptedCount).append(')'));
 
 						for (int k = 0; k < raycount; ++k)
 						{
@@ -156,10 +158,7 @@ public class FocusAnalysis {
 								position.set(rsd.endpoints, k * 3);
 								direction.set(rsd.enddirs,  k * 3);
 								destination.getTextureCoordinates(position, direction, tc);
-								
-								
-								double diffx = position.x - destination.midpoint.x, diffy = position.y - destination.midpoint.y, diffz = position.z = destination.midpoint.z;
-								dal.add(Math.acos(destination.directionNormalized.dot(diffx, diffy, diffz)/Math.sqrt(diffx * diffx + diffy * diffy + diffz * diffz)));
+								dal.add(destination.directionNormalized.acosDistance(position, destination.midpoint));
 								/*{
 									double dx = tc.x - 0.5, dy = tc.y - 0.5;
 									double elev = Math.sqrt(dx * dx + dy * dy) * (2 * Math.PI);
@@ -172,22 +171,18 @@ public class FocusAnalysis {
 								int y = (int)(tc.y * height);
 								int pixelIndex = y * width + x;
 								++pixelCount[pixelIndex];
-								values[pixelIndex] += variance;
-								++acceptedRayCount[i];
+								pixelVariance[pixelIndex] += bundleVariance;
 							}
 						}
-						avaragedByIncomingArc[i] += variance;
+						lineVariance += bundleVariance;
 					}
-					focalHitpointDistance[i] /= acceptedRayCount[i];
-					avaragedByIncomingArc[i] = Math.sqrt(avaragedByIncomingArc[i] / countPerArc);
-					avarageCountPerArc[i] = (double)countPerArc / azimuths[i].length;
-					focalDistance[i] /= azimuths[i].length;
-					surfaceElevation[i] = dal.sum() / acceptedRayCount[i];
-					if (acceptedRayCount[i] != dal.size())
-					{
-						throw new RuntimeException();
-					}
-					surfaceElevationVariance[i] = Math.sqrt(dal.diffSumQ(surfaceElevation[i]) / dal.size());
+					acceptedRayCounts[i] = lineAcceptedCount;
+					focalHitpointDistances[i] = rayLineFocalHitpointDistance / lineAcceptedCount;
+					destinationEucledeanVariance[i] = Math.sqrt(lineVariance / lineAcceptedCount);
+					acceptedRatio[i] = (double)lineAcceptedCount / azimuths[i].length;
+					focalDistances[i] = lineFocalDistance / lineAcceptedCount;
+					destinationElevationAveraged[i] = dal.average();
+					destinationElevationVariance[i] = Math.sqrt(dal.diffSumQ(destinationElevationAveraged[i]) / dal.size());
 					System.out.println();
 				}
 			}

@@ -109,6 +109,7 @@ public class DoubleArrayList extends AbstractList<Double> implements DoubleList{
 		return data[index];
 	}
 	
+	@Override
 	public double getD(int index){
 		if (index >= length)
 			throw new ArrayIndexOutOfBoundsException(index);
@@ -182,5 +183,9 @@ public class DoubleArrayList extends AbstractList<Double> implements DoubleList{
 	@Override
 	public void setElem(int index, double value) {
 		data[index] = value;
+	}
+
+	public double average() {
+		return sum() / size();
 	}
 }

@@ -91,21 +91,21 @@ public class FocusAnalysisFrame extends JFrame  implements ActionListener{
 					buttonCalculate.setEnabled(true);
 					BufferedImage img = new BufferedImage(fc.width, fc.height,BufferedImage.TYPE_INT_ARGB);
 					double min = Double.POSITIVE_INFINITY, max = Double.NEGATIVE_INFINITY;
-					for (int i = 0; i < fc.values.length; ++i)
+					for (int i = 0; i < fc.pixelVariance.length; ++i)
 					{
-						if (fc.values[i] != 0)
+						if (fc.pixelVariance[i] != 0)
 						{
-							double val = fc.values[i] / fc.pixelCount[i];
+							double val = fc.pixelVariance[i] / fc.pixelCount[i];
 							min = Math.min(min, val);
 							max = Math.max(max, val);
 						}
 					}
 					System.out.println(new StringBuilder().append(min).append(' ').append(max));
-					System.out.println("Elevation " + Arrays.toString(fc.elevations));
-					System.out.println("SurfaceElevation " + Arrays.toString(fc.surfaceElevation));
-					System.out.println("Variance " + Arrays.toString(fc.avaragedByIncomingArc));
-					System.out.println("CountPerArc " + Arrays.toString(fc.avarageCountPerArc));
-					System.out.println("FocalDistance " + Arrays.toString(fc.focalDistance));
+					System.out.println("Elevation " + Arrays.toString(fc.sourceElevations));
+					System.out.println("SurfaceElevation " + Arrays.toString(fc.destinationElevationAveraged));
+					System.out.println("Variance " + Arrays.toString(fc.destinationEucledeanVariance));
+					System.out.println("CountPerArc " + Arrays.toString(fc.acceptedRatio));
+					System.out.println("FocalDistance " + Arrays.toString(fc.focalDistances));
 					
 					try
 					{
@@ -113,7 +113,7 @@ public class FocusAnalysisFrame extends JFrame  implements ActionListener{
 						BufferedWriter outBuf = new BufferedWriter(out);
 						util.IOUtil.writeColumnTable(
 								new String[]{"Elevation", "SurfaceElevation", "SurfaceElevationVariance", "Variance", "CountPerArc", "FocalDistance", "HitpointDistance"},
-								new Object[] {fc.elevations, fc.surfaceElevation, fc.surfaceElevationVariance, fc.avaragedByIncomingArc, fc.avarageCountPerArc, fc.focalDistance, fc.focalHitpointDistance}, outBuf);
+								new Object[] {fc.sourceElevations, fc.destinationElevationAveraged, fc.destinationElevationVariance, fc.destinationEucledeanVariance, fc.acceptedRatio, fc.focalDistances, fc.focalHitpointDistances}, outBuf);
 						outBuf.close();
 						out.close();
 					}catch(IOException ex)
@@ -141,9 +141,9 @@ public class FocusAnalysisFrame extends JFrame  implements ActionListener{
 					}
 					scene.add(mo);
 					
-					DataHandler.globalVariables.setGlobal("FocusArcs", new ArrayOperation(fc.elevations));
-					DataHandler.globalVariables.setGlobal("FocusVariance", new ArrayOperation(fc.avaragedByIncomingArc));
-					DataHandler.globalVariables.setGlobal("FocusDistance", new ArrayOperation(fc.focalDistance));
+					DataHandler.globalVariables.setGlobal("FocusArcs", new ArrayOperation(fc.sourceElevations));
+					DataHandler.globalVariables.setGlobal("FocusVariance", new ArrayOperation(fc.destinationEucledeanVariance));
+					DataHandler.globalVariables.setGlobal("FocusDistance", new ArrayOperation(fc.focalDistances));
 					for (int y = 0; y < fc.height; ++y)
 					{
 						for (int x = 0; x < fc.width; ++x)
@@ -153,7 +153,7 @@ public class FocusAnalysisFrame extends JFrame  implements ActionListener{
 							if (pc != 0)
 							{
 								//System.out.println(x + ' ; + y + ' ' + values[pixelIndex] + '/' + pc);
-								float val = fc.values[pixelIndex];
+								float val = fc.pixelVariance[pixelIndex];
 								int value = (int)(255 * (val / pc) / max);
 								value = Math.min(255, value);
 								img.setRGB(x, y, (value << 8) | ((255 - value) << 16) | (Math.min(0xFF, pc) << 24));
@@ -166,7 +166,7 @@ public class FocusAnalysisFrame extends JFrame  implements ActionListener{
 					tv.setVisible(true);
 					DataPlotter dp = new DataPlotter();
 					BufferedImage img2 = new BufferedImage(fc.width, fc.height,BufferedImage.TYPE_INT_ARGB);
-					dp.addPlot(fc.elevations, fc.avaragedByIncomingArc, "Focus", Color.BLACK);
+					dp.addPlot(fc.sourceElevations, fc.destinationEucledeanVariance, "Focus", Color.BLACK);
 					try {
 						dp.plot(new GraphicsDrawer(img2.getGraphics()), new Rectangle2D.Double(0, 0, fc.width, fc.height));
 						TextureView tv2 = new TextureView(img2);
