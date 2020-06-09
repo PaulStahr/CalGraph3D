@@ -153,34 +153,15 @@ public abstract class Options
 		{
 			switch (type)
 			{
-				case "void":
-					toAdd = new OptionTreeInnerNode(elem.getName(), modCount);
-					break;
-				case "string":
-					toAdd = new OptionTreeLeafString(elem.getName(), init, modCount);
-					break;
-				case "int":
-					toAdd = new OptionTreeLeafInteger(elem.getName(), Integer.parseInt(init), modCount);
-					break;
-				case "float":
-					toAdd = new OptionTreeLeafFloat(elem.getName(), Float.parseFloat(init), modCount);
-					break;
-				case "double":
-					toAdd = new OptionTreeLeafDouble(elem.getName(), Double.parseDouble(init), modCount);
-					break;
-				case "bigint":
-					toAdd = new OptionTreeLeafBigInteger(elem.getName(), new BigInteger(init), modCount);
-					break;
-				case "color":
-					toAdd = new OptionTreeLeafColor(elem.getName(), new Color(Integer.parseInt(init)), modCount);
-					break;
-				case "bool":
-					toAdd = new OptionTreeLeafBoolean(elem.getName(), Boolean.parseBoolean(init), modCount);
-					break;
-				default:
-					System.err.println("Type " + type + " not known");
-					break;
-
+				case "void":	toAdd = new OptionTreeInnerNode(elem.getName(), modCount);										break;
+				case "string":	toAdd = new OptionTreeLeafString(elem.getName(), init, modCount);								break;
+				case "int":		toAdd = new OptionTreeLeafInteger(elem.getName(), Integer.parseInt(init), modCount);			break;
+				case "float":	toAdd = new OptionTreeLeafFloat(elem.getName(), Float.parseFloat(init), modCount);				break;
+				case "double":	toAdd = new OptionTreeLeafDouble(elem.getName(), Double.parseDouble(init), modCount);			break;
+				case "bigint":	toAdd = new OptionTreeLeafBigInteger(elem.getName(), new BigInteger(init), modCount);			break;
+				case "color":	toAdd = new OptionTreeLeafColor(elem.getName(), new Color(Integer.parseInt(init)), modCount);	break;
+				case "bool":	toAdd = new OptionTreeLeafBoolean(elem.getName(), Boolean.parseBoolean(init), modCount);		break;
+				default:		System.err.println("Type " + type + " not known");break;
 			}
 		}
 		List<Element> children = elem.getChildren();
@@ -209,27 +190,13 @@ public abstract class Options
 			{
 				switch (type)
 				{
-					case "string":
-						((OptionTreeLeafString)node).value = init;
-						break;
-					case "int":
-						((OptionTreeLeafInteger)node).value = Integer.parseInt(init);
-						break;
-					case "float":
-						((OptionTreeLeafFloat)node).value = Float.parseFloat(init);
-						break;
-					case "double":
-						((OptionTreeLeafDouble)node).value = Double.parseDouble(init);
-						break;
-					case "bigint":
-						((OptionTreeLeafBigInteger)node).value = new BigInteger(init);
-						break;
-					case "color":
-						((OptionTreeLeafColor)node).value = new Color(Integer.parseInt(init));
-						break;
-					case "bool":
-						((OptionTreeLeafBoolean)node).value = Boolean.parseBoolean(init);
-						break;
+					case "string":	((OptionTreeLeafString)node).value = init;								break;
+					case "int":		((OptionTreeLeafInteger)node).value = Integer.parseInt(init);			break;
+					case "float":	((OptionTreeLeafFloat)node).value = Float.parseFloat(init);				break;
+					case "double":	((OptionTreeLeafDouble)node).value = Double.parseDouble(init);			break;
+					case "bigint":	((OptionTreeLeafBigInteger)node).value = new BigInteger(init);			break;
+					case "color":	((OptionTreeLeafColor)node).value = new Color(Integer.parseInt(init));	break;
+					case "bool":	((OptionTreeLeafBoolean)node).value = Boolean.parseBoolean(init);		break;
 				}
 			}catch (Exception e)
 			{
@@ -291,7 +258,7 @@ public abstract class Options
     {
     	try
     	{
-    		InputStream stream = DataHandler.getResource('/' + "options" + '.' + "xml").openStream();
+    		InputStream stream = DataHandler.getResourceAsStream('/' + "options" + '.' + "xml");
             readStructure(stream);
             stream.close();
         }
@@ -392,34 +359,13 @@ public abstract class Options
     
     private static OptionTreeNode createNodeInstance(String name, Object value, int lastModification)
     {
-    	if (value instanceof BigInteger)
-		{
-			return new OptionTreeLeafBigInteger(name, (BigInteger)value, lastModification);
-		}
-		if (value instanceof Boolean)
-		{
-			return new OptionTreeLeafBoolean(name, (Boolean)value, lastModification);
-		}
-		if (value instanceof Integer)
-		{
-			return new OptionTreeLeafInteger(name, (Integer)value, lastModification);
-		}
-		if (value instanceof Double)
-		{
-			return new OptionTreeLeafDouble(name, (Double)value, lastModification);
-		}				
-		if (value instanceof Float)
-		{
-			return new OptionTreeLeafFloat(name, (Float)value, lastModification);
-		}
-		if (value instanceof Color)
-		{
-			return new OptionTreeLeafColor(name, (Color)value, lastModification);
-		}
-		if (value instanceof String)
-		{
-			return new OptionTreeLeafString(name, (String)value, lastModification);
-		}
+    	if (value instanceof BigInteger)	{return new OptionTreeLeafBigInteger(name, (BigInteger)value, lastModification);}
+		if (value instanceof Boolean)		{return new OptionTreeLeafBoolean(name, (Boolean)value, lastModification);}
+		if (value instanceof Integer)		{return new OptionTreeLeafInteger(name, (Integer)value, lastModification);}
+		if (value instanceof Double)		{return new OptionTreeLeafDouble(name, (Double)value, lastModification);}
+		if (value instanceof Float)			{return new OptionTreeLeafFloat(name, (Float)value, lastModification);}
+		if (value instanceof Color)			{return new OptionTreeLeafColor(name, (Color)value, lastModification);}
+		if (value instanceof String)		{return new OptionTreeLeafString(name, (String)value, lastModification);}
 		return new OptionTreeInnerNode(name, lastModification);
     }
     
@@ -433,19 +379,12 @@ public abstract class Options
     	}
     	
 		@Override
-		public String typeValue() {
-			return "bool";
-		}
+		public String typeValue() {	return "bool";}
 		
-		public boolean get()
-		{
-			return value;
-		}
+		public boolean get(){return value;}
 		
 		@Override
-		public String stringValue() {
-			return String.valueOf(value);
-		}
+		public String stringValue() {return String.valueOf(value);}
     }
     
     public static class OptionTreeLeafInteger extends OptionTreeNode
@@ -458,19 +397,12 @@ public abstract class Options
     	}
     	
 		@Override
-		public String typeValue() {
-			return "int";
-		}
+		public String typeValue() {	return "int";}
 		
-		public int get()
-		{
-			return value;
-		}
+		public int get(){return value;}
 		
 		@Override
-		public String stringValue() {
-			return String.valueOf(value);
-		}
+		public String stringValue() {return String.valueOf(value);}
 	}
     
     public static class OptionTreeLeafDouble extends OptionTreeNode
@@ -483,19 +415,12 @@ public abstract class Options
     	}
     	
 		@Override
-		public String typeValue() {
-			return "double";
-		}
+		public String typeValue() {	return "double";}
 		
-		public double get()
-		{
-			return value;
-		}
+		public double get()	{return value;}
 		
 		@Override
-		public String stringValue() {
-			return String.valueOf(value);
-		}
+		public String stringValue() {return String.valueOf(value);}
 	}
     
     public static class OptionTreeLeafFloat extends OptionTreeNode
@@ -508,19 +433,12 @@ public abstract class Options
     	}
     	
 		@Override
-		public String typeValue() {
-			return "float";
-		}
+		public String typeValue() {	return "float";}
 		
-		public float get()
-		{
-			return value;
-		}
+		public float get(){	return value;}
 		
 		@Override
-		public String stringValue() {
-			return String.valueOf(value);
-		}
+		public String stringValue() {return String.valueOf(value);}
 	}
     
     public static class OptionTreeLeafColor extends OptionTreeNode
@@ -533,19 +451,12 @@ public abstract class Options
     	}
     	
 		@Override
-		public String typeValue() {
-			return "color";
-		}
+		public String typeValue() {return "color";}
 		
-		public Color get()
-		{
-			return value;
-		}
+		public Color get(){	return value;}
 		
 		@Override
-		public String stringValue() {
-			return String.valueOf(value.getRGB());
-		}
+		public String stringValue() {return String.valueOf(value.getRGB());}
 	}
     
     public static class OptionTreeLeafString extends OptionTreeNode
@@ -558,19 +469,12 @@ public abstract class Options
     	}
     	
 		@Override
-		public String typeValue() {
-			return "string";
-		}
+		public String typeValue() {return "string";}
 		
-		public String get()
-		{
-			return value;
-		}
+		public String get(){return value;}
 		
 		@Override
-		public String stringValue() {
-			return String.valueOf(value);
-		}
+		public String stringValue() {return String.valueOf(value);}
 	}
     
     public static class OptionTreeLeafBigInteger extends OptionTreeNode
@@ -582,20 +486,13 @@ public abstract class Options
     		value = init;
     	}
     	
-    	public BigInteger get()
-    	{
-    		return value;
-    	}
+    	public BigInteger get(){return value;}
     	
 		@Override
-		public String typeValue() {
-			return "bigint";
-		}
+		public String typeValue() {return "bigint";}
 		
 		@Override
-		public String stringValue() {
-			return String.valueOf(value);
-		}
+		public String stringValue() {return String.valueOf(value);}
 	}
     
     public static class OptionTreeInnerNode extends OptionTreeNode
@@ -608,14 +505,10 @@ public abstract class Options
     	}
     	
 		@Override
-    	public String typeValue() {
-    		return "void";
-    	}
+    	public String typeValue() {return "void";}
     	
 		@Override
-    	public String stringValue() {
-    		return "void";
-    	}
+    	public String stringValue() {return "void";}
 		
 		public final OptionTreeNode getChild(String name)
     	{//TODO no alloc
