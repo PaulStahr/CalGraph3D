@@ -29,7 +29,7 @@ public class FocusAnalysis {
 	public double destinationElevationVariance[];
 	double azimuths[][];
 	int startIndex[];
-	public double vertices[] = new double[startIndex[startIndex.length - 1] * 3];
+	public double vertices[];
 	int numElevations = 100;
 	public boolean threeDim;
 	public int[] faces;
@@ -59,6 +59,7 @@ public class FocusAnalysis {
 		destinationElevationVariance = new double[numElevations];
 		azimuths = new double[numElevations][];
 		startIndex = new int[numElevations + 1];
+		vertices = new double[startIndex[startIndex.length - 1] * 3];
 		if (lightSource == null)
 		{
 			throw new NullPointerException("No light Source");
