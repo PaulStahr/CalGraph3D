@@ -343,7 +343,6 @@ public class ImageUtil {
 			for (int x = 0; x < width; ++x)
 			{
 				System.arraycopy(imageColorArray, (y * width + x) * stride, pixel, 0, channels);
-				pixel[3] = 255;
 				raster.setPixel(x, y, pixel);
 			}
 		}
@@ -356,11 +355,10 @@ public class ImageUtil {
 		{
 			for (int x = 0; x < width; ++x)
 			{
-				for (int i = 0, read = (y * width + x) * stride; i < channels; ++i, ++read)
+				for (int i = 0, read = (y * width + x) * stride; i < channels; ++i, ++read)//TODO copy
 				{
 					pixel[i] = (int)imageColorArray[read];
 				}
-				pixel[3] = 255;
 				raster.setPixel(x, y, pixel);
 			}
 		}

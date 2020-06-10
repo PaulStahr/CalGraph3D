@@ -447,6 +447,13 @@ public class StackPositionProcessor {
 								evaluationObject.densityCompensation(trWidth, trHeight, imageColorArrayCopy, 5, 5);
 								ArrayUtil.normalizeTo(imageColorArrayCopy, 0, imageColorArrayCopy.length, 255);
 								BufferedImage img2 = new BufferedImage(trWidth, trHeight, BufferedImage.TYPE_4BYTE_ABGR);
+								for (int i = 0; i < imageColorArrayCopy.length; ++i)
+								{
+									if (imageColorArrayCopy[i * 5 + 4] != 0)
+									{
+										imageColorArrayCopy[i * 5 + 3] = 255;
+									}
+								}
 								ImageUtil.setRGB(img2.getRaster(), imageColorArrayCopy, pixel, 4, 5);
 								try {
 									ImageIO.write(img2, "png", new File(filename));
@@ -630,7 +637,8 @@ public class StackPositionProcessor {
 							//System.out.println(Arrays.toString(Arrays.copyOfRange(imageColorArray, i * 5, i * 5 + 5)));
 							//ArrayUtil.divide(imageColorArray, i * 5, i * 5 + 4, imageColorArray, i * 5, imageColorArray[i * 5 + 4]);
 							ArrayUtil.mult(imageColorArray, i * 5, i * 5 + 4, 1f/imageColorArray[i * 5 + 4]);
-							imageColorArray[i * 5 + 4] = 0;
+							imageColorArray[i * 5 + 3] = 255;
+							imageColorArray[i * 5 + 4] = 1;
 						}
 					}
 					normalizationFactor = ArrayUtil.normalizeTo(imageColorArray, 0, imageColorArray.length, 255);
