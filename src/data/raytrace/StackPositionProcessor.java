@@ -632,7 +632,7 @@ public class StackPositionProcessor {
 						if (imageColorArray[i * 5 + 4] != 0)
 						{
 							ArrayUtil.mult(imageColorArray, i * 5, i * 5 + 4, 1f/imageColorArray[i * 5 + 4]);
-							imageColorArray[i * 5 + 4] = 0;
+							imageColorArray[i * 5 + 4] = -imageColorArray[i * 5 + 4];
 						}
 					}
 					normalizationFactor = ArrayUtil.normalizeTo(imageColorArray, 0, imageColorArray.length, 255);
