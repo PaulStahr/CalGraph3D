@@ -622,22 +622,17 @@ public class StackPositionProcessor {
 						
 						
 					}
-					Vector2d v2 = new Vector2d();
 					final float imageColorArray[] = new float[trWidth * trHeight * 5];
-
 					for (int j = 0; j < numAcceptedRays; ++j)
 					{
-						v2.set(textureCoords2, j * 2);
-						ImageUtil.addToPixel(v2.x * trWidth, v2.y * trHeight, trWidth, trHeight, color, j * 5, j * 5 + 5, 1, imageColorArray);
+						ImageUtil.addToPixel(textureCoords2[j * 2] * trWidth, textureCoords2[j * 2 + 1] * trHeight, trWidth, trHeight, color, j * 5, j * 5 + 5, 1, imageColorArray);
 					}
 					for (int i = 0; i < trWidth * trHeight; ++i)
 					{
 						if (imageColorArray[i * 5 + 4] != 0)
 						{
-							//System.out.println(Arrays.toString(Arrays.copyOfRange(imageColorArray, i * 5, i * 5 + 5)));
-							//ArrayUtil.divide(imageColorArray, i * 5, i * 5 + 4, imageColorArray, i * 5, imageColorArray[i * 5 + 4]);
 							ArrayUtil.mult(imageColorArray, i * 5, i * 5 + 4, 1f/imageColorArray[i * 5 + 4]);
-							imageColorArray[i * 5 + 4] = 1;
+							imageColorArray[i * 5 + 4] = 0;
 						}
 					}
 					normalizationFactor = ArrayUtil.normalizeTo(imageColorArray, 0, imageColorArray.length, 255);
