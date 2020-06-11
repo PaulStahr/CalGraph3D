@@ -178,9 +178,9 @@ public class FocusAnalysis {
 					}
 					acceptedRayCounts[i] = lineAcceptedCount;
 					focalHitpointDistances[i] = rayLineFocalHitpointDistance / lineAcceptedCount;
-					destinationEucledeanVariance[i] = Math.sqrt(lineVariance / lineAcceptedCount);
+					destinationEucledeanVariance[i] = lineVariance / azimuths[i].length;
 					acceptedRatio[i] = (double)lineAcceptedCount / azimuths[i].length;
-					focalDistances[i] = lineFocalDistance / lineAcceptedCount;
+					focalDistances[i] = lineFocalDistance / azimuths[i].length;
 					destinationElevationAveraged[i] = destinationElevations.average();
 					destinationElevationVariance[i] = destinationElevations.diffSumQ(destinationElevationAveraged[i]) / destinationElevations.size();
 					System.out.println();

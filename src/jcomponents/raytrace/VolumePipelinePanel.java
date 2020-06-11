@@ -45,6 +45,7 @@ public class VolumePipelinePanel extends JPanel implements ActionListener, Scene
 	private final JButton buttonAddCalculationStep = new JButton("Add Calculation Step");
 	private final JButton buttonAddSolveStep = new JButton("Add Solve Step");
 	private final JButton buttonCalculate = new JButton("Calculate");
+	private final JButton buttonSave = new JButton("Save");
 	private final JCheckBox checkBoxAutoUpdate = new JCheckBox("Auto update");
 	private final JCheckBox checkBoxRunAtStartup = new JCheckBox("Update at startup");
 	public final VolumePipeline pipeline;
@@ -55,6 +56,7 @@ public class VolumePipelinePanel extends JPanel implements ActionListener, Scene
 		public void run() {
 			if (EventQueue.isDispatchThread())
 			{	
+				isUpdating = true;
 				JFrameUtils.compareAndSetEnabled(buttonCalculate, !pipeline.isCalculating());
 				int currentCalculatingStep = pipeline.getCurrentCalculatingStep();
 				for (int i = 0; i < pipeline.steps.size(); ++i)
@@ -103,6 +105,7 @@ public class VolumePipelinePanel extends JPanel implements ActionListener, Scene
 				JFrameUtils.compareAndSetSelectedItem(volumes,pipeline.ovo);
 				JFrameUtils.compareAndSetSelected(checkBoxAutoUpdate, pipeline.getAutoUpdate());
 				JFrameUtils.compareAndSetSelected(checkBoxRunAtStartup, pipeline.calcuteAtCreation);
+				isUpdating = false;
 			}
 			else
 			{
@@ -110,8 +113,10 @@ public class VolumePipelinePanel extends JPanel implements ActionListener, Scene
 			}
 		}
 	};
-    
-    public OpticalVolumeObject getSelectedVolume()
+
+	private boolean isUpdating;
+	
+	public OpticalVolumeObject getSelectedVolume()
     {
     	return (OpticalVolumeObject)volumes.getSelectedItem();
     }
@@ -130,13 +135,14 @@ public class VolumePipelinePanel extends JPanel implements ActionListener, Scene
 		this.setLayout(layout);
 		
 		layout.setHorizontalGroup(layout.createParallelGroup().addGroup(
-				layout.createSequentialGroup().addComponent(volumes).addComponent(buttonAddCalculationStep).addComponent(buttonAddSolveStep).addComponent(buttonCalculate).addComponent(checkBoxRunAtStartup).addComponent(checkBoxAutoUpdate)).addComponent(pipelinePanel));
+				layout.createSequentialGroup().addComponent(volumes).addComponent(buttonAddCalculationStep).addComponent(buttonAddSolveStep).addComponent(buttonCalculate).addComponent(buttonSave).addComponent(checkBoxRunAtStartup).addComponent(checkBoxAutoUpdate)).addComponent(pipelinePanel));
 		layout.setVerticalGroup(layout.createSequentialGroup().addGroup(
-				layout.createParallelGroup().addComponent(volumes).addComponent(buttonAddCalculationStep).addComponent(buttonAddSolveStep).addComponent(buttonCalculate).addComponent(checkBoxRunAtStartup).addComponent(checkBoxAutoUpdate)).addComponent(pipelinePanel));
+				layout.createParallelGroup().addComponent(volumes).addComponent(buttonAddCalculationStep).addComponent(buttonAddSolveStep).addComponent(buttonCalculate).addComponent(buttonSave).addComponent(checkBoxRunAtStartup).addComponent(checkBoxAutoUpdate)).addComponent(pipelinePanel));
 		buttonAddCalculationStep.addActionListener(this);
 		buttonCalculate.addActionListener(this);
 		buttonAddSolveStep.addActionListener(this);
 		checkBoxAutoUpdate.addItemListener(this);
+		buttonSave.addActionListener(this);
 		pipelinePanel.setLayout(JFrameUtils.SINGLE_COLUMN_LAYOUT);
 		addAncestorListener(this);
 		setMinimumSize(new Dimension(100, 50));
@@ -153,9 +159,33 @@ public class VolumePipelinePanel extends JPanel implements ActionListener, Scene
 	@Override
 	public void itemStateChanged(ItemEvent arg0) {
 		Object source = arg0.getSource();
-		if (source == checkBoxAutoUpdate)			{pipeline.setAutoUpdate(checkBoxAutoUpdate.isSelected());}
-		else if (source == checkBoxRunAtStartup)	{pipeline.calcuteAtCreation = checkBoxRunAtStartup.isSelected();}
-		else if (source == volumes)					{pipeline.ovo = (OpticalVolumeObject)volumes.getSelectedItem();}
+		if (!isUpdating)
+		{
+			isUpdating = true;
+			if (source == checkBoxAutoUpdate)			{pipeline.setAutoUpdate(checkBoxAutoUpdate.isSelected());}
+			else if (source == checkBoxRunAtStartup)	{pipeline.calcuteAtCreation = checkBoxRunAtStartup.isSelected();}
+			else if (source == volumes)					{pipeline.ovo = (OpticalVolumeObject)volumes.getSelectedItem();}
+			isUpdating = false;
+		}
+	}
+	
+	void updatePipeline()
+	{
+		pipeline.steps.clear();
+		for (int i = 0; i < pipelinePanel.getComponentCount(); ++i)
+		{
+			Component comp = pipelinePanel.getComponent(i);
+			if (comp instanceof CalculationPipelineStepPanel)
+			{
+				CalculationPipelineStepPanel panel = (CalculationPipelineStepPanel)comp;
+				pipeline.steps.add(new CalculationCalcuationStep(panel.textFieldFormularIOR.getText(), panel.textFieldFormularTranslucency.getText(), panel.textFieldFormularGivenValues.getText(), panel.textFieldFormularIsGiven.getText()));
+			}
+			else if (comp instanceof GeneratePipelineStepPanel)
+			{
+				GeneratePipelineStepPanel panel = (GeneratePipelineStepPanel)comp;
+				pipeline.steps.add(new GenerationCalculationStep(panel.textFieldFormularSize.getText()));
+			}
+		}
 	}
 	
 	public class PipelineStepPanel extends JPanel implements MouseListener
@@ -189,6 +219,7 @@ public class VolumePipelinePanel extends JPanel implements ActionListener, Scene
 				{
 					pipelinePanel.setComponentZOrder(this, order);
 					pipelinePanel.revalidate();
+					updatePipeline();
 				}
 			}
 			else if(source == labelDown)
@@ -198,12 +229,14 @@ public class VolumePipelinePanel extends JPanel implements ActionListener, Scene
 				{
 					pipelinePanel.setComponentZOrder(this, order);
 					pipelinePanel.revalidate();
+					updatePipeline();
 				}
 			}
 			else if (source == labelDelete)
 			{
 				pipelinePanel.remove(this);
 				pipelinePanel.revalidate();
+				updatePipeline();
 			}
 		}
 
@@ -296,6 +329,7 @@ public class VolumePipelinePanel extends JPanel implements ActionListener, Scene
 		if (source == buttonAddCalculationStep)				{pipelinePanel.add(new CalculationPipelineStepPanel());	pipelinePanel.revalidate();}
 		else if (source == buttonAddSolveStep)				{pipelinePanel.add(new GeneratePipelineStepPanel());	pipelinePanel.revalidate();}
 		else if (source == buttonCalculate)					{pipeline.updateVariableIds();DataHandler.runnableRunner.run(pipeline, "Volume Pipeline");}
+		else if (source == buttonSave)						{updatePipeline();}
 	}
 	
 	private void updateVolumes()

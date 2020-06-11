@@ -136,7 +136,7 @@ public class Geometry {
 	{
 		int offsets[] = new int[8];
 		int cubeOffsets[] = new int[8];
-		int vertexIndices[] = new int[(width - 1) * (height - 1) * (depth - 1) * 3];
+		int vertexIndices[] = new int[(width) * (height) * (depth) * 3];
 		Arrays.fill(vertexIndices, -1);
 		boolean inside[] = new boolean[8];
 		boolean visited[] = new boolean[8];
@@ -212,6 +212,10 @@ public class Geometry {
 								int min = innerVertex & outerVertex;
 								int max = innerVertex | outerVertex;
 								int vIndex = (cubeIndex + cubeOffsets[min]) * 3 + inOutAxis;
+								if (vIndex >= vertexIndices.length)
+								{
+									throw new ArrayIndexOutOfBoundsException("(" + cubeIndex + " + " + cubeOffsets[min] + ") * " + 3 + " + " + inOutAxis + " = " + vIndex + " < " + vertexIndices.length);
+								}
 								int facePoint2 = vertexIndices[vIndex];
 								if (facePoint2 == -1)
 								{
