@@ -131,7 +131,7 @@ public class FocusAnalysis {
 						npc.calculate();
 						npc.get(focalPoint);
 						focalPoint.write(vertices, (startIndex[i] + j) * 3);
-						lineFocalDistance += Math.sqrt(destination.midpoint.distanceQ(focalPoint));
+						lineFocalDistance += destination.midpoint.distance(focalPoint);
 						lineAcceptedCount += bundleAcceptedCount;
 						bundleWeightPoint.multiply(1/(double)bundleAcceptedCount);
 						double bundleVariance = 0;
@@ -143,12 +143,12 @@ public class FocusAnalysis {
 						{
 							if (rsd.lastObject[k] == destination && rsd.accepted[k] == RaytraceScene.STATUS_ACCEPTED)
 							{
-								rayLineFocalHitpointDistance += Math.sqrt(focalPoint.distanceQ(rsd.endpoints, k * 3));
+								rayLineFocalHitpointDistance += focalPoint.distance(rsd.endpoints, k * 3);
 								double dist = bundleWeightPoint.distanceQ(rsd.endpoints, k * 3);
 								bundleVariance += dist;
 							}
 						}
-						bundleVariance = Math.sqrt(bundleVariance / bundleAcceptedCount);
+						bundleVariance /= bundleAcceptedCount;
 						System.out.print(new StringBuilder().append('(').append(bundleVariance).append(' ').append(bundleAcceptedCount).append(')'));
 
 						for (int k = 0; k < raycount; ++k)

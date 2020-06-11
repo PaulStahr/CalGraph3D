@@ -534,6 +534,14 @@ public void sub(final Vector3d vektor){
 		double zDiff = z - other.z;
 		return xDiff * xDiff + yDiff * yDiff + zDiff * zDiff;
 	}
+   	
+	public double distance(Vector3d v) {
+		return Math.sqrt(distanceQ(v));
+	}
+
+	public double distance(float[] data, int i) {
+		return Math.sqrt(distanceQ(data, i));
+	}
 	
 	public final double distanceQ(Vector3d other, double scale)
 	{
@@ -624,5 +632,6 @@ public void sub(final Vector3d vektor){
 		double diffx = position.x - midpoint.x, diffy = position.y - midpoint.y, diffz = position.z = midpoint.z;
 		return Math.acos(dot(diffx, diffy, diffz)/Math.sqrt((diffx * diffx + diffy * diffy + diffz * diffz)*dot()));
 	}
+
 
 }
