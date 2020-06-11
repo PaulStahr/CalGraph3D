@@ -103,9 +103,9 @@ public class FocusAnalysis {
 				
 				NearestPointCalculator npc = new NearestPointCalculator(3);
 				Vector3d focalPoint = new Vector3d();
-				double lineVariance = 0;
 				for (int i = from; i < to; ++i)
 				{
+					double lineVariance = 0;
 					double rayLineFocalHitpointDistance = 0;
 					double lineFocalDistance = 0;
 					int lineAcceptedCount = 0;
@@ -144,8 +144,7 @@ public class FocusAnalysis {
 							if (rsd.lastObject[k] == destination && rsd.accepted[k] == RaytraceScene.STATUS_ACCEPTED)
 							{
 								rayLineFocalHitpointDistance += focalPoint.distance(rsd.endpoints, k * 3);
-								double dist = bundleWeightPoint.distanceQ(rsd.endpoints, k * 3);
-								bundleVariance += dist;
+								bundleVariance += bundleWeightPoint.distanceQ(rsd.endpoints, k * 3);
 							}
 						}
 						bundleVariance /= bundleAcceptedCount;
