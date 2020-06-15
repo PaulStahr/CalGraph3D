@@ -21,7 +21,12 @@
  ******************************************************************************/
 package util;
 
-import java.nio.*;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.DoubleBuffer;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+import java.nio.ShortBuffer;
 
 import geometry.Vector3d;
 /**
@@ -228,6 +233,15 @@ public abstract class Buffers
         return fillIntBuffer(createIntBuffer(data.length), data);
     }
     
+
+    /**
+     * Erzeugt einen direkten IntBuffer
+     * @param data[] Inhalt des Buffers
+     */
+    public static final FloatBuffer createFloatBuffer(int data[]){
+        return fillFloatBuffer(createFloatBuffer(data.length), data);
+    }
+    
     /**
      * Erzeugt einen direkten ByteBuffer
      * @param data[] Inhalt des Buffers
@@ -242,6 +256,17 @@ public abstract class Buffers
      * @param data[] die Daten mit denen der IntBuffer gef\u00FCllt werden soll
      */
     public static final IntBuffer fillIntBuffer(IntBuffer buf, int data[]){
+        for (int i=0;i<data.length;i++)
+            buf.put(i,data[i]);
+        return buf;
+    }
+
+    /**
+     * F\u00FCllt einen Buffer mit Integer Werten
+     * @param buf der IntBuffer der gef\u00FCllt werden soll
+     * @param data[] die Daten mit denen der IntBuffer gef\u00FCllt werden soll
+     */
+    public static final FloatBuffer fillFloatBuffer(FloatBuffer buf, int data[]){
         for (int i=0;i<data.length;i++)
             buf.put(i,data[i]);
         return buf;

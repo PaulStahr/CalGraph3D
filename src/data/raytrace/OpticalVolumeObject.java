@@ -168,7 +168,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 
 	public static native long new_options();
 	
-	public static native long new_instance(IntBuffer bounds, FloatBuffer ior, FloatBuffer transculency, long opt_pt);
+	public static native long new_instance(IntBuffer bounds, FloatBuffer ior, IntBuffer transculency, long opt_pt);
 	
 	public static native void delete_instance(long pointer);
 	
@@ -215,7 +215,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			pointer = new_instance(bounds, ior, translucency, opt.pointer);
 		}
 		
-		private VolumeScene(IntBuffer bounds, FloatBuffer ior, FloatBuffer translucency, VolumeRaytraceOptions opt)
+		private VolumeScene(IntBuffer bounds, FloatBuffer ior, IntBuffer translucency, VolumeRaytraceOptions opt)
 		{
 			pointer = new_instance(bounds, ior, translucency, opt.pointer);
 		}
@@ -270,11 +270,6 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		cudaLatticeToGlobal.preScale(1/xScale, 1/yScale, 1/zScale);
 		globalToCudaLattice.postTranslate(0x10000, 0x10000, 0x10000);
 		cudaLatticeToGlobal.preTranslate(-0x10000, -0x10000, -0x10000);
-		/*System.out.println("Hi");
-		System.out.println(latticeToGlobal);
-		latticeToGlobal.invert(globalToLattice);
-		System.out.println(latticeToGlobal);*/
-		
 		
 		scale.put(0,(float)(100f / spacing.z)).put(1,(float)(100f / spacing.y)).put(2,(float)(100f / spacing.x));
 		modified();
@@ -815,7 +810,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 	}
 	
 	public int getRefractiveIndex(double x, double y, double z) {
-		double tx = globalToCudaLattice.rdotAffineX(x,y,z)/0x10000;
+		double tx = globalToCudaLattice.rdotAffineX(x,y,z) / 0x10000;
 		double ty = globalToCudaLattice.rdotAffineY(x,y,z) / 0x10000;
 		double tz = globalToCudaLattice.rdotAffineZ(x,y,z) / 0x10000;
 		return jcomponents.util.ImageUtil.getSmoothedPixel(tx, ty, tz, vol.data, vol.width, vol.height, vol.depth);
@@ -876,8 +871,11 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			bounds.put(0, vol.depth);
 			bounds.put(1, vol.height);
 			bounds.put(2, vol.width);
-			IntBuffer ior = Buffers.createIntBuffer(vol.data);
 			IntBuffer translucency = Buffers.createIntBuffer(vol.translucency);
+			//IntBuffer ior = Buffers.createIntBuffer(vol.data);
+			FloatBuffer ior = Buffers.createFloatBuffer(vol.data.length);
+			for (int i=0;i<vol.data.length;i++)
+	            ior.put(i,(float)vol.data[i]/0x100);
 			if (native_raytrace)
 			{
 				VolumeRaytraceOptions opt = new VolumeRaytraceOptions();
@@ -896,22 +894,21 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			return;
 		}
 		int count = ArrayUtil.count(object, objectBegin, objectBegin + (positionEnd - positionBegin) / 3, this);
-	
 		try {
 			IntBuffer startPosition = Buffers.createIntBuffer(count * 3);
-			ShortBuffer startDirection = Buffers.createShortBuffer(count * 3);
+			//ShortBuffer startDirection = Buffers.createShortBuffer(count * 3);
+			FloatBuffer startDirection = Buffers.createFloatBuffer(count * 3);
 			Vector3d tmp = new Vector3d();
 			int maxX = 0x10000 * vol.width - 0x20001, maxY = 0x10000 * vol.height - 0x20001, maxZ = 0x10000 * vol.depth - 0x20001;
 			for (int i = positionBegin, writeIndex = 0, j = objectBegin; i < positionEnd; i += 3, ++j)
 			{
 				if (object[j] == this)
 				{
-					tmp.set(direction, i);
-					globalToCudaLattice.rdot(tmp);
-					tmp.setLength(0x3FFF);
+					globalToCudaLattice.rdot(direction, i, tmp);
+					//tmp.setLength(0x3FFF);
+					tmp.setLength(0.5);
 					Buffers.putRev(startDirection, tmp, writeIndex);
-					tmp.set(position, i);
-					globalToCudaLattice.rdotAffine(tmp);
+					globalToCudaLattice.rdotAffine(position, i, tmp);
 					startPosition.put(writeIndex, clip((int)tmp.z, 0x10000, maxZ));
 					startPosition.put(writeIndex + 1, clip((int)tmp.y, 0x10000, maxY));
 					startPosition.put(writeIndex + 2, clip((int)tmp.x, 0x10000, maxX));
@@ -926,12 +923,12 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 				if (object[j] == this)
 				{
 					Buffers.getRev(startDirection, tmp, readIndex);
-					cudaLatticeToGlobal.rdot(tmp);
-					tmp.write(direction, i);
+					cudaLatticeToGlobal.rdot(tmp, direction, i);
 					double x = tmp.x, y = tmp.y, z = tmp.z;
 					Buffers.getRev(startPosition, tmp, readIndex);
 					cudaLatticeToGlobal.rdotAffine(tmp);
-					tmp.x -= 5 * x;tmp.y -= 5 * y; tmp.z -= 5 * z;
+					double factor = 30/Math.sqrt(x * x + y * y + z * z);
+					tmp.x -= factor * x;tmp.y -= factor * y; tmp.z -= factor * z;
 					tmp.write(position, i);
 					readIndex += 3;
 				}
@@ -981,7 +978,8 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 				cudaLatticeToGlobal.rdot(tmp, direction, i);
 				Buffers.getRev(startPosition, tmp, readIndex);
 				cudaLatticeToGlobal.rdotAffine(tmp);
-				tmp.add(direction, i, -5);
+				//tmp.add(direction, i, -5);
+				//tmp.add(direction, i, -(float)0.001);
 				tmp.write(position, i);
 			}
 		}catch(Throwable e)
