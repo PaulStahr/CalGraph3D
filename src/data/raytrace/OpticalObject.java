@@ -185,6 +185,7 @@ public abstract class OpticalObject {
 		CONIC_CONSTANT("ConicConstant", TYPE_TEXTFIELD, 1, null),
 		PREVIOUS_OBJECTS("PreviousObjects", TYPE_TEXTFIELD, null, null),
 		FOLLOWING_OBJECTS("FollowingObjects", TYPE_TEXTFIELD, null, null),
+		MAX_STEPS("MaxSteps", TYPE_TEXTFIELD, 8000, null),
 		COLOR("Color", TYPE_COLOR, new int[] {255,255,255,255}, null),
 		TEXTURE_OBJECT("TextureObject", TYPE_TEXTFIELD, null, null),
 		TEXTURE_MAPPING("TextureMapping", TYPE_COMBOBOX, TextureMapping.SPHERICAL.name, TextureMapping.names()),

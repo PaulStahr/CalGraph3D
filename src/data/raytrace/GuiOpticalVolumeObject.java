@@ -35,7 +35,28 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 	private String colorStr;
 	private String successorStr;
 	private String predessorStr;
-	public static final COLUMN_TYPES TYPES = new COLUMN_TYPES(new SCENE_OBJECT_COLUMN_TYPE[]{SCENE_OBJECT_COLUMN_TYPE.ID, SCENE_OBJECT_COLUMN_TYPE.ACTIVE,SCENE_OBJECT_COLUMN_TYPE.LOAD,SCENE_OBJECT_COLUMN_TYPE.VIEW,SCENE_OBJECT_COLUMN_TYPE.POSITION,SCENE_OBJECT_COLUMN_TYPE.TRANSFORMATION,SCENE_OBJECT_COLUMN_TYPE.COLOR, SCENE_OBJECT_COLUMN_TYPE.PREVIOUS_OBJECTS, SCENE_OBJECT_COLUMN_TYPE.FOLLOWING_OBJECTS,SCENE_OBJECT_COLUMN_TYPE.DELETE}, new SCENE_OBJECT_COLUMN_TYPE[]{SCENE_OBJECT_COLUMN_TYPE.ID, SCENE_OBJECT_COLUMN_TYPE.ACTIVE, SCENE_OBJECT_COLUMN_TYPE.LOAD,  SCENE_OBJECT_COLUMN_TYPE.VIEW, SCENE_OBJECT_COLUMN_TYPE.POSITION, SCENE_OBJECT_COLUMN_TYPE.TRANSFORMATION, SCENE_OBJECT_COLUMN_TYPE.COLOR, SCENE_OBJECT_COLUMN_TYPE.DELETE});
+	public static final COLUMN_TYPES TYPES = new COLUMN_TYPES(
+			new SCENE_OBJECT_COLUMN_TYPE[]{
+					SCENE_OBJECT_COLUMN_TYPE.ID,
+					SCENE_OBJECT_COLUMN_TYPE.ACTIVE,
+					SCENE_OBJECT_COLUMN_TYPE.LOAD,
+					SCENE_OBJECT_COLUMN_TYPE.VIEW,
+					SCENE_OBJECT_COLUMN_TYPE.POSITION,
+					SCENE_OBJECT_COLUMN_TYPE.TRANSFORMATION,
+					SCENE_OBJECT_COLUMN_TYPE.COLOR,
+					SCENE_OBJECT_COLUMN_TYPE.PREVIOUS_OBJECTS,
+					SCENE_OBJECT_COLUMN_TYPE.FOLLOWING_OBJECTS,
+					SCENE_OBJECT_COLUMN_TYPE.MAX_STEPS,
+					SCENE_OBJECT_COLUMN_TYPE.DELETE},
+			new SCENE_OBJECT_COLUMN_TYPE[]{
+					SCENE_OBJECT_COLUMN_TYPE.ID,
+					SCENE_OBJECT_COLUMN_TYPE.ACTIVE,
+					SCENE_OBJECT_COLUMN_TYPE.LOAD,
+					SCENE_OBJECT_COLUMN_TYPE.VIEW,
+					SCENE_OBJECT_COLUMN_TYPE.POSITION,
+					SCENE_OBJECT_COLUMN_TYPE.TRANSFORMATION,
+					SCENE_OBJECT_COLUMN_TYPE.COLOR,
+					SCENE_OBJECT_COLUMN_TYPE.DELETE});
 
 	@Override
 	public COLUMN_TYPES getTypes()
@@ -142,6 +163,7 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 	    		applyMatrix();
 				break;
 			}
+			case MAX_STEPS:break;
 			case COLOR:
 			{
 				color = parser.parseColor(colorStr, variables, controll);
@@ -273,7 +295,10 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 			case PREVIOUS_OBJECTS:
 				predessorArray= parser.parseStringArray(o, controll);
 				predessorStr = parser.str;break;
-			default:break;
+			case MAX_STEPS:
+				maxSteps = ParseUtil.parseInteger(o);
+				break;
+			default:logger.warn("Unknown Option " + ct);break;
 			}
 			updateIds((byte)ct.ordinal(), parser.op);
 			valueChanged(ct, null);
@@ -300,6 +325,7 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 		case COLOR:			return colorStr;
 		case FOLLOWING_OBJECTS: return successorStr;
 		case PREVIOUS_OBJECTS: return predessorStr;
+		case MAX_STEPS:		return maxSteps;
 		default:			throw new IllegalArgumentException(ct.name);		
 		}
 		return null;

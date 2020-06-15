@@ -758,7 +758,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 			if(fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION)
 			{
 				try {
-					to.setValue(SCENE_OBJECT_COLUMN_TYPE.PATH, fileChooser.getSelectedFile().getAbsolutePath(), scene.vs, parser);
+					to.setValue(SCENE_OBJECT_COLUMN_TYPE.PATH, '"' + fileChooser.getSelectedFile().getAbsolutePath() + '"', scene.vs, parser);
 				} catch (OperationParseException ex) {
 			    	JFrameUtils.logErrorAndShow("Can't read image", ex, logger);
 				}

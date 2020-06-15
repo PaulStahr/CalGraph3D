@@ -114,7 +114,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			}
 		}catch(UnsatisfiedLinkError | IOException | NullPointerException e)
 		{
-			logger.error("Can't load cuda", e);
+			logger.error("Can't load cuda-raytracer", e);
 		}
 	}
 	
@@ -205,6 +205,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 	public ImagePlus ip;
 	public Color color = Color.BLACK;
 	private final FloatBuffer scale = Buffers.createFloatBuffer(3);
+	protected int maxSteps = 8000;
 	private static class VolumeScene
 	{
 		private long pointer;
@@ -280,13 +281,57 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		//TODO spacing
 	}
 	
+	static class VolumeCalculationEnvironment{
+		Variable xVar = new Variable("x");
+		Variable yVar = new Variable("y");
+		Variable zVar = new Variable("z");
+		Variable xLocalVar = new Variable("lx");
+		Variable yLocalVar = new Variable("ly");
+		Variable zLocalVar = new Variable("lz");
+		Variable indexVar = new Variable("index");
+		VariableStack vs;
+		private Matrix4d latticeToGlobal;
+		private int width;
+		private int height;
+		private int depth;
+		public final Vector3d position = new Vector3d();
+		
+		public VolumeCalculationEnvironment(VariableStack vs, Matrix4d latticeToGlobal, int width, int height, int depth)
+		{
+			this.vs = vs;
+			this.latticeToGlobal = latticeToGlobal;
+			this.width = width;
+			this.height = height;
+			this.depth = depth;
+			vs.addLocal(xVar);
+			vs.addLocal(yVar);
+			vs.addLocal(zVar);	
+			vs.addLocal(xLocalVar);
+			vs.addLocal(yLocalVar);
+			vs.addLocal(zLocalVar);
+			vs.addLocal(indexVar);
+		}
+		
+		public void setPosition(int index, int x, int y, int z)
+		{
+			xLocalVar.setValue((double)x/width);
+			yLocalVar.setValue((double)y/height);
+			zLocalVar.setValue((double)z/depth);
+			
+			latticeToGlobal.rdotAffine(x,y,z, position);
+			xVar.setValue(position.x);
+			yVar.setValue(position.y);
+			zVar.setValue(position.z);
+			indexVar.setValue(index);
+		}
+	}
+	
 	public void editValues(OpticalSurfaceObject oso[], Operation operationIOR, Operation operationTranslucency, Operation givenValueOperation, Operation isGivenOperation, VariableStack variables, Volume vol)
 	{
 		int width = vol.width, height = vol.height, depth = vol.depth;
 		int data[] = vol.data;
 		int translucency[] = vol.translucency;
 		Vector3d position = new Vector3d();
-		Vector3d tmp = new Vector3d();
 		final int heightp = height + 1;
 		final int widthp = width + 1;
 		SortedIntegerArrayList ial = new SortedIntegerArrayList();
@@ -333,6 +378,10 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		
 		latticeToGlobal.set(unitVolumeToGlobal);
 		latticeToGlobal.preScale(divx, divy, divz);
+		Matrix4d cubesToGlobal = new Matrix4d();
+		cubesToGlobal.set(latticeToGlobal);
+		cubesToGlobal.preTranslate(-width, -height, -depth);
+		cubesToGlobal.preScale(2,2,2);
 		latticeToGlobal.preTranslate(1 - width, 1 - height, 1 - depth);
 		latticeToGlobal.preScale(2,2,2);
 		for (int i = 0; i < oso.length; ++i)
@@ -343,8 +392,8 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 				{
 					for (int x = 0; x <= width; ++x, ++index)
 					{
-						unitVolumeToGlobal.rdotAffine((x * 2 - width) * divx,(y * 2 - height) * divy,(z * 2 - depth) * divz, position);
-						values[i][index] = oso[i].evaluate_inner_outer(position, tmp);
+						cubesToGlobal.rdotAffine(x, y, z, position);
+						values[i][index] = oso[i].evaluate_inner_outer(position);
 					}
 				}
 			}
@@ -359,12 +408,6 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		{
 			vs.addLocal(eval[i] = new Variable(oso[i].getId()));
 		}
-		Variable xVar = new Variable("x");
-		vs.addLocal(xVar);
-		Variable yVar = new Variable("y");
-		vs.addLocal(yVar);
-		Variable zVar = new Variable("z");
-		vs.addLocal(zVar);
 		Variable minTransVar = new Variable("tmin");
 		minTransVar.setValue(minTrans);
 		vs.addLocal(minTransVar);
@@ -377,8 +420,8 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		Variable maxDataVar = new Variable("dmax");
 		maxDataVar.setValue(maxDat);
 		vs.addLocal(maxDataVar);
-		Variable indexVar = new Variable("index");
-		vs.addLocal(indexVar);
+		VolumeCalculationEnvironment vce = new VolumeCalculationEnvironment(vs, latticeToGlobal, width, height, depth);
+		
 		Controller control = new Controller();
 		control.calculateRandom(true);
 		ImageStack is = dcm == null ? null : dcm.getImageStack();
@@ -410,11 +453,8 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 						}
 						datVar.setValue(data[index]);
 						transVar.setValue(translucency[index]);
-						latticeToGlobal.rdotAffine(x,y,z, position);
-						xVar.setValue(position.x);
-						yVar.setValue(position.y);
-						zVar.setValue(position.z);
-						indexVar.setValue(index);
+						
+						vce.setPosition(index, x, y, z);
 						equalityOperationResult[index] = givenValueOperation.calculate(vs, control).doubleValue();
 						notGivenIndices[index] =  isGivenOperation.calculate(vs, control).booleanValue() ? -1 : notGivenCount++;
 					}
@@ -460,11 +500,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 					}
 					datVar.setValue(data[index]);
 					transVar.setValue(translucency[index]);
-					latticeToGlobal.rdotAffine(x,y,z,position);
-					xVar.setValue(position.x);
-					yVar.setValue(position.y);
-					zVar.setValue(position.z);
-					indexVar.setValue(index);
+					vce.setPosition(index, x, y, z);
 					if (equalityOperationResult != null)
 					{
 						equalityOperationResVar.setValue(equalityOperationResult[index]);
@@ -619,10 +655,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 				v0.multiply(width * spacing.x);
 				v1.multiply(height * spacing.y);
 				v2.setLength(depth * spacing.z);
-				unitVolumeToGlobal.setCol(0, v0);
-				unitVolumeToGlobal.setCol(1, v1);
-				unitVolumeToGlobal.setCol(2, v2);
-				unitVolumeToGlobal.setCol(3,midpoint);
+				unitVolumeToGlobal.setCols(v0, v1, v2, midpoint);
 				applyMatrix();
 				inBuf.close();
 				reader.close();
@@ -887,7 +920,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			}
 			VolumeScene vs = getVolumeScene();
 			initOptions();
-			vs.traceRays(startPosition, startDirection, scale, 0, 8000, false, options);
+			vs.traceRays(startPosition, startDirection, scale, 0, maxSteps, false, options);
 			for (int i = positionBegin, readIndex = 0, j = 0; i < positionEnd; i += 3, ++j)
 			{
 				if (object[j] == this)
@@ -931,24 +964,21 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			int maxX = 0x10000 * vol.width - 0x20001, maxY = 0x10000 * vol.height - 0x20001, maxZ = 0x10000 * vol.depth - 0x20001;
 			for (int i = fromIndex, writeIndex = 0; i < toIndex; i += 3, writeIndex += 3)
 			{
-				tmp.set(direction, i);
-				globalToCudaLattice.rdot(tmp);
+				globalToCudaLattice.rdot(direction, i, tmp);
 				tmp.setLength(0.5);
 				Buffers.putRev(startDirection, tmp, writeIndex);
-				tmp.set(position, i);
-				globalToCudaLattice.rdotAffine(tmp);
+				globalToCudaLattice.rdotAffine(position, i, tmp);
 				startPosition.put(writeIndex, clip((int)tmp.z, 0x10000, maxZ));
 				startPosition.put(writeIndex + 1, clip((int)tmp.y, 0x10000, maxY));
 				startPosition.put(writeIndex + 2, clip((int)tmp.x, 0x10000, maxX));
 			}
 			VolumeScene vs = getVolumeScene();
 			initOptions();
-			vs.traceRays(startPosition, startDirection, scale, 0, 8000, false, options);
+			vs.traceRays(startPosition, startDirection, scale, 0, maxSteps, false, options);
 			for (int i = fromIndex, readIndex = 0; i < toIndex; i += 3, readIndex += 3)
 			{
 				Buffers.getRev(startDirection, tmp, readIndex);
-				cudaLatticeToGlobal.rdot(tmp);
-				tmp.write(direction, i);
+				cudaLatticeToGlobal.rdot(tmp, direction, i);
 				Buffers.getRev(startPosition, tmp, readIndex);
 				cudaLatticeToGlobal.rdotAffine(tmp);
 				tmp.add(direction, i, -5);
@@ -977,20 +1007,18 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 				globalToCudaLattice.rdot(tmp);
 				tmp.setLength(0x3FFF);
 				Buffers.putRev(startDirection, tmp, writeIndex);
-				tmp.set(position, i);
-				globalToCudaLattice.rdotAffine(tmp);
+				globalToCudaLattice.rdotAffine(position, i, tmp);
 				startPosition.put(writeIndex, clip((int)tmp.z, 0x10000, maxZ));
 				startPosition.put(writeIndex + 1, clip((int)tmp.y, 0x10000, maxY));
 				startPosition.put(writeIndex + 2, clip((int)tmp.x, 0x10000, maxX));
 			}
 			VolumeScene vs = getVolumeScene();
 			initOptions();
-			vs.traceRays(startPosition, startDirection, scale, 0, 8000, false, options );
+			vs.traceRays(startPosition, startDirection, scale, 0, maxSteps, false, options );
 			for (int i = fromIndex, readIndex = 0; i < toIndex; i += 3, readIndex += 3)
 			{
 				Buffers.getRev(startDirection, tmp, readIndex);
-				cudaLatticeToGlobal.rdot(tmp);
-				tmp.write(direction, i);
+				cudaLatticeToGlobal.rdot(tmp, direction, i);
 				Buffers.getRev(startPosition, tmp, readIndex);
 				cudaLatticeToGlobal.rdotAffine(tmp);
 				tmp.add(direction, i, -5);

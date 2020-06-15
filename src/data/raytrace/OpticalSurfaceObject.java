@@ -280,24 +280,27 @@ public abstract class OpticalSurfaceObject extends SurfaceObject{
 		return BufferUtils.fillWithRadialIndexData(latitudes, longitudes, faces);
 	}
 	
-	public double evaluate_inner_outer(Vector3d position, Vector3d tmp)
+	public double evaluate_inner_outer(Vector3d position)
 	{
-		tmp.setDiff(position, this.midpoint);
+		double x = position.x - this.midpoint.x;
+		double y = position.y - this.midpoint.y;
+		double z = position.z - this.midpoint.z;
+		
 		switch (surf)
 		{
 			case FLAT:
 			{
-				return -tmp.dot(this.directionNormalized);
+				return -this.directionNormalized.dot(x, y, z);
 			}
 			case SPHERICAL:
 			{
-				return tmp.dot() / this.directionLengthQ - 1;
+				return (x * x + y * y + z * z) / this.directionLengthQ - 1;
 			}
 			case CUSTOM:
 				break;
 			case CYLINDER:
 			{
-				double dotprod = tmp.dot(this.directionNormalized);
+				double dotprod = this.directionNormalized.dot(x, y, z);
 				return Math.max(dotProdUpperBound - dotprod, Math.max(dotprod - dotProdLowerBound, dotprod * dotprod - radiusGeometricQ));
 			}
 		case HYPERBOLIC:

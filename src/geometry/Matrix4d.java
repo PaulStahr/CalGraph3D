@@ -127,6 +127,14 @@ public final class Matrix4d implements Matrixd, DoubleList{
 		}
 	}
 	
+	public final void setCols(Vector3d c0, Vector3d c1, Vector3d c2, Vector3d c3)
+	{
+		m00 = c0.x; m10 = c0.y; m20 = c0.z;
+		m01 = c1.x; m11 = c1.y; m21 = c1.z;
+		m02 = c2.x; m12 = c2.y; m22 = c2.z;
+		m03 = c3.x; m13 = c3.y; m23 = c3.z;
+	}
+	
 	public final void setCol(int row, Vector3d vec)
 	{
 		switch (row)
@@ -262,12 +270,15 @@ public final class Matrix4d implements Matrixd, DoubleList{
 	}
 	
 	public final void rdotAffine(Vector3f v){
-		final float x = v.x, y = v.y, z = v.z;
+		rdotAffine(v.x, v.y, v.z, v);
+	}
+
+	public final void rdotAffine(double x, double y, double z, Vector3f v){
 		v.x = (float)(m00 * x + m10 * y + m20 * z + m30);
 		v.y = (float)(m01 * x + m11 * y + m21 * z + m31);
 		v.z = (float)(m02 * x + m12 * y + m22 * z + m32);
 	}
-	
+
 	public final double ldotX(double x, double y, double z, double w){return m00 * x + m10 * y + m20 * z + m30 * w;}
 	public final double ldotY(double x, double y, double z, double w){return m01 * x + m11 * y + m21 * z + m31 * w;}
 	public final double ldotZ(double x, double y, double z, double w){return m02 * x + m12 * y + m22 * z + m32 * w;}
@@ -351,6 +362,14 @@ public final class Matrix4d implements Matrixd, DoubleList{
 		rdotAffine(vector.x, vector.y, vector.z, vector);
 	}
 	
+	public void rdotAffine(float[] position, int i, Vector3d result) {
+		rdotAffine(position[i], position[i + 1], position[i + 2], result);
+	}
+	
+	public void rdotAffine(double[] position, int i, Vector3d result) {
+		rdotAffine(position[i], position[i + 1], position[i + 2], result);
+	}
+	
 	public final void rdotAffine(double x, double y, double z, Vector3d vector){
 		vector.x = m00 * x + m01 * y + m02 * z + m03;
 		vector.y = m10 * x + m11 * y + m12 * z + m13;
@@ -365,12 +384,48 @@ public final class Matrix4d implements Matrixd, DoubleList{
 		vector.z = m02 * x + m12 * y + m22 * z;
 	}
 	
+	public final void rdot(double x, double y, double z, Vector3d result)
+	{		
+		result.x = m00 * x + m01 * y + m02 * z;
+		result.y = m10 * x + m11 * y + m12 * z;
+		result.z = m20 * x + m21 * y + m22 * z;
+	}
+	
+	public void rdot(double x, double y, double z, float[] direction, int i) {
+		direction[i++] = (float)(m00 * x + m01 * y + m02 * z);
+		direction[i++] = (float)(m10 * x + m11 * y + m12 * z);
+		direction[i++] = (float)(m20 * x + m21 * y + m22 * z);
+	}
+	
+	public void rdot(Vector3d in, double result[], int i)
+	{
+		rdot(in.x, in.y, in.z, result, i);
+	}
+	
+	public void rdot(Vector3d in, float result[], int i)
+	{
+		rdot(in.x, in.y, in.z, result, i);
+	}
+	
+	public void rdot(double x, double y, double z, double[] direction, int i) {
+		direction[i++] = m00 * x + m01 * y + m02 * z;
+		direction[i++] = m10 * x + m11 * y + m12 * z;
+		direction[i++] = m20 * x + m21 * y + m22 * z;
+	}
+	
 	public final void rdot(Vector3d vector)
 	{
-		final double x = vector.x, y = vector.y, z = vector.z;
-		vector.x = m00 * x + m01 * y + m02 * z;
-		vector.y = m10 * x + m11 * y + m12 * z;
-		vector.z = m20 * x + m21 * y + m22 * z;
+		rdot(vector.x, vector.y, vector.z, vector);
+	}
+	
+	public final void rdot(float in[], int index, Vector3d vector)
+	{
+		rdot(in[index], in[index + 1], in[index + 2], vector);
+	}
+	
+	public final void rdot(double in[], int index, Vector3d vector)
+	{
+		rdot(in[index], in[index + 1], in[index + 2], vector);
 	}
 	
 	public final void ldotAffine(Vector3d vector, Vector3d out){
