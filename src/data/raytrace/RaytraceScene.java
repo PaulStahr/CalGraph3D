@@ -19,6 +19,8 @@ import data.raytrace.raygen.AbstractRayGenerator;
 import data.raytrace.raygen.ImageRayGenerator;
 import geometry.Vector2d;
 import geometry.Vector3d;
+import maths.Controller;
+import maths.Variable;
 import maths.VariableStack;
 import maths.VariableStack.VariableObserver.PendendList;
 import maths.exception.OperationParseException;
@@ -285,7 +287,7 @@ public class RaytraceScene {
 	private void getObjects(String ids[], double ior, ArrayList<GuiOpticalSurfaceObject> surfaces, ArrayList<GuiOpticalVolumeObject> volumes, ArrayList<MeshObject> meshes) {
 		for (GuiOpticalSurfaceObject goo : activeSurfaces)
 		{
-			if ((ids == null || Arrays.binarySearch(ids, goo.id) >= 0) && (!verifyRefractionIndices || Double.isNaN(ior) || goo.ior1 == ior || goo.ior0 == ior))
+			if ((ids == null || Arrays.binarySearch(ids, goo.id) >= 0) && (!verifyRefractionIndices || Double.isNaN(ior) || goo.ior1.doubleValue() == ior || goo.ior0.doubleValue() == ior))
 			{
 				tmpSurfaceArrayList.add(goo);
 			}
@@ -299,7 +301,7 @@ public class RaytraceScene {
 		}
 		for (MeshObject mo : activeMeshes)
 		{
-			if ((ids == null || Arrays.binarySearch(ids, mo.id) >= 0) && (!verifyRefractionIndices || Double.isNaN(ior) || mo.ior1 == ior || mo.ior0 == ior))
+			if ((ids == null || Arrays.binarySearch(ids, mo.id) >= 0) && (!verifyRefractionIndices || Double.isNaN(ior) || mo.ior1.doubleValue() == ior || mo.ior0.doubleValue() == ior))
 			{
 				tmpMeshArrayList.add(mo);
 			}
@@ -320,8 +322,8 @@ public class RaytraceScene {
 		if (current instanceof OpticalSurfaceObject)
 		{
 			OpticalSurfaceObject surf = (OpticalSurfaceObject)current;
-			ior0 = surf.ior0;
-			ior1 = surf.ior1;
+			ior0 = surf.ior0.doubleValue();
+			ior1 = surf.ior1.doubleValue();
 			surf.textureObject = getActiveTexture(surf.textureObjectStr);
 		}
 		
@@ -1595,16 +1597,31 @@ public class RaytraceScene {
 						return nearest.object;
 					case REFRACTION:
 						double normaldot = nearest.normal.dot();
-						double tmp = (c > 0 ? obj.iorq : obj.inviorq) * normaldot / (c * c) + 1;
-						direction.add(nearest.normal,(tmp > 0 ? (Math.sqrt(tmp) - 1) : -2.) * c / normaldot);
+						if (Double.isNaN(obj.iorq))
+						{
+							VariableStack vs = new VariableStack(this.vs);
+							Variable x = new Variable("x", nearest.position.x);
+							Variable y = new Variable("y", nearest.position.y);
+							Variable z = new Variable("z", nearest.position.z);
+							vs.addLocal(x);
+							vs.addLocal(y);
+							vs.addLocal(z);
+							Controller control = new Controller();
+							double ior0 = obj.ior0.calculate(vs, control).doubleValue();
+							double ior1 = obj.ior1.calculate(vs, control).doubleValue();
+							double ior = obj.invertNormal == c > 0 ? ior1 / ior0 : ior0 / ior1;
+							double iorq = ior * ior - 1;
+							double tmp = iorq * normaldot / (c * c) + 1;
+							direction.add(nearest.normal,(tmp > 0 ? (Math.sqrt(tmp) - 1) : -2.) * c / normaldot);
+						}
+						else
+						{
+							double tmp = (c > 0 ? obj.iorq : obj.inviorq) * normaldot / (c * c) + 1;
+							direction.add(nearest.normal,(tmp > 0 ? (Math.sqrt(tmp) - 1) : -2.) * c / normaldot);
+						}
 						break;
-					case REFLECTION:
-						direction.add(nearest.normal, -2 * c/nearest.normal.dot());
-						break;
-					case RANDOM:
-						direction.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5);
-						direction.add(nearest.normal);
-						break;
+					case REFLECTION:direction.add(nearest.normal, -2 * c/nearest.normal.dot());break;
+					case RANDOM:	direction.setAdd(nearest.normal, Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5);break;
 					default:
 						throw new IllegalArgumentException("Object with illegal material: " + obj.id);
 				}

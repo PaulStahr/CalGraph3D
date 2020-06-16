@@ -185,6 +185,7 @@ public abstract class OpticalObject {
 		CONIC_CONSTANT("ConicConstant", TYPE_TEXTFIELD, 1, null),
 		PREVIOUS_OBJECTS("PreviousObjects", TYPE_TEXTFIELD, null, null),
 		FOLLOWING_OBJECTS("FollowingObjects", TYPE_TEXTFIELD, null, null),
+		VOLUME_SCALING("VolumeScaling", TYPE_TEXTFIELD, 1000, null),
 		MAX_STEPS("MaxSteps", TYPE_TEXTFIELD, 8000, null),
 		COLOR("Color", TYPE_COLOR, new int[] {255,255,255,255}, null),
 		TEXTURE_OBJECT("TextureObject", TYPE_TEXTFIELD, null, null),

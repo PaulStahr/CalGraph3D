@@ -170,6 +170,31 @@ public class ParseUtil {
 		throw new IllegalArgumentException("Class:" + o.getClass());
 	}
 	
+	public final Operation parseOperationString(Object o, VariableAmount variables, Controller controll) throws OperationParseException
+	{
+		if (o instanceof String)
+		{
+			(op = OperationCompiler.compile(str = (String)o)).calculate(variables, controll);
+			d = op.doubleValue();
+			return op;
+		}
+		if (o instanceof Double)
+		{
+			op=new RealDoubleOperation(d=(double)o);
+			str = Double.toString(d);
+			return op;
+		}
+		if (o instanceof Integer)
+		{
+			int value = (int)o;
+			op = new RealLongOperation(value);
+			str = Integer.toString(value);
+			d = value;
+			return op;
+		}
+		throw new IllegalArgumentException("Class:" + o.getClass());
+	}
+	
 	public final int parseIntegerString(Object o, VariableAmount variables, Controller controll) throws OperationParseException
 	{
 		if (o instanceof String)

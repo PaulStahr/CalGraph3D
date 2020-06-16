@@ -127,6 +127,32 @@ public final class Matrix4d implements Matrixd, DoubleList{
 		}
 	}
 	
+	public final void getRowDot3(Vector3d vec)
+	{
+		vec.x = m00 * m00 + m01 * m01 + m02 * m02;
+		vec.y = m10 * m10 + m11 * m11 + m12 * m12;
+		vec.z = m20 * m20 + m21 * m21 + m22 * m22;
+	}
+	
+	public final void getColDot3(Vector3d vec)
+	{
+		vec.x = m00 * m00 + m10 * m10 + m20 * m20;
+		vec.y = m01 * m01 + m11 * m11 + m21 * m21;
+		vec.z = m02 * m02 + m12 * m12 + m22 * m22;
+	}
+	
+	public final double getColDot3(int col)
+	{	
+		switch (col)
+		{
+			case 0: return m00 * m00 + m10 * m10 + m20 * m20;
+			case 1: return m01 * m01 + m11 * m11 + m21 * m21;
+			case 2: return m02 * m02 + m12 * m12 + m22 * m22;
+			case 3: return m03 * m03 + m13 * m13 + m23 * m23;
+			default: throw new ArrayIndexOutOfBoundsException(col);
+		}
+	}
+	
 	public final void setCols(Vector3d c0, Vector3d c1, Vector3d c2, Vector3d c3)
 	{
 		m00 = c0.x; m10 = c0.y; m20 = c0.z;
@@ -513,6 +539,26 @@ public final class Matrix4d implements Matrixd, DoubleList{
     	}
 	}
 	
+	public final void rdotAffine(Vector3d in, Object out, int pos)
+	{
+		if (out instanceof float[])
+    	{
+			rdotAffine(in, (float[])out, pos);
+    	}
+    	else if (out instanceof double[])
+    	{
+    		rdotAffine(in, (double[])out, pos);
+    	}
+    	else if (out instanceof DoubleList)
+    	{
+    		rdotAffine(in, (DoubleList)out, pos);
+    	}
+    	else
+    	{
+    		throw new IllegalArgumentException(in.getClass().toString());
+    	}
+	}
+	
 
 	
 	public final void ldotAffine(Vector3d vector, Vector3d out){
@@ -533,6 +579,14 @@ public final class Matrix4d implements Matrixd, DoubleList{
 		rdotAffine(vector.x, vector.y, vector.z, out, index);
 	}
 	
+	public final void rdotAffine(Vector3d vector, double out[], int index){
+		rdotAffine(vector.x, vector.y, vector.z, out, index);
+	}
+	
+	public final void rdotAffine(Vector3d vector, DoubleList out, int index){
+		rdotAffine(vector.x, vector.y, vector.z, out, index);
+	}
+	
 	public final void ldotAffine(Vector3d vector, float out[], int index){
 		ldotAffine(vector.x, vector.y, vector.z, out, index);
 	}
@@ -547,6 +601,18 @@ public final class Matrix4d implements Matrixd, DoubleList{
 		out[index]   = (float)(m00 * x + m01 * y + m02 * z + m03);
 		out[++index] = (float)(m10 * x + m11 * y + m12 * z + m13);
 		out[++index] = (float)(m20 * x + m21 * y + m22 * z + m23);
+	}
+	
+	public final void rdotAffine(double x, double y, double z, double out[], int index){
+		out[index]   = m00 * x + m01 * y + m02 * z + m03;
+		out[++index] = m10 * x + m11 * y + m12 * z + m13;
+		out[++index] = m20 * x + m21 * y + m22 * z + m23;
+	}
+	
+	public final void rdotAffine(double x, double y, double z, DoubleList out, int index){
+		out.setElem(index++,m00 * x + m01 * y + m02 * z + m03);
+		out.setElem(index++,m10 * x + m11 * y + m12 * z + m13);
+		out.setElem(index++,m20 * x + m21 * y + m22 * z + m23);
 	}
 	
 	public final void ldotAffine(DoubleArrayList in, int inIndex, float[] out, int outIndex) {

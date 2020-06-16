@@ -6,6 +6,8 @@ import data.raytrace.RaySimulation.AlphaCalculation;
 import data.raytrace.RaySimulation.MaterialType;
 import geometry.Vector2d;
 import geometry.Vector3d;
+import maths.Operation;
+import maths.data.RealLongOperation;
 
 public abstract class SurfaceObject extends OpticalObject{
 	public MaterialType materialType = MaterialType.ABSORBATION;
@@ -13,8 +15,8 @@ public abstract class SurfaceObject extends OpticalObject{
 	public double inviorq = 1;
 	public double diffuse = 0;
 	public Color color = Color.BLACK;
-	public double ior0 = 1;
-	public double ior1 = 1;
+	public Operation ior0 = RealLongOperation.POSITIVE_ONE;
+	public Operation ior1 = RealLongOperation.POSITIVE_ONE;
 	public double ior = 1;
 	public double invior = 1;
 	public boolean invertNormal;
@@ -25,9 +27,11 @@ public abstract class SurfaceObject extends OpticalObject{
 	public int numUntracedRays;
 	public boolean invertInsideOutside = false;
 	public AlphaCalculation alphaCalculation = AlphaCalculation.MULT;
-
+	
 	public final void updateIOR()
 	{
+		double ior0 = this.ior0.doubleValue();
+		double ior1 = this.ior1.doubleValue();
 		if (invertNormal)
 		{
 			ior = ior1 / ior0;

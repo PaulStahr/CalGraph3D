@@ -46,6 +46,7 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 					SCENE_OBJECT_COLUMN_TYPE.COLOR,
 					SCENE_OBJECT_COLUMN_TYPE.PREVIOUS_OBJECTS,
 					SCENE_OBJECT_COLUMN_TYPE.FOLLOWING_OBJECTS,
+					SCENE_OBJECT_COLUMN_TYPE.VOLUME_SCALING,
 					SCENE_OBJECT_COLUMN_TYPE.MAX_STEPS,
 					SCENE_OBJECT_COLUMN_TYPE.DELETE},
 			new SCENE_OBJECT_COLUMN_TYPE[]{
@@ -164,6 +165,7 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 				break;
 			}
 			case MAX_STEPS:break;
+			case VOLUME_SCALING:break;
 			case COLOR:
 			{
 				color = parser.parseColor(colorStr, variables, controll);
@@ -295,9 +297,8 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 			case PREVIOUS_OBJECTS:
 				predessorArray= parser.parseStringArray(o, controll);
 				predessorStr = parser.str;break;
-			case MAX_STEPS:
-				maxSteps = ParseUtil.parseInteger(o);
-				break;
+			case MAX_STEPS:maxSteps = ParseUtil.parseInteger(o);break;
+			case VOLUME_SCALING: volumeScaling = ParseUtil.parseDouble(o);applyMatrix();break;
 			default:logger.warn("Unknown Option " + ct);break;
 			}
 			updateIds((byte)ct.ordinal(), parser.op);
@@ -326,6 +327,7 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 		case FOLLOWING_OBJECTS: return successorStr;
 		case PREVIOUS_OBJECTS: return predessorStr;
 		case MAX_STEPS:		return maxSteps;
+		case VOLUME_SCALING:return volumeScaling;
 		default:			throw new IllegalArgumentException(ct.name);		
 		}
 		return null;

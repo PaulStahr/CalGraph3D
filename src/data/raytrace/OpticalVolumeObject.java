@@ -206,6 +206,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 	public Color color = Color.BLACK;
 	private final FloatBuffer scale = Buffers.createFloatBuffer(3);
 	protected int maxSteps = 8000;
+	public double volumeScaling = 1000;
 	private static class VolumeScene
 	{
 		private long pointer;
@@ -256,10 +257,6 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			globalToUnitVolume.getRow(i, unitVolumeToGlobalRows[i]);
 		}
 		int width = vol.width, height = vol.height, depth = vol.depth;
-		spacing.x = Math.sqrt(unitVolumeToGlobal.getRowDot3(0)) /  (depth - 3);
-		spacing.y = Math.sqrt(unitVolumeToGlobal.getRowDot3(1)) /  (height - 3);
-		spacing.z = Math.sqrt(unitVolumeToGlobal.getRowDot3(2)) /  (width - 3);
-		
 		globalToCudaLattice.set(globalToUnitVolume);
 		cudaLatticeToGlobal.set(unitVolumeToGlobal);
 		globalToCudaLattice.postTranslate(1, 1, 1);
@@ -268,10 +265,13 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		double xScale = mult * (width - 3), yScale = mult * (height - 3), zScale = mult * (depth - 3);
 		globalToCudaLattice.postScale(xScale, yScale, zScale);
 		cudaLatticeToGlobal.preScale(1/xScale, 1/yScale, 1/zScale);
+		cudaLatticeToGlobal.getColDot3(spacing);
+		spacing.sqrt();
+		spacing.multiply(0x10000 * 0.5);
 		globalToCudaLattice.postTranslate(0x10000, 0x10000, 0x10000);
 		cudaLatticeToGlobal.preTranslate(-0x10000, -0x10000, -0x10000);
 		
-		scale.put(0,(float)(100f / spacing.z)).put(1,(float)(100f / spacing.y)).put(2,(float)(100f / spacing.x));
+		scale.put(0,(float)(volumeScaling / spacing.z)).put(1,(float)(volumeScaling / spacing.y)).put(2,(float)(volumeScaling / spacing.x));
 		modified();
 		//TODO spacing
 	}
@@ -893,6 +893,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		{
 			return;
 		}
+		cudaLatticeToGlobal.invert(globalToCudaLattice);
 		int count = ArrayUtil.count(object, objectBegin, objectBegin + (positionEnd - positionBegin) / 3, this);
 		try {
 			IntBuffer startPosition = Buffers.createIntBuffer(count * 3);
@@ -906,12 +907,14 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 				{
 					globalToCudaLattice.rdot(direction, i, tmp);
 					//tmp.setLength(0x3FFF);
+					tmp.multiply(spacing);
 					tmp.setLength(0.5);
 					Buffers.putRev(startDirection, tmp, writeIndex);
 					globalToCudaLattice.rdotAffine(position, i, tmp);
-					startPosition.put(writeIndex, clip((int)tmp.z, 0x10000, maxZ));
+					startPosition.put(writeIndex,     clip((int)tmp.z, 0x10000, maxZ));
 					startPosition.put(writeIndex + 1, clip((int)tmp.y, 0x10000, maxY));
 					startPosition.put(writeIndex + 2, clip((int)tmp.x, 0x10000, maxX));
+					Buffers.putRev(startPosition, tmp, writeIndex);
 					writeIndex += 3;
 				}
 			}
@@ -923,13 +926,13 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 				if (object[j] == this)
 				{
 					Buffers.getRev(startDirection, tmp, readIndex);
+					tmp.divide(spacing);
 					cudaLatticeToGlobal.rdot(tmp, direction, i);
 					double x = tmp.x, y = tmp.y, z = tmp.z;
 					Buffers.getRev(startPosition, tmp, readIndex);
-					cudaLatticeToGlobal.rdotAffine(tmp);
-					double factor = 30/Math.sqrt(x * x + y * y + z * z);
+					double factor = (10*0x1000)/Math.sqrt(x * x + y * y + z * z);
 					tmp.x -= factor * x;tmp.y -= factor * y; tmp.z -= factor * z;
-					tmp.write(position, i);
+					cudaLatticeToGlobal.rdotAffine(tmp, position, i);
 					readIndex += 3;
 				}
 			}

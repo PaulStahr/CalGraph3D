@@ -28,29 +28,29 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import data.DataHandler;
-import data.raytrace.Intersection;
-import data.raytrace.MeshObject;
-import data.raytrace.OpticalObject;
-import data.raytrace.OpticalObject.SCENE_OBJECT_COLUMN_TYPE;
-import data.raytrace.RaytraceScene.RaySimulationObject;
-import data.raytrace.raygen.RayGenerator;
-import data.raytrace.OpticalSurfaceObject;
-import data.raytrace.OpticalVolumeObject;
-import data.raytrace.RaytraceScene;
 import data.raytrace.GuiOpticalSurfaceObject;
 import data.raytrace.GuiOpticalSurfaceObject.OpticalSurfaceObjectChangeListener;
 import data.raytrace.GuiOpticalVolumeObject;
 import data.raytrace.GuiOpticalVolumeObject.OpticalVolumeObjectChangeListener;
+import data.raytrace.Intersection;
+import data.raytrace.MeshObject;
 import data.raytrace.MeshObject.MeshObjectChangeListener;
+import data.raytrace.OpticalObject;
+import data.raytrace.OpticalObject.SCENE_OBJECT_COLUMN_TYPE;
+import data.raytrace.OpticalSurfaceObject;
+import data.raytrace.OpticalVolumeObject;
+import data.raytrace.RaytraceScene;
+import data.raytrace.RaytraceScene.RaySimulationObject;
+import data.raytrace.raygen.RayGenerator;
 import geometry.Geometry;
 import geometry.Vector3d;
 import io.Drawer;
 import jcomponents.RecentFileList;
 import jcomponents.util.JMathTextField;
-import maths.algorithm.OperationCalculate;
-import maths.data.ArrayOperation;
 import maths.Controller;
 import maths.Operation;
+import maths.algorithm.OperationCalculate;
+import maths.data.ArrayOperation;
 import util.ArrayUtil;
 import util.JFrameUtils;
 import util.StringUtils;
@@ -249,13 +249,13 @@ public class PropertyOnLineVisualization extends JFrame implements ActionListene
 							double ior0, ior1;
 							if (oso.direction.dot(direction) < 0)
 							{
-								ior0 = oso.ior0;
-								ior1 = oso.ior1;
+								ior0 = oso.ior0.doubleValue();
+								ior1 = oso.ior1.doubleValue();
 							}
 							else
 							{
-								ior0 = oso.ior1;
-								ior1 = oso.ior0;
+								ior0 = oso.ior1.doubleValue();
+								ior1 = oso.ior0.doubleValue();
 							}
 							dataPoints.add(dal.getD(i));
 							dataPoints.add(ior0);
@@ -309,8 +309,8 @@ public class PropertyOnLineVisualization extends JFrame implements ActionListene
 						ArrayUtil.sqrt(result, 0, result.length);
 						double width = getWidth(), height = getHeight();
 						double max = ArrayUtil.max(result);
-						double multY = (double)height / max;
-						double multX = (double)width / result.length;
+						double multY = height / max;
+						double multX = width / result.length;
 						dataPoints.clear();
 						for (int j = 0; j < result.length; ++j)
 						{

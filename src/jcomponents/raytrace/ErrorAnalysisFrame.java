@@ -50,6 +50,7 @@ import geometry.Vector3d;
 import jcomponents.util.JMathTextField;
 import maths.Operation;
 import maths.algorithm.Calculate;
+import maths.data.RealDoubleOperation;
 import util.data.UniqueObjects;
 
 public class ErrorAnalysisFrame extends JFrame implements SceneChangeListener, ActionListener, DocumentListener,ItemListener, OpticalSurfaceObjectChangeListener, Runnable, WindowListener{
@@ -278,8 +279,8 @@ public class ErrorAnalysisFrame extends JFrame implements SceneChangeListener, A
 				case 6:originalValue = current.direction.y;current.direction.y += relative ? current.directionLength * epsilon : epsilon;break;
 				case 7:originalValue = current.direction.z;current.direction.z += relative ? current.directionLength * epsilon : epsilon;break;
 				case 8:originalValue = current.conicConstant;current.conicConstant += relative ? current.conicConstant * epsilon : epsilon;break;
-				case 9:originalValue = current.ior0;current.ior0 += relative ? current.ior0 * epsilon : epsilon;break;
-				case 10:originalValue = current.ior1;current.ior1 += relative ? current.ior1 * epsilon : epsilon;break;
+				case 9:originalValue = current.ior0;current.ior0 = new RealDoubleOperation(current.ior0.doubleValue() + (relative ? current.ior0.doubleValue() * epsilon : epsilon));break;
+				case 10:originalValue = current.ior1;current.ior1 = new RealDoubleOperation(current.ior1.doubleValue() + (relative ? current.ior1.doubleValue() * epsilon : epsilon));break;
 				}
 				current.update();
 								
@@ -327,8 +328,8 @@ public class ErrorAnalysisFrame extends JFrame implements SceneChangeListener, A
 					case  6:current.direction.y = (double)originalValue;break;
 					case  7:current.direction.z = (double)originalValue;break;
 					case  8:current.conicConstant = (double)originalValue;break;
-					case  9:current.ior0 = (double)originalValue;break;
-					case 10:current.ior1 = (double)originalValue;break;
+					case  9:current.ior0 = (Operation)originalValue;break;
+					case 10:current.ior1 = (Operation)originalValue;break;
 				}
 				current.update();
 			}

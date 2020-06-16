@@ -21,6 +21,8 @@
  ******************************************************************************/
 package geometry;
 
+import java.nio.IntBuffer;
+
 import util.data.DoubleList;
 
 /** 
@@ -203,6 +205,10 @@ public void sub(final Vector3d vektor){
     	{
     		write((DoubleList)data, pos);
     	}
+    	else if (data instanceof IntBuffer)
+    	{
+    		write((IntBuffer)data, pos);
+    	}
     	else
     	{
     		throw new IllegalArgumentException(data.getClass().toString());
@@ -341,6 +347,13 @@ public void sub(final Vector3d vektor){
     	list.setElem(index, this.x);
     	list.setElem(index + 1, this.y);
     	list.setElem(index + 2, this.z);
+    }
+    
+    public final void write(IntBuffer list, int index)
+    {
+    	list.put(index, 	(int)this.x);
+    	list.put(index + 1, (int)this.y);
+    	list.put(index + 2, (int)this.z);
     }
     
     /**
@@ -631,6 +644,24 @@ public void sub(final Vector3d vektor){
 	public double acosDistance(Vector3d position, Vector3d midpoint) {
 		double diffx = position.x - midpoint.x, diffy = position.y - midpoint.y, diffz = position.z = midpoint.z;
 		return Math.acos(dot(diffx, diffy, diffz)/Math.sqrt((diffx * diffx + diffy * diffy + diffz * diffz)*dot()));
+	}
+
+	public void sqrt() {
+		x = Math.sqrt(x);
+		y = Math.sqrt(y);
+		z = Math.sqrt(z);
+	}
+
+	public void divide(Vector3d vec) {
+		x /= vec.x;
+		y /= vec.y;
+		z /= vec.z;
+	}
+
+	public void multiply(Vector3d vec) {
+		x *= vec.x;
+		y *= vec.y;
+		z *= vec.z;
 	}
 
 

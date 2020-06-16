@@ -236,8 +236,8 @@ public class GuiOpticalSurfaceObject extends OpticalSurfaceObject {
 				updateMidpoint();
 				break;
 			case ID:break;
-			case IOR0:ior0 = parser.parseDoubleString(ior0Str, variables, controll);break;
-			case IOR1:ior1 = parser.parseDoubleString(ior1Str, variables, controll);break;
+			case IOR0:ior0 = parser.parseOperationString(ior0Str, variables, controll);break;
+			case IOR1:ior1 = parser.parseOperationString(ior1Str, variables, controll);break;
 			case MATERIAL:break;
 			case ANCHOR_POINT:break;
 			case POSITION:
@@ -287,11 +287,11 @@ public class GuiOpticalSurfaceObject extends OpticalSurfaceObject {
 				id = ParseUtil.parseString(o);
 				break;
 			case IOR0:
-				ior0 = parser.parseDoubleString(o, variables, controll);
+				ior0 = parser.parseOperationString(o, variables, controll);
 				ior0Str = parser.str;
 				break;
 			case IOR1:
-				ior1 = parser.parseDoubleString(o, variables, controll);
+				ior1 = parser.parseOperationString(o, variables, controll);
 				ior1Str = parser.str;
 				break;
 			case MATERIAL:materialType = MaterialType.get(o);break;

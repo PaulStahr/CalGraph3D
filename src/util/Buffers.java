@@ -87,6 +87,11 @@ public abstract class Buffers
     {
     	buf.put(pos++, (float)vec.z).put(pos++, (float)vec.y).put(pos++, (float)vec.x);
     }
+    
+    public static final void putRev(IntBuffer buf, Vector3d vec, int pos)
+    {
+    	buf.put(pos++, (int)vec.z).put(pos++, (int)vec.y).put(pos++, (int)vec.x);
+    }
 
     public static final void get(IntBuffer buf, Vector3d vec, int pos)
     {
