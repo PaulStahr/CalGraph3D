@@ -262,7 +262,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 	private final SceneObjectLine sceneObjectEndpoints = new SceneObjectLine();
 	private final JLabel labelAcceptedFraction = new JLabel();
     private static final FileFilter xmlFileFilter = new StandartFCFileFilter("XML-Markup file", "xml", true);
-    private final Vector2d paintOffset = new Vector2d();
+    public final Vector2d paintOffset = new Vector2d();
     private final JToggleButton toggleButtonTwoD = new JToggleButton("2D");
     private final JToggleButton toggleButtonThreeD = new JToggleButton("3D");
     private final JToggleButton toggleButtonRaytrace = new JToggleButton("Raytraced");
@@ -1783,7 +1783,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		DataHandler.runnableRunner.run(untracedRayRunnable, false);
 	}
      
-    private Component currentVisualization;
+    public Component currentVisualization;
     private void updateThreeD()
     {
     	if (toggleButtonThreeD.isSelected())
@@ -2394,7 +2394,6 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 				Graphics g = image.getGraphics();
 				Vector3d vec = new Vector3d();
 				g.setClip(0, 0, image.getWidth(), image.getHeight());
-				panelVisualization.updateGlobalPaintOffset();
 				GraphicsDrawer gd = new GraphicsDrawer(g, 33);
 				int count = 1;
 				for (int i = 0; i < scene.surfaceObjectList.size(); ++i, ++count)
@@ -2554,7 +2553,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		private final Vector3d v0 = new Vector3d();
 		private final Rectangle bounds = new Rectangle();
 		private final RaySimulationObject rayObject = new RaySimulationObject();
-		public final Vector2d globalPaintOffset = new Vector2d();
+		private final Vector2d globalPaintOffset = new Vector2d();
 		private final GraphicsDrawer gd = new GraphicsDrawer(null, 33);
 		private float volumeVertices[] = UniqueObjects.EMPTY_FLOAT_ARRAY;
 		private float endpos[] = UniqueObjects.EMPTY_FLOAT_ARRAY;
@@ -2567,14 +2566,16 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		private final StringBuilder strB = new StringBuilder();
 		private final NearestPointCalculator npc = new NearestPointCalculator(3);
 		
-		public void paintComponent(Drawer gd) throws IOException
+		public synchronized void paintComponent(Drawer gd) throws IOException
 		{
+			globalPaintOffset.set(gd.getWidth() * 0.5, gd.getHeight() * 0.5);
+	    	globalPaintOffset.multiply(1./scale);
+	    	globalPaintOffset.add(paintOffset);
 			if (gd instanceof Drawer.GraphicsDrawer)
 			{
 				super.paintComponent(((Drawer.GraphicsDrawer)gd).getOutput());
 			}
 			scene.updateScene();
-			updateGlobalPaintOffset();
 			
 			if (gd instanceof Drawer.GraphicsDrawer)
 			{
@@ -2776,13 +2777,6 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 				logger.error("Unexpected Error", e);
 			}
     	}
-
-	    private void updateGlobalPaintOffset()
-	    {
-	    	globalPaintOffset.set(panelVisualization.getWidth() * 0.5, panelVisualization.getHeight() * 0.5);
-	    	globalPaintOffset.multiply(1./scale);
-	    	globalPaintOffset.add(paintOffset);
-		}
 
 		@Override
 		public void keyPressed(KeyEvent e) {

@@ -95,9 +95,10 @@ public class SceneIO {
         			{
     					switch (attribute.getName())
     					{
+    						case "Start":
     						case "Begin": scene.setForceStartpoint(attribute.getValue()); break;
     						case "End"	: scene.setForceEndpoint(attribute.getValue()); break;
-        					default		: logger.warn("Unknown option ", attribute.getName());
+    				    	default		: logger.warn("Unknown optio" + attribute.getName());
     					}
         			}
     				break;
@@ -112,10 +113,10 @@ public class SceneIO {
         					{
         						case "Read":					scene.setEnvironmentTexture(attributeValue);break;
         						case "Write":					scene.setEnvironmentTexture(attributeValue);break;
-        						case "renderToTexture":			scene.setRenderToTexture(attributeValue);break;
-        						case  "verifyRefractionIndex": 	scene.setVerifyRefractionIndices(Boolean.parseBoolean(attributeValue));break;
+        						case "RenderToTexture":			scene.setRenderToTexture(attributeValue);break;
+        						case "VerifyRefractionIndex": 	scene.setVerifyRefractionIndices(Boolean.parseBoolean(attributeValue));break;
         						case "Mapping":					scene.setTextureMapping(TextureMapping.getByName(attributeValue));break;
-            					default:						logger.warn("Unknown option ", attribute.getName());
+            					default:						logger.warn("Unknown option "+ attribute.getName());
     	    				}
         				}catch(IllegalArgumentException e)
         				{
@@ -133,7 +134,7 @@ public class SceneIO {
         				{
         					case "Generate":			pipeline.steps.add(new VolumePipeline.GenerationCalculationStep(child.getAttributeValue("Bounds")));break;
         					case "Calculate":			pipeline.steps.add(new VolumePipeline.CalculationCalcuationStep(child.getAttributeValue("Ior"), child.getAttributeValue("Translucency"), child.getAttributeValue("EqValue"), child.getAttributeValue("EqGiven")));break;
-        					default:					logger.warn("Unknown option ", child.getName());
+        					default:					logger.warn("Unknown option " + child.getName());
         				}
         			}
         			for (Attribute attr : elem.getAttributes())
@@ -143,7 +144,7 @@ public class SceneIO {
         					case "Volume":				pipeline.ovo = scene.getVolumeObject(attr.getValue());break;
         					case "AutoUpdate":			pipeline.setAutoUpdate(Boolean.parseBoolean(attr.getValue()));break;
         					case "CalculateAtStartup":	pipeline.calcuteAtCreation = Boolean.parseBoolean(attr.getValue());break;
-        					default:					logger.warn("Unknown option ", attr.getName());
+        					default:					logger.warn("Unknown option "+ attr.getName());
         				}
         			}
         			pipeline.updateState();
@@ -167,7 +168,7 @@ public class SceneIO {
         				try {
     	    				switch(attr.getName())
     	    				{
-    	    				case "Position":	Geometry.parse(attr.getValue(), gui.panelVisualization.globalPaintOffset);break;
+    	    				case "Position":	Geometry.parse(attr.getValue(), gui.paintOffset);break;
     	    				case "Scale":		gui.panelVisualization.scale = Double.valueOf(attr.getValue());break;
     	    				}
         				}catch(ParseException pe)
@@ -176,7 +177,7 @@ public class SceneIO {
         				}
         			}
     				break;
-    			default:	logger.warn("Unknown File entry", elem.getName());
+    			default:	logger.warn("Unknown File entry " + elem.getName());
     		}
     	}
     	if (version < 1)
@@ -304,7 +305,7 @@ public class SceneIO {
 	    	}
 	    	root.addContent(elem);
 	    	elem = new Element("Gui");
-	    	elem.setAttribute("Position", gui.panelVisualization.globalPaintOffset.toString());
+	    	elem.setAttribute("Position", gui.paintOffset.toString());
 	    	elem.setAttribute("Scale", Double.toString(gui.panelVisualization.scale));
     	}
     	new XMLOutputter(Format.getPrettyFormat()).output(doc, out);

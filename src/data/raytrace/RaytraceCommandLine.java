@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.imageio.ImageIO;
+import javax.swing.JFrame;
 
 import org.jdom2.JDOMException;
 import org.slf4j.Logger;
@@ -23,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import data.DataHandler;
 import data.Options;
 import data.raytrace.StackPositionProcessor.Mode;
+import io.Drawer.SvgDrawer;
 import io.raytrace.SceneIO;
 import jcomponents.raytrace.RaySimulationGui;
 import jcomponents.raytrace.TextureView;
@@ -34,6 +36,7 @@ import maths.OperationCompiler;
 import maths.exception.OperationParseException;
 import util.IOUtil;
 import util.StringUtils;
+import util.functional.BooleanFunction;
 
 public class RaytraceCommandLine {
 	private static final Logger logger = LoggerFactory.getLogger(RaytraceCommandLine.class);
@@ -243,11 +246,92 @@ public class RaytraceCommandLine {
 				if (split.size() == 2)
 				{
 					out.write(Options.getNode(split.get(1)).toString());
+					out.flush();
 				}
 				else
 				{
 					Options.set(split.get(1), split.get(2));
 				}
+			}
+			case "window":
+			{
+				final RaytraceScene scene = RaytraceScene.getScene(split.get(1));
+				if (scene == null)
+				{
+					out.write(new NullPointerException("Scene not found").toString());
+					out.flush();
+				}
+				else
+				{
+					RaySimulationGui gui = (RaySimulationGui)DataHandler.findJFrame(new BooleanFunction<JFrame>() {
+						@Override
+						public boolean eval(JFrame obj) {
+							return obj instanceof RaySimulationGui && ((RaySimulationGui)obj).scene == scene;
+						}
+					});
+					if (split.size() < 3)
+					{
+						out.write(Double.toString(gui.paintOffset.x) + ' ' + Double.toString(gui.paintOffset.y) + ' ' + Double.toString(gui.panelVisualization.scale));
+						out.flush();
+					}
+					else
+					{
+						gui.paintOffset.set(Double.parseDouble(split.get(2)), Double.parseDouble(split.get(3)));
+						gui.panelVisualization.scale = Double.parseDouble(split.get(4));
+						gui.panelVisualization.repaint();
+					}
+				}
+				break;
+			}
+			case "screenshot":
+			{
+				final RaytraceScene scene = RaytraceScene.getScene(split.get(1));
+				if (scene == null)
+				{
+					out.write(new NullPointerException("Scene not found").toString());
+					out.flush();
+				}
+				else
+				{
+					RaySimulationGui gui = (RaySimulationGui)DataHandler.findJFrame(new BooleanFunction<JFrame>() {
+						@Override
+						public boolean eval(JFrame obj) {
+							return obj instanceof RaySimulationGui && ((RaySimulationGui)obj).scene == scene;
+						}
+					});
+
+					int width = Integer.parseInt(split.get(2));
+					int height = Integer.parseInt(split.get(3));
+					File file = new File(split.get(4));
+					file.getParentFile().mkdirs();
+					String filepath = file.getAbsolutePath();
+					if (filepath.endsWith("svg"))
+					{
+						try {
+							FileWriter writer = new FileWriter(file);
+							BufferedWriter outBuf = new BufferedWriter(writer);
+							SvgDrawer drawer = new SvgDrawer(outBuf);
+							drawer.beginDocument(width, height);
+							gui.panelVisualization.paintComponent(drawer);
+							drawer.endDocument();
+							outBuf.close();
+							writer.close();
+						} catch (IOException e1) {
+							throw new RuntimeException("Can't save Screensot", e1);
+						}
+					}
+					else
+					{
+						BufferedImage im = new BufferedImage(gui.currentVisualization.getWidth(), gui.currentVisualization.getHeight(), BufferedImage.TYPE_INT_ARGB);
+						gui.currentVisualization.paint(im.getGraphics());
+						try {
+							ImageIO.write(im, filepath.substring(filepath.indexOf('.') + 1), file);
+						} catch (IOException e1) {
+							throw new RuntimeException("Can't save Screensot", e1);
+						}
+					}
+				}
+				break;
 			}
 			case "focus_analysis":
 			{
@@ -377,7 +461,7 @@ public class RaytraceCommandLine {
 			}
 			case "exit":System.exit(0);break;
 			case "":	break;
-			//default:	Logger.error("Unknown command", split.get(0));
+			default:	logger.error("Unknown command" + split.get(0));
 		}
 		split.clear();
 	}

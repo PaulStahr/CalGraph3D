@@ -327,6 +327,16 @@ public abstract class Drawer {
 		public void getClipBounds(Rectangle bounds) {
 			bounds.setBounds(0, 0, width, height);
 		}
+		
+		@Override
+		public int getWidth() {
+			return width;
+		}
+
+		@Override
+		public int getHeight() {
+			return height;
+		}
     }
 
 	
@@ -519,5 +529,19 @@ public abstract class Drawer {
 		public void getClipBounds(Rectangle bounds) {
 			g.getClipBounds(bounds);
 		}
+		
+		@Override
+		public int getWidth() {
+			return width;
+		}
+
+		@Override
+		public int getHeight() {
+			return height;
+		}
     }
+
+    public abstract int getWidth();
+    
+	public abstract int getHeight();
 }

@@ -75,6 +75,7 @@ import util.SaveLineCreator;
 import util.StringUtils;
 import util.TimedUpdater;
 import util.data.UniqueObjects;
+import util.functional.BooleanFunction;
 
 /**
  * Write a description of class DataHandler here.
@@ -95,6 +96,18 @@ public abstract class DataHandler
     
     public static volatile int openWindows = 0;
     
+    public static final JFrame findJFrame(BooleanFunction<JFrame> func)
+    {
+    	for (int i = 0; i < updateUIList.size(); ++i)
+    	{
+    		JFrame frame = updateUIList.get(i).get();
+    		if (func.eval(frame))
+    		{
+    			return frame;
+    		}
+    	}
+    	return null;
+    }
 
 	private static String lookAndFeel = "";
 	private static String currentFile;
