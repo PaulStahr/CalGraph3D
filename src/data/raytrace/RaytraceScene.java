@@ -32,6 +32,7 @@ import util.TimedUpdateHandler;
 import util.data.UniqueObjects;
 
 public class RaytraceScene {
+	public final ArrayList<VolumePipeline> volumePipelines = new ArrayList<VolumePipeline>();
 	public final ArrayList<GuiOpticalSurfaceObject> surfaceObjectList = new ArrayList<GuiOpticalSurfaceObject>();
 	public final ArrayList<GuiOpticalVolumeObject> volumeObjectList = new ArrayList<GuiOpticalVolumeObject>();
 	public final ArrayList<GuiTextureObject> textureObjectList = new ArrayList<GuiTextureObject>();
@@ -355,6 +356,7 @@ public class RaytraceScene {
 			tmpMeshArrayList.clear();
 			tmpSurfaceArrayList.clear();
 			tmpVolumeArrayList.clear();
+			volumePipelines.clear();
 		}
 		else
 		{

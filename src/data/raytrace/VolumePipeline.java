@@ -33,6 +33,7 @@ public class VolumePipeline implements Runnable {
 	public boolean calcuteAtCreation;
 	private boolean autoUpdate;
 	public SortedIntegerArrayList vIds[] = SortedIntegerArrayList.EMPTY_SORTED_INTEGER_ARRAY_LIST_ARRAY;
+	
 	private class VolumePipelineTimedUpdater implements TimedUpdateHandler{
 		private final VariableStack.VariableObserver observer;
 		private final PendendList allChangedVariables;

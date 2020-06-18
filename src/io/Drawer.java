@@ -92,6 +92,7 @@ public abstract class Drawer {
 		@Override
     	public void drawChars(char data[], int offset, int length, double x, double y) throws IOException
     	{
+      		if (Double.isNaN(x) || Double.isNaN(y)){return;}
 			chBuf = StringUtils.writeAndReset(outBuf, strB.append("<text x=\"").append(x).append("\" y=\"").append(y).append("\" writing-mode=\"lr\">"), chBuf);
 			outBuf.write(data, offset, length);
 		    outBuf.write("</text>");
@@ -100,6 +101,7 @@ public abstract class Drawer {
 		@Override
     	public void drawChars(CharSequence data, int offset, int length, double x, double y) throws IOException
     	{
+      		if (Double.isNaN(x) || Double.isNaN(y)){return;}
 			chBuf = StringUtils.writeAndReset(outBuf, strB.append("<text x=\"").append(x).append("\" y=\"").append(y).append("\" writing-mode=\"lr\">"), chBuf);
 			for (int i = 0; i < data.length(); ++i)
 			{
@@ -111,7 +113,8 @@ public abstract class Drawer {
 		@Override
     	public void drawChar(char data, double x, double y) throws IOException
     	{
-			chBuf = StringUtils.writeAndReset(outBuf, strB.append("<text x=\"").append(x).append("\" y=\"").append(y).append("\" writing-mode=\"lr\">"), chBuf);
+      		if (Double.isNaN(x) || Double.isNaN(y)){return;}
+ 			chBuf = StringUtils.writeAndReset(outBuf, strB.append("<text x=\"").append(x).append("\" y=\"").append(y).append("\" writing-mode=\"lr\">"), chBuf);
 			outBuf.write(data);
 		    outBuf.write("</text>");
     	}
@@ -119,6 +122,7 @@ public abstract class Drawer {
     	@Override
 		public void fillCircle(double x, double y, double radius) throws IOException
     	{
+       		if (Double.isNaN(x) || Double.isNaN(y) || Double.isNaN(radius)){return;}
     		chBuf = StringUtils.writeAndReset(outBuf, toString(strB.append("<circle cx=\"").append(x).append("\" cy=\"").append(y).append("\" r=\"").append(radius).append("\" fill=\""), col).append("\" fill-opacity=\"").append(col.getAlpha() / 255.).append("\" />"), chBuf);
     	 	outBuf.newLine();
     	}
@@ -126,6 +130,7 @@ public abstract class Drawer {
        	@Override
 		public void drawLine(double x0, double y0, double x1, double y1) throws IOException
        	{
+       		if (Double.isNaN(x0) || Double.isNaN(y0) || Double.isNaN(x1) || Double.isNaN(y1)){return;}
        		line.set(x0, y0, x1, y1);
        		if (line.cropToRectangle(0, width, 0, height))
        		{

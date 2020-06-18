@@ -9,6 +9,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -25,6 +26,7 @@ import data.DataHandler;
 import data.Options;
 import data.raytrace.OpticalObject.SCENE_OBJECT_COLUMN_TYPE;
 import data.raytrace.StackPositionProcessor.Mode;
+import geometry.Vector3d;
 import io.Drawer.SvgDrawer;
 import io.raytrace.SceneIO;
 import jcomponents.raytrace.RaySimulationGui;
@@ -34,10 +36,13 @@ import maths.Controller;
 import maths.Operation;
 import maths.Operation.CalculationController;
 import maths.OperationCompiler;
+import maths.algorithm.OperationCalculate;
 import maths.exception.OperationParseException;
 import util.IOUtil;
+import util.JFrameUtils;
 import util.StringUtils;
 import util.functional.BooleanFunction;
+import util.stream.NullOutputStream;
 
 public class RaytraceCommandLine {
 	private static final Logger logger = LoggerFactory.getLogger(RaytraceCommandLine.class);
@@ -280,6 +285,76 @@ public class RaytraceCommandLine {
 						gui.paintOffset.set(Double.parseDouble(split.get(2)), Double.parseDouble(split.get(3)));
 						gui.panelVisualization.scale = Double.parseDouble(split.get(4));
 						gui.panelVisualization.repaint();
+					}
+				}
+				break;
+			}
+			case "wait":
+			{
+				switch(split.get(2))
+				{
+					case "volumes":{
+						final RaytraceScene scene = RaytraceScene.getScene(split.get(2));
+						if (scene == null)
+						{
+							out.write(new NullPointerException("Scene " + split.get(2) + " not found").toString());
+							out.flush();
+						}
+						else
+						{
+							for (int i = 0; i < scene.volumePipelines.size(); ++i)
+							{
+								VolumePipeline vp = scene.volumePipelines.get(i);
+								if (vp.isCalculating())
+								{
+									try {
+										Thread.sleep(10);
+									} catch (InterruptedException e) {
+										// TODO Auto-generated catch block
+										e.printStackTrace();
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			case "linevisualisation":
+			{
+				final RaytraceScene scene = RaytraceScene.getScene(split.get(1));
+				if (scene == null)
+				{
+					out.write(new NullPointerException("Scene " + split.get(1) + " not found").toString());
+					out.flush();
+				}
+				else
+				{
+					try {
+						PropertyOnLineCalculator polc = new PropertyOnLineCalculator(scene);
+						Vector3d position = new Vector3d();
+						Vector3d direction = new Vector3d();
+						Controller controll = new Controller();
+						OperationCalculate.toDoubleArray(OperationCompiler.compile(split.get(2)).calculate(scene.vs, controll), position);
+						OperationCalculate.toDoubleArray(OperationCompiler.compile(split.get(3)).calculate(scene.vs, controll), direction);
+						BufferedWriter outBuf = new BufferedWriter(new OutputStreamWriter(new NullOutputStream()));
+						SvgDrawer drawer = new SvgDrawer(outBuf);
+						Operation op = OperationCompiler.compile(split.get(4)).calculate(scene.vs, controll);
+						double rangeBegin = op.get(0).doubleValue();
+						double rangeEnd = op.get(1).doubleValue();
+						polc.paint(position, direction, rangeBegin, rangeEnd, Integer.parseInt(split.get(5)), Boolean.parseBoolean(split.get(6)), drawer);
+						String type = StringUtils.getFileType(split.get(7));
+			            if (type.equals("dat") || type.equals("csv"))
+			        	{
+			            	File file = new File(split.get(7));
+			            	file.getParentFile().mkdirs();
+			            	try {
+								StringUtils.writeTapSeperated(polc.dataPoints, file , 2);
+							} catch (IOException ex) {
+								JFrameUtils.logErrorAndShow("Can't save to File", ex, logger);
+							}
+			        	}
+					} catch (OperationParseException e) {
+						throw new RuntimeException(e);
 					}
 				}
 				break;
