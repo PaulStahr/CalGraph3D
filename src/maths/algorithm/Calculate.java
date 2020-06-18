@@ -33,8 +33,8 @@ import maths.functions.atomic.MultiplicationOperation;
 import maths.functions.atomic.PowerOperation;
 import maths.functions.atomic.SubtractionOperation;
 import util.ArrayUtil;
-import util.data.DoubleList;
 import util.RunnableRunner;
+import util.data.DoubleList;
 
 /**
  * Write a description of class Math here.
@@ -677,35 +677,24 @@ public abstract class Calculate
         return true;
     }
     
-    public static boolean toRREF(double[] m, int numRows) {
-        if (m.length == 0)
-        	return true;
+    public static int toRREF(double[] m, int numRows) {
+        if (m.length == 0) {return 0;}
         final int columnCount = m.length / numRows;
 
         for (int r = 0, lead = 0, i=0; r < m.length && lead < columnCount; i=(r += columnCount), lead++) {
             while (m[i + lead] == 0) {
                 if ((i += columnCount) == m.length) {
-                    if (++lead == columnCount)
-                        return true;
+                    if (++lead == columnCount) {return numRows;}
                     i = r;
                 }
             }
             ArrayUtil.swap(m, i, r, columnCount);
-            if (m[r + lead] != 0){
-            	final double lv1 = 1/m[r + lead];
-                for (int j = 0; j < columnCount; j++)
-                    m[r + j] *= lv1;            	
-            }
-            
+            if (m[r + lead] != 0){ArrayUtil.mult(m, r, r + columnCount, 1./m[r + lead]);}
             for (int k = 0; k < m.length; k+=columnCount) {
-                if (k != r){
-	                final double lv = m[k + lead];
-	                for (int j = 0; j < columnCount; j++)
-	                    m[k + j] -= lv * m[i + j];
-                }
+                if (k != r){ArrayUtil.multAdd(m, i, i + columnCount, m, k, -m[k + lead]);}
             }
         }
-        return true;
+        return numRows;
     }
     
     public static boolean toRREF(Operation[][] m, CalculationController control) {
@@ -913,6 +902,7 @@ public abstract class Calculate
 		public abstract double func(double data[]);
 		
 		volatile double min;
+		@Override
 		public void run()
 		{
 			min = func(data);

@@ -293,6 +293,13 @@ public class ArrayUtil {
 		}	
 	}
 
+	public static void multAdd(double[] in, int iBegin, int iEnd, double[] out, int oBegin, double mult) {
+		for (; iBegin < iEnd; ++iBegin, ++oBegin)
+		{
+			out[oBegin] += mult * in[iBegin];
+		}	
+	}
+
 	public static int count(Object[] object, int objectBegin, int objectEnd,Object o) {
 		int res = 0;
 		for (int i = objectBegin; i < objectEnd; ++i)

@@ -136,15 +136,13 @@ public class FocusAnalysis {
 						}
 						npc.calculate();
 						npc.get(focalPoint);
+						if (bundleAcceptedCount == 0){focalPoint.set(Double.NaN, Double.NaN, Double.NaN);}
 						focalPoint.write(vertices, (startIndex[i] + j) * 3);
 						lineFocalDistance += destination.midpoint.distance(focalPoint);
 						lineAcceptedCount += bundleAcceptedCount;
 						bundleWeightPoint.multiply(1/(double)bundleAcceptedCount);
 						double bundleVariance = 0;
-						if (bundleAcceptedCount == 0)
-						{
-							continue;
-						}
+						if (bundleAcceptedCount == 0){continue;}
 						for (int k = 0; k < raycount; ++k)
 						{
 							if (rsd.lastObject[k] == destination && rsd.accepted[k] == RaytraceScene.STATUS_ACCEPTED)
