@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import data.DataHandler;
 import data.Options;
+import data.raytrace.OpticalObject.SCENE_OBJECT_COLUMN_TYPE;
 import data.raytrace.StackPositionProcessor.Mode;
 import io.Drawer.SvgDrawer;
 import io.raytrace.SceneIO;
@@ -365,6 +366,18 @@ public class RaytraceCommandLine {
 									new Object[] 					{fc.sourceElevations, 	fc.destinationElevationAveraged, fc.destinationElevationVariance, 	fc.destinationEucledeanVariance,	fc.acceptedRatio, 	fc.focalDistances, 	fc.focalHitpointDistances}, outBuf);
 							outBuf.close();
 							writer.close();
+							++i;
+							break;
+						}
+						case "mesh" :
+						{
+							MeshObject mesh = fc.createMeshObject();
+							try {
+								mesh.setValue(SCENE_OBJECT_COLUMN_TYPE.ID, split.get(i + 1), scene.vs, parser);
+							} catch (OperationParseException e) {
+								logger.error("Can't set Mesh id", e);
+							}
+							scene.add(mesh);
 							++i;
 							break;
 						}

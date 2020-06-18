@@ -23,15 +23,11 @@ import data.DataHandler;
 import data.raytrace.FocusAnalysis;
 import data.raytrace.GuiOpticalSurfaceObject;
 import data.raytrace.MeshObject;
-import data.raytrace.OpticalObject.SCENE_OBJECT_COLUMN_TYPE;
 import data.raytrace.OpticalSurfaceObject;
-import data.raytrace.ParseUtil;
 import data.raytrace.RaytraceScene;
-import geometry.Matrix4d;
 import io.DataPlotter;
 import io.Drawer.GraphicsDrawer;
 import maths.data.ArrayOperation;
-import maths.exception.OperationParseException;
 import util.JFrameUtils;
 
 public class FocusAnalysisFrame extends JFrame  implements ActionListener{
@@ -122,24 +118,7 @@ public class FocusAnalysisFrame extends JFrame  implements ActionListener{
 						logger.error("Can't write file", ex);
 					}
 					
-					ParseUtil parser = new ParseUtil();
-					MeshObject mo = new MeshObject(scene.vs, parser);
-					mo.setData(fc.vertices, fc.faces, null);
-					if (!fc.threeDim)
-					{
-						int lines[] = new int[2 * fc.vertices.length / 3 - 4];
-						for (int i = 0; i < lines.length / 2; ++i)
-						{
-							lines[i * 2] = i;
-							lines[i * 2 + 1] = i + 2;
-						}
-						mo.setLines(lines);
-					}
-					try {
-						mo.setValue(SCENE_OBJECT_COLUMN_TYPE.TRANSFORMATION, new Matrix4d(1), scene.vs, new ParseUtil());
-					} catch (OperationParseException e) {
-						logger.error("Can't set Value", e);
-					}
+					MeshObject mo = fc.createMeshObject();
 					scene.add(mo);
 					
 					DataHandler.globalVariables.setGlobal("FocusArcs", new ArrayOperation(fc.sourceElevations));

@@ -2,19 +2,25 @@ package data.raytrace;
 
 import java.util.Arrays;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import data.DataHandler;
+import data.raytrace.OpticalObject.SCENE_OBJECT_COLUMN_TYPE;
 import data.raytrace.RaytraceScene.RaySimulationObject;
 import data.raytrace.raygen.RayGenerator;
 import geometry.Geometry.NearestPointCalculator;
+import geometry.Matrix4d;
 import geometry.Vector2d;
 import geometry.Vector3d;
 import jcomponents.raytrace.RaySimulationData;
+import maths.exception.OperationParseException;
 import util.RunnableRunner;
 import util.RunnableRunner.ParallelRangeRunnable;
 import util.data.DoubleArrayList;
 
 public class FocusAnalysis {
-	
+	private static final Logger logger = LoggerFactory.getLogger(FocusAnalysis.class);
 	private Runnable finishRunnable;
 	int maxBounces = 10;
 	public GuiOpticalSurfaceObject lightSource;
@@ -245,5 +251,27 @@ public class FocusAnalysis {
 		{
 			DataHandler.runnableRunner.runParallel(prr, "Focus Heatmap", null, 0, numElevations, 10);
 		}
+	}
+
+	public MeshObject createMeshObject() {
+		ParseUtil parser = new ParseUtil();
+		MeshObject mo = new MeshObject(scene.vs, parser);
+		mo.setData(vertices, faces, null);
+		if (!threeDim)
+		{
+			int lines[] = new int[2 * vertices.length / 3 - 4];
+			for (int i = 0; i < lines.length / 2; ++i)
+			{
+				lines[i * 2] = i;
+				lines[i * 2 + 1] = i + 2;
+			}
+			mo.setLines(lines);
+		}
+		try {
+			mo.setValue(SCENE_OBJECT_COLUMN_TYPE.TRANSFORMATION, new Matrix4d(1), scene.vs, parser);
+		} catch (OperationParseException e) {
+			logger.error("Can't set Value", e);
+		}
+		return mo;
 	}
 }
