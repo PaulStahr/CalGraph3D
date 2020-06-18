@@ -533,7 +533,7 @@ public class MeshObject extends SurfaceObject {
 	{
 		for (int i = 0; i < this.vertices.length; i += 3)
 		{
-			meshToGlobal.rdotAffine(this.vertices[i], this.vertices[i + 1], this.vertices[i + 2], vertices, i);
+			meshToGlobal.rdotAffine(this.vertices, i, vertices, i);
 		}
 	}
 

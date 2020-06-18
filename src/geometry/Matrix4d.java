@@ -504,6 +504,7 @@ public final class Matrix4d implements Matrixd, DoubleList{
 	public final void ldotAffine(DoubleArrayList in, int inIndex, float[] out, int outIndex){ldotAffine(in.getD(inIndex), in.getD(++inIndex), in.getD(++inIndex), out, outIndex);}
 	public final void rdotAffine(DoubleArrayList in, int inIndex, float[] out, int outIndex){rdotAffine(in.getD(inIndex), in.getD(++inIndex), in.getD(++inIndex), out, outIndex);}
 	public final void rdotAffine(float in[], int inIndex, float[] out, int outIndex) 		{rdotAffine(in[inIndex], in[inIndex + 1], in[inIndex + 2], out, outIndex);}
+	public final void rdotAffine(double in[], int inIndex, float[] out, int outIndex) 		{rdotAffine(in[inIndex], in[inIndex + 1], in[inIndex + 2], out, outIndex);}
 	
 	public final void ldot(double x, double y, double z, double w, float out[], int index){
 		out[index]   = (float)(m00 * x + m10 * y + m20 * z + m30 * w);

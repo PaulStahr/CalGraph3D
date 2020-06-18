@@ -19,38 +19,14 @@ public final class Line2d {
     	double end = 0;
     	double diffX = x1 - x0;
     	double diffY = y1 - y0;
-    	if (x0 < minX)
-		{
-			begin = Math.max(begin,(minX - x0) / diffX);
-		}
-		else if (x0 > maxX)
-		{
-			begin = Math.max(begin,(maxX - x0) / diffX);
-		}
-		if (y0 < minY)
-		{
-			begin = Math.max(begin,(minY-y0) / diffY);
-		}
-		else if (y0 > maxY)
-		{
-			begin = Math.max(begin,(maxY - y0) / diffY);
-		}
-		if (x1 < minX)
-		{
-			end = Math.max(end, (x1 - minX) / diffX);
-		}
-		else if (x1 > maxX)
-		{
-			end = Math.max(end, (x1 - maxX) / diffX);
-		}
-		if (y1 < minY)
-		{
-			end = Math.max(end,(y1 - minY) / diffY);
-		}
-		else if (y1 > maxY)
-		{
-			end = Math.max(end, (y1 - maxY) / diffY);
-		}
+    	if (x0 < minX)		{begin = Math.max(begin,(minX - x0) / diffX);}
+		else if (x0 > maxX)	{begin = Math.max(begin,(maxX - x0) / diffX);}
+		if      (y0 < minY)	{begin = Math.max(begin,(minY - y0) / diffY);}
+		else if (y0 > maxY)	{begin = Math.max(begin,(maxY - y0) / diffY);}
+		if 		(x1 < minX)	{end   = Math.max(end,  (x1 - minX) / diffX);}
+		else if (x1 > maxX)	{end   = Math.max(end,  (x1 - maxX) / diffX);}
+		if 		(y1 < minY)	{end   = Math.max(end,  (y1 - minY) / diffY);}
+		else if (y1 > maxY)	{end   = Math.max(end,  (y1 - maxY) / diffY);}
 		if (begin + end< 1)
 		{
 			x0 += diffX * begin;

@@ -2134,15 +2134,11 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		int lines[] = mesh.getLines();
 		for (int i = 0; i < lines.length; i += 2)
 		{
-			int l0 = lines[i] * 3;
+			int l0 = lines[i    ] * 3;
 			int l1 = lines[i + 1] * 3;
-			/*if (vertices[l0 + 2] < -1 || vertices[l0 + 2] > 1 || vertices[l1 + 2] < -1 || vertices[l1 + 2] > 1)
-			{
-				continue;
-			}*/
-			double x0 = (vertices[l0] + translation.x) * scale;
+			double x0 = (vertices[l0	] + translation.x) * scale;
 			double y0 = (vertices[l0 + 1] + translation.y) * scale;
-			double x1 = (vertices[l1] + translation.x) * scale;
+			double x1 = (vertices[l1	] + translation.x) * scale;
 			double y1 = (vertices[l1 + 1] + translation.y) * scale;
 			g.drawLine(x0,y0,x1,y1);
 		}
