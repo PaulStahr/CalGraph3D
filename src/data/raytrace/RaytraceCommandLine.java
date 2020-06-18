@@ -305,7 +305,7 @@ public class RaytraceCommandLine {
 							for (int i = 0; i < scene.volumePipelines.size(); ++i)
 							{
 								VolumePipeline vp = scene.volumePipelines.get(i);
-								if (vp.isCalculating())
+								while (vp.isCalculating())
 								{
 									try {
 										Thread.sleep(10);
