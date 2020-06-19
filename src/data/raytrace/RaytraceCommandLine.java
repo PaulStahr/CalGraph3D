@@ -79,6 +79,22 @@ public class RaytraceCommandLine {
 				out.write("load\nmodify\nstp");
 				break;
 			}
+			case "opt":
+			{
+				String key = split.get(1);
+				if (split.size() < 2)
+				{
+					Options.OptionTreeNode node = Options.getNode(key);
+					out.write(node.toString());
+					out.flush();
+				}
+				else
+				{
+					Options.set(key, split.get(2));
+					Options.triggerUpdates();
+				}
+				break;
+			}
 			case "math":
 			{
 				for (int i = 1; i < split.size(); ++i)

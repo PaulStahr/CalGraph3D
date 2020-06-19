@@ -104,25 +104,25 @@ public abstract class Options
 		if (value instanceof String)
 		{
 			String str = (String)value;
-			if (otn instanceof OptionTreeLeafBigInteger)		{((OptionTreeLeafBigInteger)otn).value = new BigInteger(str);			}
-			else if (otn instanceof OptionTreeLeafString)		{((OptionTreeLeafString)otn).value = str;			}
-			else if (otn instanceof OptionTreeLeafColor)		{((OptionTreeLeafColor)otn).value = new Color(Integer.parseInt(str));	}
-			else if (otn instanceof OptionTreeLeafDouble)		{((OptionTreeLeafDouble)otn).value = Double.parseDouble(str);			}
-			else if (otn instanceof OptionTreeLeafInteger)		{((OptionTreeLeafInteger)otn).value = Integer.parseInt(str);			}
-			else if (otn instanceof OptionTreeLeafBoolean)		{((OptionTreeLeafBoolean)otn).value = Boolean.parseBoolean(str);		}
-			else if (otn instanceof OptionTreeLeafFloat)		{((OptionTreeLeafFloat)otn).value = Float.parseFloat(str);				}
-			else		{										throw new IllegalArgumentException("missmatched type for key " + key + ':' + value.getClass().getName() + " should be " + otn.typeValue());}			
+			if	 	(otn instanceof OptionTreeLeafBigInteger)	{((OptionTreeLeafBigInteger)otn).value = new BigInteger(str);				}
+			else if (otn instanceof OptionTreeLeafString)		{((OptionTreeLeafString)	otn).value = str;								}
+			else if (otn instanceof OptionTreeLeafColor)		{((OptionTreeLeafColor)		otn).value = new Color(Integer.parseInt(str));	}
+			else if (otn instanceof OptionTreeLeafDouble)		{((OptionTreeLeafDouble)	otn).value = Double.parseDouble(str);			}
+			else if (otn instanceof OptionTreeLeafInteger)		{((OptionTreeLeafInteger)	otn).value = Integer.parseInt(str);				}
+			else if (otn instanceof OptionTreeLeafBoolean)		{((OptionTreeLeafBoolean)	otn).value = Boolean.parseBoolean(str);			}
+			else if (otn instanceof OptionTreeLeafFloat)		{((OptionTreeLeafFloat)		otn).value = Float.parseFloat(str);				}
+			else												{throw new IllegalArgumentException("missmatched type for key " + key + ':' + value.getClass().getName() + " should be " + otn.typeValue());}			
 		}
 		else
 		{
-			if (otn instanceof OptionTreeLeafBigInteger)		{((OptionTreeLeafBigInteger)otn).value = (BigInteger)value;	}
-			else if (otn instanceof OptionTreeLeafString)		{((OptionTreeLeafString)otn).value = (String)value;			}
-			else if (otn instanceof OptionTreeLeafColor)		{((OptionTreeLeafColor)otn).value = (Color)value;			}
-			else if (otn instanceof OptionTreeLeafDouble)		{((OptionTreeLeafDouble)otn).value = (double)value;				}
-			else if (otn instanceof OptionTreeLeafInteger)		{((OptionTreeLeafInteger)otn).value = value instanceof Integer ? (int)value : (byte)value;}
-			else if (otn instanceof OptionTreeLeafBoolean)		{((OptionTreeLeafBoolean)otn).value = (boolean)value;		}
-			else if (otn instanceof OptionTreeLeafFloat)		{((OptionTreeLeafFloat)otn).value = (float)value;			}
-			else		{										throw new IllegalArgumentException("missmatched type for key " + key + ':' + value.getClass().getName() + " should be " + otn.typeValue());}
+			if 		(otn instanceof OptionTreeLeafBigInteger)	{((OptionTreeLeafBigInteger)otn).value = (BigInteger)value;	}
+			else if (otn instanceof OptionTreeLeafString)		{((OptionTreeLeafString)	otn).value = (String)value;		}
+			else if (otn instanceof OptionTreeLeafColor)		{((OptionTreeLeafColor)		otn).value = (Color)value;		}
+			else if (otn instanceof OptionTreeLeafDouble)		{((OptionTreeLeafDouble)	otn).value = (double)value;		}
+			else if (otn instanceof OptionTreeLeafInteger)		{((OptionTreeLeafInteger)	otn).value = value instanceof Integer ? (int)value : (byte)value;}
+			else if (otn instanceof OptionTreeLeafBoolean)		{((OptionTreeLeafBoolean)	otn).value = (boolean)value;	}
+			else if (otn instanceof OptionTreeLeafFloat)		{((OptionTreeLeafFloat)		otn).value = (float)value;		}
+			else												{throw new IllegalArgumentException("missmatched type for key " + key + ':' + value.getClass().getName() + " should be " + otn.typeValue());}
 		}
 		optionsUpdated();
 		otn.lastModification = modCount;
@@ -153,14 +153,14 @@ public abstract class Options
 		{
 			switch (type)
 			{
-				case "void":	toAdd = new OptionTreeInnerNode(elem.getName(), modCount);										break;
-				case "string":	toAdd = new OptionTreeLeafString(elem.getName(), init, modCount);								break;
-				case "int":		toAdd = new OptionTreeLeafInteger(elem.getName(), Integer.parseInt(init), modCount);			break;
-				case "float":	toAdd = new OptionTreeLeafFloat(elem.getName(), Float.parseFloat(init), modCount);				break;
-				case "double":	toAdd = new OptionTreeLeafDouble(elem.getName(), Double.parseDouble(init), modCount);			break;
-				case "bigint":	toAdd = new OptionTreeLeafBigInteger(elem.getName(), new BigInteger(init), modCount);			break;
-				case "color":	toAdd = new OptionTreeLeafColor(elem.getName(), new Color(Integer.parseInt(init)), modCount);	break;
-				case "bool":	toAdd = new OptionTreeLeafBoolean(elem.getName(), Boolean.parseBoolean(init), modCount);		break;
+				case "void":	toAdd = new OptionTreeInnerNode		(elem.getName(), modCount);										break;
+				case "string":	toAdd = new OptionTreeLeafString	(elem.getName(), init, modCount);								break;
+				case "int":		toAdd = new OptionTreeLeafInteger	(elem.getName(), Integer.parseInt(init), modCount);				break;
+				case "float":	toAdd = new OptionTreeLeafFloat		(elem.getName(), Float.parseFloat(init), modCount);				break;
+				case "double":	toAdd = new OptionTreeLeafDouble	(elem.getName(), Double.parseDouble(init), modCount);			break;
+				case "bigint":	toAdd = new OptionTreeLeafBigInteger(elem.getName(), new BigInteger(init), modCount);				break;
+				case "color":	toAdd = new OptionTreeLeafColor		(elem.getName(), new Color(Integer.parseInt(init)), modCount);	break;
+				case "bool":	toAdd = new OptionTreeLeafBoolean	(elem.getName(), Boolean.parseBoolean(init), modCount);			break;
 				default:		System.err.println("Type " + type + " not known");break;
 			}
 		}
@@ -190,13 +190,13 @@ public abstract class Options
 			{
 				switch (type)
 				{
-					case "string":	((OptionTreeLeafString)node).value = init;								break;
-					case "int":		((OptionTreeLeafInteger)node).value = Integer.parseInt(init);			break;
-					case "float":	((OptionTreeLeafFloat)node).value = Float.parseFloat(init);				break;
-					case "double":	((OptionTreeLeafDouble)node).value = Double.parseDouble(init);			break;
-					case "bigint":	((OptionTreeLeafBigInteger)node).value = new BigInteger(init);			break;
-					case "color":	((OptionTreeLeafColor)node).value = new Color(Integer.parseInt(init));	break;
-					case "bool":	((OptionTreeLeafBoolean)node).value = Boolean.parseBoolean(init);		break;
+					case "string":	((OptionTreeLeafString)		node).value = init;								break;
+					case "int":		((OptionTreeLeafInteger)	node).value = Integer.parseInt(init);			break;
+					case "float":	((OptionTreeLeafFloat)		node).value = Float.parseFloat(init);			break;
+					case "double":	((OptionTreeLeafDouble)		node).value = Double.parseDouble(init);			break;
+					case "bigint":	((OptionTreeLeafBigInteger)	node).value = new BigInteger(init);				break;
+					case "color":	((OptionTreeLeafColor)		node).value = new Color(Integer.parseInt(init));break;
+					case "bool":	((OptionTreeLeafBoolean)	node).value = Boolean.parseBoolean(init);		break;
 				}
 			}catch (Exception e)
 			{
@@ -530,7 +530,7 @@ public abstract class Options
     		return null;
     	}
 		
-		private OptionTreeNode createChild(String name, Object value)
+		private OptionTreeNode getOrCreateChild(String name, Object value)
 		{
 			int index = ListTools.binarySearch(children, 0, size, name, stringTreeNodeComparator);
 			if (index < 0)
@@ -558,7 +558,7 @@ public abstract class Options
     
     private static final OptionTreeNode createNode(final CharSequence name, OptionTreeNode root, final Object value)
     {
-    	return createNode(new StringUtils().split(name, 0, name.length(), '.'), root, value);
+    	return getOrCreateNode(new StringUtils().split(name, 0, name.length(), '.'), root, value);
     }
     
     public static final OptionTreeNode getNode(final CharSequence name)
@@ -591,7 +591,7 @@ public abstract class Options
    		return null;
     }
 
-    private static final OptionTreeNode createNode(String str[], OptionTreeNode root, Object value)
+    private static final OptionTreeNode getOrCreateNode(String str[], OptionTreeNode root, Object value)
     {
     	OptionTreeNode otn = root;
     	for (int i = 0; i < str.length; ++i)
@@ -602,11 +602,11 @@ public abstract class Options
     		}
     		if (i == str.length - 1)
     		{
-    			otn = ((OptionTreeInnerNode)otn).createChild(str[i], value);
+    			otn = ((OptionTreeInnerNode)otn).getOrCreateChild(str[i], value);
     		}
     		else
     		{
-    			otn = ((OptionTreeInnerNode)otn).createChild(str[i], null);
+    			otn = ((OptionTreeInnerNode)otn).getOrCreateChild(str[i], null);
     		}
     	}
    		return otn;   
