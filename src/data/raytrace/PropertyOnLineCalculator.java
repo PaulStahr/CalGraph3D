@@ -43,7 +43,7 @@ public class PropertyOnLineCalculator {
 		OpticalObject nextMeshes[] = scene.getActiveMeshes();
 		intersection.distance = 1e-10;
 		double width = drawer.getWidth(), height = drawer.getHeight();
-
+		direction.normalize();
 		switch (mode)
 		{
 			case 0:
@@ -72,7 +72,6 @@ public class PropertyOnLineCalculator {
 					 nextVolumes = object.volumeSuccessor;
 					 nextMeshes = object.meshSuccessor;
 				}
-				
 				for (int i = 0; i < objects.size(); ++i)
 				{
 					OpticalObject obj = objects.get(i);

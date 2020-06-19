@@ -464,12 +464,33 @@ public abstract class Drawer {
 			{
 				Graphics2D g2d = (Graphics2D)g;
 				//System.out.println(Arrays.toString(points));
-				path.moveTo(points[0], points[1]);
-				for (int i = 1; i < index; ++i)
+				int onPath = 0;
+				for (int i = 0; i < index * 2; i += 2)
 				{
-					path.lineTo(points[i * 2], points[i * 2 + 1]);
+					if (!Double.isFinite(points[i]) || !Double.isFinite(points[i + 1]))
+					{
+						if (onPath > 1)
+						{
+							g2d.draw(path);
+						}
+						path.reset();
+						onPath = 0;
+						continue;
+					}
+					if (onPath == 0)
+					{
+						path.moveTo(points[i], points[i + 1]);
+					}
+					else
+					{
+						path.lineTo(points[i], points[i + 1]);
+					}
+					++onPath;
 				}
-				g2d.draw(path);
+				if (onPath > 1)
+				{
+					g2d.draw(path);
+				}
 				path.reset();
 			}
 			else
