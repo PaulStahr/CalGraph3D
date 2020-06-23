@@ -209,9 +209,9 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 		private void updateGraphic()
 		{
 			int width = vol.width, height = vol.height, depth = vol.depth;
-			int data[] = vol.data;
-			int max = ArrayUtil.max(data);
-			int min = ArrayUtil.min(data);
+			float data[] = vol.data;
+			float max = ArrayUtil.max(data);
+			float min = ArrayUtil.min(data);
 			int pixel[] = new int[4];
 			BufferedImage bi = getImage();
 			if (bi.getWidth() != width || bi.getHeight() != height)
@@ -232,7 +232,7 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 				{
 					for (int x = 0; x < width; ++x)
 					{
-						Arrays.fill(pixel, 0, 3, (data[x + width * (y + depth * layer)] - min) * 255 / (max - min));
+						Arrays.fill(pixel, 0, 3, (int)((data[x + width * (y + depth * layer)] - min) * 255 / (max - min)));
 						raster.setPixel(x, y, pixel);
 					}
 				}

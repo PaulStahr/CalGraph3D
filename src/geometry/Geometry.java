@@ -287,6 +287,162 @@ public class Geometry {
 		}
 		System.out.println("meshsize: " + vertexPositions.size() / 3 + " " + faceIndices.size() / 3 + " cutpoint " + mid);
 	}
+	
+	public static final void volumeToMesh(float[] data, int width, int height, int depth, double mid, IntegerArrayList faceIndices, DoubleArrayList vertexPositions)
+	{
+		int offsets[] = new int[8];
+		int cubeOffsets[] = new int[8];
+		int vertexIndices[] = new int[(width) * (height) * (depth) * 3];
+		Arrays.fill(vertexIndices, -1);
+		boolean inside[] = new boolean[8];
+		boolean visited[] = new boolean[8];
+		boolean closedSet[] = new boolean[visited.length];
+		for (int i = 0; i < 3; ++i)
+		{
+			for (int j = 0; j < (1 << i); ++j)
+			{
+				offsets[j + (1 << i)] = offsets[j] + (i == 0 ? 1 : i == 1 ? width : width * height);
+				cubeOffsets[j + (1 << i)] = cubeOffsets[j] + (i == 0 ? 1 : i == 1 ? (width - 1): (width - 1)* (height-1));
+			}
+		}
+		IntegerArrayList searchStack = new IntegerArrayList();
+		
+		for (int z = 0, index = 0; z < depth - 1; ++z, ++index)
+		{
+			for (int y = 0; y < height - 1; ++y, ++index)
+			{
+				for (int x = 0; x < width - 1; ++x, ++index)
+				{
+					index = x + (width * (y + height * z));
+					boolean is_cutted = false;
+					{
+						boolean first = inside[0] = data[index] > mid;
+						for (int bitmask = 1; bitmask < 8; ++bitmask)
+						{
+							is_cutted |= (inside[bitmask] = (data[index + offsets[bitmask]] > mid)) != first;
+						}
+					}
+					if (is_cutted)
+					{
+						int cubeIndex = x + (width - 1) * (y + (height - 1) * z);
+						Arrays.fill(visited, false);
+						for (int bitmask = 0; bitmask < 8; ++bitmask)
+						{
+							Arrays.fill(closedSet, false);
+							int innerVertex = bitmask;
+							int inOutAxis = -1;
+							if (inside[bitmask] && !visited[bitmask])
+							{
+								visited[bitmask] = closedSet[bitmask] = true;
+								searchStack.add(bitmask);
+								while(!searchStack.isEmpty())
+								{
+									int current = searchStack.pop();
+									for (int axis = 0; axis < 3;++axis)
+									{
+										int neighbour = current ^ (1 << axis);
+										
+										if (inside[neighbour] && !visited[neighbour])
+										{
+											searchStack.add(neighbour);
+											visited[neighbour] = closedSet[neighbour] = true;
+										}
+										if (!inside[neighbour])
+										{
+											innerVertex = current;
+											inOutAxis = axis;
+										}
+									}
+								}
+							}
+							if (inOutAxis == -1)
+							{
+								continue;
+							}
+							int facePoint0 = -1, facePoint1 = -1;
+							final int startInnerVertex = innerVertex;
+							final int startInOutAxis = inOutAxis;
+							while(true)
+							{
+								final int outerVertex = innerVertex ^ (1 << inOutAxis);
+								int min = innerVertex & outerVertex;
+								int max = innerVertex | outerVertex;
+								int vIndex = (cubeIndex + cubeOffsets[min]) * 3 + inOutAxis;
+								if (vIndex >= vertexIndices.length)
+								{
+									throw new ArrayIndexOutOfBoundsException("(" + cubeIndex + " + " + cubeOffsets[min] + ") * " + 3 + " + " + inOutAxis + " = " + vIndex + " < " + vertexIndices.length);
+								}
+								int facePoint2 = vertexIndices[vIndex];
+								if (facePoint2 == -1)
+								{
+									double xp = x + ((min >> 0) & 1);
+									double yp = y + ((min >> 1) & 1);
+									double zp = z + ((min >> 2) & 1);
+									double v0 = data[index + offsets[min]]- mid, v1 = data[index + offsets[max]] - mid;
+									double alpha = v0 / (v0 - v1);
+									if (alpha < 0 || alpha > 1)
+									{
+										throw new RuntimeException("alpha not in range: " + alpha);
+									}
+									if (alpha <= 0.00001) //clip near to lattice values to remove small triangles
+									{
+										vIndex = (cubeIndex + cubeOffsets[min]) * 3;
+										facePoint2 = vertexIndices[vIndex];
+									}
+									if (alpha >= 0.99999) //clip near to lattice values to remove small triangles
+									{
+										vIndex = (cubeIndex + cubeOffsets[max]) * 3;
+										facePoint2 = vertexIndices[vIndex];
+									}
+									if (facePoint2 == -1)
+									{
+										facePoint2 = vertexIndices[vIndex] = vertexPositions.size() / 3;
+										vertexPositions.add(xp, yp, zp);
+										int addIndex = vertexPositions.size() - 3 + inOutAxis;
+										vertexPositions.set(addIndex, vertexPositions.getD(addIndex) + alpha);
+									}
+								}
+								if (facePoint0 != -1)
+								{
+									if (facePoint2 != facePoint1 && facePoint0 != facePoint1 && facePoint0 != facePoint2)
+									{
+										faceIndices.add(facePoint0, facePoint1, facePoint2);
+									}
+								}
+								else
+								{
+									facePoint0 = facePoint1;
+								}
+								facePoint1 = facePoint2;
+								
+								final int newAxis = (((innerVertex ^ (innerVertex >> 1) ^ (innerVertex >> 2)) & 1) + inOutAxis + 1)%3;
+								final int newInner = innerVertex ^ (1 << newAxis);
+								final int newOuter = outerVertex ^ (1 << newAxis);
+								if (closedSet[newInner] && !closedSet[newOuter] && (newInner != startInnerVertex || inOutAxis != startInOutAxis))
+								{
+									innerVertex = newInner;
+								}
+								else if (!closedSet[newInner] && (innerVertex != startInnerVertex || newAxis != startInOutAxis))
+								{
+									inOutAxis = newAxis;
+								}
+								else if (closedSet[newOuter] && (newOuter != startInnerVertex || newAxis != startInOutAxis))
+								{
+									innerVertex = newOuter;
+									inOutAxis = newAxis;
+								}
+								else
+								{
+									break;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		System.out.println("meshsize: " + vertexPositions.size() / 3 + " " + faceIndices.size() / 3 + " cutpoint " + mid);
+	}
 /*	public static final void volumeToMesh(int[] data, int width, int height, int depth, double low, double high, IntegerArrayList faceIndices, DoubleArrayList vertexPositions)
 	{
 		low = ArrayUtil.min(data);

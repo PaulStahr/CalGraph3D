@@ -3,12 +3,13 @@ package jcomponents.raytrace;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+
 import util.ArrayUtil;
 
 public class Volume {
 	public static final Volume[] EMPTY_VOLUME_ARRAY = new Volume[0];
 	public final int width, height, depth;
-	public final int data[];
+	public final float data[];
 	public final int translucency[];
 	private int modCount = 0;
 	
@@ -47,7 +48,7 @@ public class Volume {
 		this.width = width;
 		this.height = height;
 		this.depth = depth;
-		data = new int[width * height * depth];
+		data = new float[width * height * depth];
 		translucency = new int[width * height * depth];
 	}
 
@@ -59,10 +60,10 @@ public class Volume {
 		this.width = width;
 		this.height = height;
 		this.depth = depth;
-		data = new int[width * height * depth];
+		data = new float[width * height * depth];
 		translucency = new int[width * height * depth];
 		
-		ArrayUtil.readIntegers(data, 0, data.length, inBuf);
+		ArrayUtil.readFloats(data, 0, data.length, inBuf);
 		ArrayUtil.readIntegers(translucency, 0,translucency.length, inBuf);
 	}
 

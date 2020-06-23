@@ -82,7 +82,7 @@ public class StackPositionProcessorWindow extends JFrame implements ActionListen
 	private final JCheckBox checkBoxBackward = new JCheckBox("Backward");
 	private final RaytraceScene scene;
 	private final AtomicInteger progress = new AtomicInteger(0);
-	StackPositionProcessor spp = new StackPositionProcessor();
+	private final StackPositionProcessor spp = new StackPositionProcessor();
 	private final Runnable updateProgressBarRunnable = new Runnable()//TODO atomic test
 	{
 		@Override

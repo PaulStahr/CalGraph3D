@@ -324,7 +324,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 	public void editValues(OpticalSurfaceObject oso[], Operation operationIOR, Operation operationTranslucency, Operation givenValueOperation, Operation isGivenOperation, VariableStack variables, Volume vol)
 	{
 		int width = vol.width, height = vol.height, depth = vol.depth;
-		int data[] = vol.data;
+		float data[] = vol.data;
 		int translucency[] = vol.translucency;
 		Vector3d position = new Vector3d();
 		final int heightp = height + 1;
@@ -354,8 +354,8 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 				tmpList.add(oso[i]);
 			}
 		}
-		int minDat = Integer.MAX_VALUE;
-		int maxDat = Integer.MIN_VALUE;
+		float minDat = Integer.MAX_VALUE;
+		float maxDat = Integer.MIN_VALUE;
 		int minTrans = Integer.MAX_VALUE;
 		int maxTrans = Integer.MIN_VALUE;
 		
@@ -503,7 +503,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 					if (operationIOR != null)
 					{
 						Operation res = operationIOR.calculate(vs, control);
-						data[index] = (int) res.longValue();
+						data[index] = (float)res.doubleValue();
 						if (is != null)
 						{
 							is.setVoxel(x, y, z, res.doubleValue());
@@ -559,20 +559,10 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 	public void readAvi(String file)
 	{
 		int width = vol.width, height = vol.height, depth = vol.depth;
-		int data[] = vol.data;
 		ip = ij.plugin.AVI_Reader.open(file, false);
 		setSize(ip.getWidth(), ip.getHeight(), ip.getNFrames());
 		ImageStack is = ip.getImageStack();
-		for (int k = 0; k < depth; ++k)
-		{
-			for (int j = 0; j < height; ++j)
-        	{
-    			for (int i = 0, index = 0; i < width; ++i)
-    	        {
-        			data[index++] = (int)is.getVoxel(i, j, k);
-        		}
-        	}
-        }
+		readVoxels(is, vol.data, width, height, depth);
 		dcm = null;
 	}
 	
@@ -599,17 +589,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 	        ImageStack is = dcm.getImageStack();
 	        setSize(is.getWidth(), is.getHeight(), is.getSize());
 	        int width = vol.width, height = vol.height, depth = vol.depth;
-			int data[] = vol.data;
-    		for (int z = 0, index = 0; z < depth; ++z)
-    		{
-	        	for (int y = 0; y < height; ++y)
-	        	{
-        	        for (int x = 0; x < width; ++x)
-        	        {
-	        			data[index++] = (int)is.getVoxel(x, y, z);
-	        		}
-	        	}
-	        }
+	        readVoxels(is, vol.data, width, height, depth);
 	        String properties = (String)dcm.getProperty("Info");
 			StringReader reader = new StringReader(properties);
 			BufferedReader inBuf = new BufferedReader(reader);
@@ -662,6 +642,19 @@ public abstract class OpticalVolumeObject extends OpticalObject{
     		//readStringPoperty(dcm);
 	    }
 		vs = null;
+	}
+
+	private void readVoxels(ImageStack is, float[] data, int width, int height, int depth) {
+		for (int z = 0, index = 0; z < depth; ++z)
+		{
+        	for (int y = 0; y < height; ++y)
+        	{
+    	        for (int x = 0; x < width; ++x)
+    	        {
+        			data[index++] = (float)is.getVoxel(x, y, z);
+        		}
+        	}
+        }
 	}
 
 	public static void readValues(String line, StringUtils strUtils, DoubleArrayList dal)
@@ -813,7 +806,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		double tx = globalToCudaLattice.rdotAffineX(x,y,z) / 0x10000;
 		double ty = globalToCudaLattice.rdotAffineY(x,y,z) / 0x10000;
 		double tz = globalToCudaLattice.rdotAffineZ(x,y,z) / 0x10000;
-		return jcomponents.util.ImageUtil.getSmoothedPixel(tx, ty, tz, vol.data, vol.width, vol.height, vol.depth);
+		return (int)jcomponents.util.ImageUtil.getSmoothedPixel(tx, ty, tz, vol.data, vol.width, vol.height, vol.depth);
 	}
 	
 	public float[] getVolumeColor(float color[])
@@ -823,8 +816,8 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		{
 			color = new float[num_vertices * 4];
 		}
-		int min = Integer.MAX_VALUE, max = Integer.MIN_VALUE;
-		for (int val : vol.data)
+		float min = Integer.MAX_VALUE, max = Integer.MIN_VALUE;
+		for (float val : vol.data)
 		{
 			min = Math.min(val, min);
 			max = Math.max(val, max);
@@ -875,7 +868,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			//IntBuffer ior = Buffers.createIntBuffer(vol.data);
 			FloatBuffer ior = Buffers.createFloatBuffer(vol.data.length);
 			for (int i=0;i<vol.data.length;i++)
-	            ior.put(i,(float)vol.data[i]/0x100);
+	            ior.put(i,vol.data[i]/0x100);
 			if (native_raytrace)
 			{
 				VolumeRaytraceOptions opt = new VolumeRaytraceOptions();

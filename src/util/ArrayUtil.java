@@ -345,6 +345,13 @@ public class ArrayUtil {
 		}
 	}
 	
+	public static void write(float[] data, int begin, int end, DataOutputStream outBuf) throws IOException {
+		for (int i = begin; i < end; ++i)
+		{
+			outBuf.writeFloat(data[i]);
+		}
+	}
+	
 	public static void write(IntegerList ial, int begin, int end, DataOutputStream outBuf) throws IOException {
 		for (int i = begin; i < end; ++i)
 		{
@@ -371,6 +378,13 @@ public class ArrayUtil {
 		for (int i = begin; i < end; ++i)
 		{
 			data[i] = inBuf.readInt();
+		}
+	}
+
+	public static void readFloats(float[] data, int begin, int end, DataInputStream inBuf) throws IOException {
+		for (int i = begin; i < end; ++i)
+		{
+			data[i] = inBuf.readFloat();
 		}
 	}
 
