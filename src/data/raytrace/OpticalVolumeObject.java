@@ -182,13 +182,9 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 	
 	public static native void set_option_valueb(long pointer, long id, boolean value);
 	
-	public static native void trace_rays(long pointer, IntBuffer start_position, ShortBuffer start_direction, FloatBuffer scale, float minimum_brightness, int iterations, boolean trace_path, long option_pointer);
+	public static native void trace_rays(long pointer, IntBuffer start_position, ShortBuffer start_direction, IntBuffer end_iteration, FloatBuffer scale, float minimum_brightness, int iterations, boolean trace_path, IntBuffer path, long option_pointer);
 	
-	public static native void trace_rays(long pointer, IntBuffer start_position, FloatBuffer start_direction, FloatBuffer scale, float minimum_brightness, int iterations, boolean trace_path, long option_pointer);
-	
-	public static native void trace_rays(IntBuffer bounds, IntBuffer ior, IntBuffer transculency, IntBuffer start_position, ShortBuffer start_direction, FloatBuffer scale, float minimum_brightness, int iterations, boolean trace_path);
-	
-	public static native void trace_rays(IntBuffer bounds, FloatBuffer ior, FloatBuffer transculency, IntBuffer start_position, FloatBuffer start_direction, FloatBuffer scale, float minimum_brightness, int iterations, boolean trace_path);
+	public static native void trace_rays(long pointer, IntBuffer start_position, FloatBuffer start_direction, IntBuffer end_iteration, FloatBuffer scale, float minimum_brightness, int iterations, boolean trace_path, IntBuffer path, long option_pointer);
 	
 	public final Matrix4d unitVolumeToGlobal = new Matrix4d();
 	public final Matrix4d globalToUnitVolume = new Matrix4d();
@@ -221,14 +217,14 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			pointer = new_instance(bounds, ior, translucency, opt.pointer);
 		}
 		
-		public void traceRays(IntBuffer start_position, ShortBuffer start_direction, FloatBuffer scale, float minimum_brightness, int iterations, boolean trace_path, VolumeRaytraceOptions options)
+		public void traceRays(IntBuffer start_position, ShortBuffer start_direction, IntBuffer end_iteration, FloatBuffer scale, float minimum_brightness, int iterations, IntBuffer path, VolumeRaytraceOptions options)
 		{
-			trace_rays(pointer, start_position, start_direction, scale, minimum_brightness, iterations, trace_path, options.pointer);
+			trace_rays(pointer, start_position, start_direction, end_iteration, scale, minimum_brightness, iterations, path != null, path, options.pointer);
 		}
 		
-		public void traceRays(IntBuffer start_position, FloatBuffer start_direction, FloatBuffer scale, float minimum_brightness, int iterations, boolean trace_path, VolumeRaytraceOptions options)
+		public void traceRays(IntBuffer start_position, FloatBuffer start_direction, IntBuffer end_iteration, FloatBuffer scale, float minimum_brightness, int iterations, IntBuffer path, VolumeRaytraceOptions options)
 		{
-			trace_rays(pointer, start_position, start_direction, scale, minimum_brightness, iterations, trace_path, options.pointer);
+			trace_rays(pointer, start_position, start_direction, end_iteration, scale, minimum_brightness, iterations, path != null, path, options.pointer);
 		}
 		
 		@Override
@@ -753,6 +749,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 	DoubleArrayList vertexPositions = new DoubleArrayList();//TODO private final
 	IntegerArrayList faceIndices = new IntegerArrayList();
 	private VolumeRaytraceOptions options;
+	public int numInnerTrajectoryPoints = 10;
 	private static int raytraceLoglevel;
 	private static Boolean raytraceWriteInstance;
 	private static Runnable optionRunnable = new Runnable()
@@ -880,21 +877,22 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		return res;
 	}
 	
-	public void calculateRays(Object position, Object direction, int positionBegin, int positionEnd, OpticalObject object[], int objectBegin)
+	public void calculateRays(Object position, Object direction, int directionBegin, int directionEnd, OpticalObject object[], int objectBegin, Object path, int iteration[])
 	{
 		if (!native_raytrace)
 		{
 			return;
 		}
 		cudaLatticeToGlobal.invert(globalToCudaLattice);
-		int count = ArrayUtil.count(object, objectBegin, objectBegin + (positionEnd - positionBegin) / 3, this);
+		int count = ArrayUtil.count(object, objectBegin, objectBegin + (directionEnd - directionBegin) / 3, this);
 		try {
 			IntBuffer startPosition = Buffers.createIntBuffer(count * 3);
 			//ShortBuffer startDirection = Buffers.createShortBuffer(count * 3);
 			FloatBuffer startDirection = Buffers.createFloatBuffer(count * 3);
+			IntBuffer endIteration = Buffers.createIntBuffer(count);
 			Vector3d tmp = new Vector3d();
 			int maxX = 0x10000 * vol.width - 0x20001, maxY = 0x10000 * vol.height - 0x20001, maxZ = 0x10000 * vol.depth - 0x20001;
-			for (int i = positionBegin, writeIndex = 0, j = objectBegin; i < positionEnd; i += 3, ++j)
+			for (int i = directionBegin, writeIndex = 0, j = objectBegin; i < directionEnd; i += 3, ++j)
 			{
 				if (object[j] == this)
 				{
@@ -913,8 +911,9 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			}
 			VolumeScene vs = getVolumeScene();
 			initOptions();
-			vs.traceRays(startPosition, startDirection, scale, 0, maxSteps, false, options);
-			for (int i = positionBegin, readIndex = 0, j = 0; i < positionEnd; i += 3, ++j)
+			IntBuffer pathBuffer = path != null ? Buffers.createIntBuffer(maxSteps * 3 * count) : null;
+			vs.traceRays(startPosition, startDirection, endIteration, scale, 0, maxSteps, pathBuffer, options);
+			for (int i = directionBegin, readIndex = 0, j = 0; i < directionEnd; i += 3, ++j)
 			{
 				if (object[j] == this)
 				{
@@ -926,6 +925,18 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 					double factor = (10*0x1000)/Math.sqrt(x * x + y * y + z * z);
 					tmp.x -= factor * x;tmp.y -= factor * y; tmp.z -= factor * z;
 					cudaLatticeToGlobal.rdotAffine(tmp, position, i);
+					if (iteration != null)
+					{
+						iteration[j] = endIteration.get(readIndex / 3);
+					}
+					if (path != null)
+					{
+						for (int k = 0; k < maxSteps; ++k)
+						{
+							Buffers.getRev(pathBuffer, tmp, readIndex * maxSteps + (maxSteps - k - 1) * 3);
+							cudaLatticeToGlobal.rdotAffine(tmp, path, (j * maxSteps + k) * 3);
+						}
+					}
 					readIndex += 3;
 				}
 			}
@@ -944,7 +955,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		options.setLoglevel(raytraceLoglevel);
 	}
 
-	public void calculateRays(float position[], float direction[], int fromIndex, int toIndex)
+	public void calculateRays(float position[], float direction[], int iteration[], int fromIndex, int toIndex)
 	{
 		if (!native_raytrace)
 		{
@@ -953,6 +964,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		try {
 			IntBuffer startPosition = Buffers.createIntBuffer(toIndex - fromIndex);
 			FloatBuffer startDirection = Buffers.createFloatBuffer(toIndex - fromIndex);
+			IntBuffer endIteration = Buffers.createIntBuffer((toIndex - fromIndex) / 3);
 			Vector3d tmp = new Vector3d();
 			int maxX = 0x10000 * vol.width - 0x20001, maxY = 0x10000 * vol.height - 0x20001, maxZ = 0x10000 * vol.depth - 0x20001;
 			for (int i = fromIndex, writeIndex = 0; i < toIndex; i += 3, writeIndex += 3)
@@ -967,7 +979,8 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			}
 			VolumeScene vs = getVolumeScene();
 			initOptions();
-			vs.traceRays(startPosition, startDirection, scale, 0, maxSteps, false, options);
+			IntBuffer path = null;
+			vs.traceRays(startPosition, startDirection, endIteration, scale, 0, maxSteps, path, options);
 			for (int i = fromIndex, readIndex = 0; i < toIndex; i += 3, readIndex += 3)
 			{
 				Buffers.getRev(startDirection, tmp, readIndex);
@@ -984,7 +997,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		}
 	}
 	
-	public void calculateRays2(float position[], float direction[], int fromIndex, int toIndex)
+	public void calculateRays2(float position[], float direction[], int iteration[], int fromIndex, int toIndex)
 	{
 		if (!native_raytrace)
 		{
@@ -993,6 +1006,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		try {
 			IntBuffer startPosition = Buffers.createIntBuffer(toIndex - fromIndex);
 			ShortBuffer startDirection = Buffers.createShortBuffer(toIndex - fromIndex);
+			IntBuffer endIteration = Buffers.createIntBuffer((toIndex - fromIndex) / 3);
 			Vector3d tmp = new Vector3d();
 			int maxX = 0x10000 * vol.width - 0x20001, maxY = 0x10000 * vol.height - 0x20001, maxZ = 0x10000 * vol.depth - 0x20001;
 			for (int i = fromIndex, writeIndex = 0; i < toIndex; i += 3, writeIndex += 3)
@@ -1008,7 +1022,8 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			}
 			VolumeScene vs = getVolumeScene();
 			initOptions();
-			vs.traceRays(startPosition, startDirection, scale, 0, maxSteps, false, options );
+			IntBuffer path = null;
+			vs.traceRays(startPosition, startDirection, endIteration, scale, 0, maxSteps, path, options );
 			for (int i = fromIndex, readIndex = 0; i < toIndex; i += 3, readIndex += 3)
 			{
 				Buffers.getRev(startDirection, tmp, readIndex);

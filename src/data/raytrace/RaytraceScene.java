@@ -1439,11 +1439,31 @@ public class RaytraceScene {
 					break;
 				}
 				OpticalVolumeObject current = ovo[i];
-				current.calculateRays(endpoints, enddirs, beginRay * 3, endRay * 3, ovo, 0);
+				float path[] = null;
+				int endIteration[] = null;
+				if (trajectory != null && current.numInnerTrajectoryPoints != 0)
+				{
+					path = new float[(endRay - beginRay) * current.maxSteps * 3];
+					endIteration = new int[endRay - beginRay];
+				}
+
+				current.calculateRays(endpoints, enddirs, beginRay * 3, endRay * 3, ovo, 0, path, endIteration);
 				for (int j = i; j < ovo.length; ++j)
 				{
 					if (ovo[j] == current)
 					{
+						if (path != null)
+						{
+							int numInnerSteps = current.numInnerTrajectoryPoints;
+							for (int l = 0; l < numInnerSteps; ++l)
+							{
+								for (int k = 0; k < 3; ++k)
+								{
+									trajectory[outBeginIndex + (j - beginRay) * (bidir ? 2 : 1) * trajectoryStep + bounces[j] * 3 + k] = path[(j * current.maxSteps + l * endIteration[j] / numInnerSteps) * 3  + k];
+								}
+								++bounces[j];
+							}
+						}
 						accepted[j + beginRay] = STATUS_VOLUME;
 						ovo[j] = null;
 					}

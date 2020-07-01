@@ -192,6 +192,7 @@ public abstract class OpticalObject {
 		TEXTURE_MAPPING("TextureMapping", TYPE_COMBOBOX, TextureMapping.SPHERICAL.name, TextureMapping.names()),
 		INVERT_NORMAL("InvertNormal", TYPE_CHECKBOX, false, null),
 		ALPHA_CALCULATION("AlphaCalculation", TYPE_COMBOBOX, AlphaCalculation.MULT.name, AlphaCalculation.names()),
+		INNER_POINT_TRAJECTORY_COUNT("InnerPoints", TYPE_TEXTFIELD, 10, null),
 		DELETE("Delete", TYPE_BUTTON, "Delete", null),
 		ALPHA_TO_RADIUS("AlphaToRadius", TYPE_CHECKBOX, false, null);
 		

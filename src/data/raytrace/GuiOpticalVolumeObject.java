@@ -48,6 +48,7 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 					SCENE_OBJECT_COLUMN_TYPE.FOLLOWING_OBJECTS,
 					SCENE_OBJECT_COLUMN_TYPE.VOLUME_SCALING,
 					SCENE_OBJECT_COLUMN_TYPE.MAX_STEPS,
+					SCENE_OBJECT_COLUMN_TYPE.INNER_POINT_TRAJECTORY_COUNT,
 					SCENE_OBJECT_COLUMN_TYPE.DELETE},
 			new SCENE_OBJECT_COLUMN_TYPE[]{
 					SCENE_OBJECT_COLUMN_TYPE.ID,
@@ -179,6 +180,7 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 			}
 			case PREVIOUS_OBJECTS:break;
 			case FOLLOWING_OBJECTS:break;
+			case INNER_POINT_TRAJECTORY_COUNT:break;
 			default:break;
 			}
 			updateIds((byte)ct.ordinal(), parser.op);
@@ -298,6 +300,7 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 				predessorArray= parser.parseStringArray(o, controll);
 				predessorStr = parser.str;break;
 			case MAX_STEPS:maxSteps = ParseUtil.parseInteger(o);break;
+			case INNER_POINT_TRAJECTORY_COUNT: numInnerTrajectoryPoints = ParseUtil.parseInteger(o);break;
 			case VOLUME_SCALING: volumeScaling = ParseUtil.parseDouble(o);applyMatrix();break;
 			default:logger.warn("Unknown Option " + ct);break;
 			}
@@ -327,6 +330,7 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 		case FOLLOWING_OBJECTS: return successorStr;
 		case PREVIOUS_OBJECTS: return predessorStr;
 		case MAX_STEPS:		return maxSteps;
+		case INNER_POINT_TRAJECTORY_COUNT: return numInnerTrajectoryPoints;
 		case VOLUME_SCALING:return volumeScaling;
 		default:			throw new IllegalArgumentException(ct.name);		
 		}
