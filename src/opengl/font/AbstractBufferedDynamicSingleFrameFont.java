@@ -42,8 +42,7 @@ public abstract class AbstractBufferedDynamicSingleFrameFont implements GlTextRe
 
 	@Override
 	public final void draw(CharSequence text, float x, float y, byte horizontalPosition, byte verticalPosition){
-		//System.out.println("draw:" + text);
-        if (text == null)
+		if (text == null)
             throw new NullPointerException();
         switch(verticalPosition){
 			case BOTTOM:
@@ -236,5 +235,6 @@ public abstract class AbstractBufferedDynamicSingleFrameFont implements GlTextRe
 	}
 	
 	
+	@Override
 	public void finalize() {}
 }

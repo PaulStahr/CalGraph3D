@@ -29,6 +29,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 
 import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -36,7 +37,6 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.GroupLayout.Alignment;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
@@ -45,17 +45,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import data.raytrace.GuiOpticalSurfaceObject;
-import data.raytrace.GuiOpticalVolumeObject;
-import data.raytrace.MeshObject;
-import data.raytrace.OpticalObject;
-import data.raytrace.ParseUtil;
 import data.raytrace.GuiOpticalSurfaceObject.OpticalSurfaceObjectChangeListener;
+import data.raytrace.GuiOpticalVolumeObject;
 import data.raytrace.GuiOpticalVolumeObject.OpticalVolumeObjectChangeListener;
+import data.raytrace.MeshObject;
 import data.raytrace.MeshObject.MeshObjectChangeListener;
+import data.raytrace.OpticalObject;
 import data.raytrace.OpticalObject.COLUMN_TYPES;
 import data.raytrace.OpticalObject.SCENE_OBJECT_COLUMN_TYPE;
-import maths.exception.OperationParseException;
+import data.raytrace.ParseUtil;
 import maths.VariableAmount;
+import maths.exception.OperationParseException;
 
 public class OpticalObjectPanel extends JPanel implements OpticalSurfaceObjectChangeListener, OpticalVolumeObjectChangeListener, MeshObjectChangeListener, ItemListener, DocumentListener{
 	/**
@@ -74,8 +74,8 @@ public class OpticalObjectPanel extends JPanel implements OpticalSurfaceObjectCh
 		return guiOpticalObject;
 	}
 	
+	@Override
 	public void valueChanged(final GuiOpticalSurfaceObject object, final SCENE_OBJECT_COLUMN_TYPE ct) {
-		//System.out.println("valueChangeld:" + toString() + ' ' + isUpdating);
 		if (isUpdating && EventQueue.isDispatchThread())
 		{
 			return;
@@ -84,6 +84,7 @@ public class OpticalObjectPanel extends JPanel implements OpticalSurfaceObjectCh
 		{
 			EventQueue.invokeLater(new Runnable()
 			{
+				@Override
 				public void run()
 				{
 					isUpdating = true;
@@ -110,8 +111,8 @@ public class OpticalObjectPanel extends JPanel implements OpticalSurfaceObjectCh
 		}
 	}
 
+	@Override
 	public void valueChanged(final MeshObject object, final SCENE_OBJECT_COLUMN_TYPE ct) {
-		//System.out.println("valueChangeld:" + toString() + ' ' + isUpdating);
 		if (isUpdating && EventQueue.isDispatchThread())
 		{
 			return;
@@ -120,6 +121,7 @@ public class OpticalObjectPanel extends JPanel implements OpticalSurfaceObjectCh
 		{
 			EventQueue.invokeLater(new Runnable()
 			{
+				@Override
 				public void run()
 				{
 					isUpdating = true;
@@ -146,8 +148,8 @@ public class OpticalObjectPanel extends JPanel implements OpticalSurfaceObjectCh
 		}
 	}
 
+	@Override
 	public void valueChanged(final GuiOpticalVolumeObject object, final SCENE_OBJECT_COLUMN_TYPE ct) {
-		//System.out.println("valueChangeld:" + toString() + ' ' + isUpdating);
 		if (isUpdating && EventQueue.isDispatchThread())
 		{
 			return;
@@ -156,6 +158,7 @@ public class OpticalObjectPanel extends JPanel implements OpticalSurfaceObjectCh
 		{
 			EventQueue.invokeLater(new Runnable()
 			{
+				@Override
 				public void run()
 				{
 					COLUMN_TYPES columnTypes = object.getTypes();

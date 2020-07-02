@@ -147,7 +147,6 @@ public class StringId {
 
 	public static final int getIdIfExist(String name) {
 		int index = getIndex(name);
-		System.out.println(name + ' ' + (index >= 0 ? dataNameSorted[index].string : ""));
 		return index >= 0 ? dataNameSorted[index].id : -1;
 	}
 	

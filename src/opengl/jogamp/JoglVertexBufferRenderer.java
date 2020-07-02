@@ -21,25 +21,24 @@
  ******************************************************************************/
 package opengl.jogamp;
 
-import geometry.Geometry;
-import geometry.Vector2f;
-
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
 import com.jogamp.opengl.GL2;
 
+import geometry.Geometry;
+import geometry.Vector2f;
 import opengl.BufferUtils;
 import opengl.GlBufferObjectHandler;
-import opengl.Material;
 import opengl.GlBufferObjectHandler.GlBufferObject;
+import opengl.Material;
 import opengl.rendering_algorithm.ObjectRenderer;
 import scene.Scene;
 import scene.SceneObserver.SceneObjectInformation;
 import scene.object.SceneObject;
+import scene.object.SceneObject.DrawType;
 import scene.object.SceneObjectLine;
 import scene.object.SceneObjectMesh;
-import scene.object.SceneObject.DrawType;
 import scene.object.SceneObjectPlane;
 import scene.object.SceneObjectPointCloud;
 import util.Buffers;
@@ -79,10 +78,10 @@ public class JoglVertexBufferRenderer extends ObjectRenderer{
 		glBufferObject = gboh.createBufferObject();
 	}
 	
+	@Override
 	public void renderQuad(){
    		floatBuffer = BufferUtils.fillWithQuad(floatBuffer);
-        //System.out.println(floatBuffer.limit());
-   		//TODO Weird size bug
+        //TODO Weird size bug
 	    glBufferObject.bind(GL2.GL_ARRAY_BUFFER);
 	    gl.glBufferData(GL2.GL_ARRAY_BUFFER, floatBuffer.limit() * 4, floatBuffer, GL2.GL_STATIC_DRAW);
 	    gl.glEnableClientState(GL2.GL_VERTEX_ARRAY);
@@ -94,6 +93,7 @@ public class JoglVertexBufferRenderer extends ObjectRenderer{
 	    gl.glDisableClientState(GL2.GL_NORMAL_ARRAY);
 	}
 	
+	@Override
 	public void drawLines2d(Vector2f vertices[])
 	{
 		floatBuffer = BufferUtils.fillWithVectorData(vertices, floatBuffer);
@@ -105,6 +105,7 @@ public class JoglVertexBufferRenderer extends ObjectRenderer{
 	    gl.glDisableClientState(GL2.GL_VERTEX_ARRAY);		
 	}
 
+	@Override
 	public void drawLines2d(float vertices[])
 	{
 		floatBuffer = BufferUtils.fillWithFloatData(vertices, floatBuffer);

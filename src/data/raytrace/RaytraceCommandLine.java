@@ -129,8 +129,9 @@ public class RaytraceCommandLine {
 			{
 				for (int i = 1; i < split.size(); ++i)
 				{
-					System.out.println(split.get(i));
+					out.write(split.get(i));
 				}
+				out.flush();
 				break;
 			}
 			case "run":
@@ -481,9 +482,9 @@ public class RaytraceCommandLine {
 			{
 				for (int i = 0; i < split.size(); ++i)
 				{
-					System.out.println(i + " " + split.get(i));
-						
+					out.write(i + " " + split.get(i));
 				}
+				out.flush();
 				if (split.get(1).equals("--help"))
 				{
 					out.write("<scene> <scale> <position_input> <surface_compensation> <output_folder> <mode> <evaluation_texture> <evaluation_object> <range_begin> <range_end> <num_rays> <resolution> <light_source> <position_output> <backward> --output <output> --nfactor <noralization factor>");
@@ -595,7 +596,6 @@ public class RaytraceCommandLine {
 	
 	public void run(InputStream in, BufferedWriter out, List<String> variables, ExecEnv env) throws IOException
 	{
-		System.out.println("Variables: " + variables);
 		InputStreamReader reader = new InputStreamReader(in);
 		BufferedReader inBuf = new BufferedReader(reader);
 		String line;

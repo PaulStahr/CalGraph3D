@@ -197,9 +197,7 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
         @Override
 		public void run(){
     		try{
-            	//long time = System.nanoTime();
                 calcGraph(controller);
-                //System.out.println("time:" + (System.nanoTime() - time)*0.000000001);
             }catch (Exception e){
             	logger.error("Exception at calculating Graph", e);
             }
@@ -1260,11 +1258,6 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
                 break;
             }
         }
-    	/*final long t2 = System.nanoTime();
-    	if (false){
-    		//System.out.println((float)(t1-t0)/(t2-t0));
-    		System.out.println((float)(t2-t0)/1000000);
-    	}*/
         glObject.update(UpdateKind.DATA);
         return true;
     }
@@ -1312,16 +1305,13 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
 		        		}
 	        		}
         		}
-        		int number = 0;
     			for (int i = 0; i < size; ++i)
     			{
 					if (data[i] == null)
 					{
 						data[i] = new RealDoubleOperation(step*i+min);
-						++number;
 					}
     			}
-    			System.out.println("reused:" + (size - number) + '/' + size);
     		}
         	else
         	{

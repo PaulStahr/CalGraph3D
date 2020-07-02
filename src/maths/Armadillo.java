@@ -105,13 +105,9 @@ public class Armadillo {
 		IntBuffer ib = Buffers.createIntBuffer(colIndices.size());
 		colIndices.fill(ib);
 		DoubleBuffer result = Buffers.createDoubleBuffer(notGivenCount);
-		System.out.println(new StringBuilder().append(matValues.size()).append(' ').append(colIndices.size()).append(' ').append(rowElements.capacity()));
-		System.out.println(new StringBuilder().append(db.capacity()).append(' ').append(ib.capacity()).append(' ').append(rowElements.capacity()));
-		System.out.println("num rows:" + b.capacity() + " num cols:" + result.capacity());
-		//System.out.println("b:" + Buffers.toString(b));
-		//System.out.println("db:" + Buffers.toString(db));
-		//System.out.println("rowElements:" + Buffers.toString(rowElements));
-		//System.out.println("ib:" + Buffers.toString(ib));
+		logger.debug(new StringBuilder().append(matValues.size()).append(' ').append(colIndices.size()).append(' ').append(rowElements.capacity()).toString());
+		logger.debug(new StringBuilder().append(db.capacity()).append(' ').append(ib.capacity()).append(' ').append(rowElements.capacity()).toString());
+		logger.debug("num rows:" + b.capacity() + " num cols:" + result.capacity());
 		Armadillo.spsolve(db, rowElements, ib, b, result);
 		for (int i = 0; i < notGivenIndices.length; ++i)
 		{

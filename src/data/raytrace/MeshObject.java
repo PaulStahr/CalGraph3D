@@ -518,7 +518,6 @@ public class MeshObject extends SurfaceObject {
 		DoubleArrayList vertexList = new DoubleArrayList();
 		DoubleArrayList textureCoordList = new DoubleArrayList();
 		ObjectImporter.importTriangleWavefront(is, faceList, vertexList, textureCoordIndexList, textureCoordList);
-		System.out.println(textureCoordList.size() + " " + vertexList.size() + " " + faceList.size());
 		setData(vertexList.toArrayD(), faceList.toArrayI(), textureCoordList.size() * 3 == vertexList.size() * 2 ? textureCoordList.toArrayD() : null);
 		is.close();
 		//Geometry.calcTriangleMeshVertexFaceOrthorgonals(vertices, faces, vertexNormals, faceNormals);

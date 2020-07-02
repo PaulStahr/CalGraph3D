@@ -86,7 +86,6 @@ public class ImageComponent extends JPanel implements MouseMotionListener, Mouse
 		double x = getWidth() / (2 * scale) + paintOffset.x, y = getHeight() / (2 * scale) + paintOffset.y;
     	int dx1 = 0, sx1 = 0, dx2 = getWidth(), sx2 = image.getWidth();
 		int dy1 = 0, sy1 = 0, dy2 = getHeight(), sy2 = image.getHeight();
-		//System.out.print(globalPaintOffset + ' ');
 		dx1 = (int)(x * scale);
 		dx2 = (int)((image.getWidth() + x) * scale);
 		dy1 = (int)(y * scale);

@@ -456,8 +456,6 @@ public class RaytraceScene {
 			else
 			{
 				cameraViewRunnable.gen.surfaceSuccessor = activeSurfaces;
-				System.out.println(cameraViewRunnable.gen);
-				System.out.println(Arrays.toString(activeSurfaces));
 				cameraViewRunnable.gen.volumeSuccessor = activeVolumes;
 				cameraViewRunnable.gen.meshSuccessor = activeMeshes;
 			}
@@ -1171,10 +1169,6 @@ public class RaytraceScene {
 				((OpticalSurfaceObject) surf).getTextureCoordinates(position, direction, coord);
 			}
 			surf.textureObject.getColor(coord.x, coord.y, color);
-			//if (color[0] != 0)
-			//{
-			//	System.out.println(coord + Arrays.toString(color));
-			//}
 		}
 		else
 		{
@@ -1183,7 +1177,6 @@ public class RaytraceScene {
 			color[2] = surf.color.getBlue();
 			color[3] = surf.color.getAlpha();
 		}
-		//throw new RuntimeException();
 	}
 	
 	private final void readColor(RaySimulationObject currentRay, OpticalObject res, int color[])

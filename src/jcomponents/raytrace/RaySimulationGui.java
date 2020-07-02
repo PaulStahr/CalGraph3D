@@ -1945,9 +1945,10 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		public void mouseExited(MouseEvent e) {}
 
 		@Override
-		public void mousePressed(MouseEvent e) {System.out.println(e);mButtons[e.getButton() - 1] = true;
-		mouseX = e.getX();
-		mouseY = e.getY();}
+		public void mousePressed(MouseEvent e) {
+			mButtons[e.getButton() - 1] = true;
+			mouseX = e.getX();
+			mouseY = e.getY();}
 
 		@Override
 		public void mouseReleased(MouseEvent e) {mButtons[e.getButton() - 1] = false;}
@@ -1969,7 +1970,6 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 
 		@Override
 		public void componentResized(ComponentEvent arg0) {
-			System.out.println(getWidth());
 			camera.setSize(getWidth(), getHeight());
 		}
 		
@@ -2942,7 +2942,6 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 
 	@Override
 	public void dataChanged(OpticalObject source) {
-		System.out.println("Changed: " + source);
 		if (source instanceof GuiOpticalVolumeObject)
 		{
 			GuiOpticalVolumeObject current = (GuiOpticalVolumeObject)source;

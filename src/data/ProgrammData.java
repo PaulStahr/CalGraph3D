@@ -71,7 +71,6 @@ public class ProgrammData {
 		jarDirectory = dir;*/
 		jarDirectory = ProgrammData.class.getProtectionDomain().getCodeSource().getLocation().getPath();
 		
-		//System.out.println(jarDirectory);
 	}
 	
 	public static boolean isNewer(String version){

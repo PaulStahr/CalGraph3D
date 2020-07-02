@@ -285,7 +285,6 @@ public class Geometry {
 				}
 			}
 		}
-		System.out.println("meshsize: " + vertexPositions.size() / 3 + " " + faceIndices.size() / 3 + " cutpoint " + mid);
 	}
 	
 	public static final void volumeToMesh(float[] data, int width, int height, int depth, double mid, IntegerArrayList faceIndices, DoubleArrayList vertexPositions)
@@ -443,139 +442,7 @@ public class Geometry {
 		}
 		System.out.println("meshsize: " + vertexPositions.size() / 3 + " " + faceIndices.size() / 3 + " cutpoint " + mid);
 	}
-/*	public static final void volumeToMesh(int[] data, int width, int height, int depth, double low, double high, IntegerArrayList faceIndices, DoubleArrayList vertexPositions)
-	{
-		low = ArrayUtil.min(data);
-		high = ArrayUtil.max(data);
-		System.out.println("range: " + low + " " + high);
-		double mid = (low + high) * 0.5;
-		int offsets[] = new int[8];
-		int cubeOffsets[] = new int[8];
-		int vertexIndices[] = new int[(width - 1) * (height - 1) * (depth - 1) * 3];
-		Arrays.fill(vertexIndices, -1);
-		boolean inside[] = new boolean[8];
-		boolean visited[] = new boolean[8];
-		for (int i = 0; i < 3; ++i)
-		{
-			for (int j = 0; j < (1 << i); ++j)
-			{
-				offsets[j + (1 << i)] = offsets[j] + (i == 0 ? 1 : i == 1 ? width : width * height);
-				cubeOffsets[j + (1 << i)] = offsets[j] + (i == 0 ? 1 : i == 1 ? (width - 1): (width - 1)* (height-1));
-			}
-		}
-		IntegerArrayList searchStack = new IntegerArrayList();
-		
-		for (int z = 0; z < depth - 1; ++z)
-		{
-			for (int y = 0; y < height - 1; ++y)
-			{
-				for (int x = 0; x < width - 1; ++x)
-				{
-					int index = x + width * (y + height * z);
-					int cubeIndex = x + (width - 1) * (y + (height - 1) * z);
-					boolean is_cutted = false;
-					{
-						boolean first = inside[0] = data[index] > mid;
-						for (int bitmask = 1; bitmask < 8; ++bitmask)
-						{
-							is_cutted |= (inside[bitmask] = (data[index + offsets[bitmask]] > mid)) != first;
-						}
-					}
-					if (!is_cutted)
-					{
-						continue;
-					}
-					System.out.println("found cube " + x + " " + y + " " + z);
-					
-					boolean visited2[] = new boolean[24];
-					for (int bitmask = 0; bitmask < 8; ++bitmask)
-					{
-						if (inside[bitmask])
-						{
-							for (int axis = 0; axis < 3; ++axis)
-							{
-								int min = bitmask & (1 << axis);
-								if (!inside[bitmask ^ (1 << axis)] && !visited2[min * 3 + axis])
-								{
-									visited2[min * 3 + axis] = true;
-									
-									
-								}
-							}
-						}
-					}
-					
-					
-					Arrays.fill(visited, false);
-					for (int bitmask = 0; bitmask < 8; ++bitmask)
-					{
-						if (inside[bitmask] && !visited[bitmask])
-						{
-							int facePoint0 = -1, facePoint1 = -1;
-							visited[bitmask] = true;
-							searchStack.add(bitmask);
-							while(!searchStack.isEmpty())
-							{
-								int current = searchStack.pop();
-								System.out.println("search from " + current);
-								for (int axis = 0; axis < 3;++axis)
-								{
-									int neighbour = current ^ (1 << axis);
-									if (!inside[neighbour])
-									{
-										int min = current & neighbour;
-										int max = current | neighbour;
-										System.out.println(current + " " + neighbour + " " + min + " " + max);
-										int facePoint2 = vertexIndices[(cubeIndex + cubeOffsets[min]) * 3 + axis];
-										if (facePoint2 == -1)
-										{
-											System.out.println("data " + data[index + offsets[min]] + " " + data[index + offsets[max]] + " mid: " + mid	);
-											double xp = x + ((min >> 0) & 1);
-											double yp = y + ((min >> 1) & 1);
-											double zp = z + ((min >> 2) & 1);
-											double v0 = data[index + offsets[min]]- mid, v1 = data[index + offsets[max]] - mid;
-											double alpha = v0 / (v0 - v1);
-											System.out.println("v " + v0 + " " + v1 + " " + alpha);
-											if (alpha < 0 || alpha > 1)
-											{
-												throw new RuntimeException("alpha not in range: " + alpha);
-											}
-											switch(axis)
-											{
-												case 0: xp += alpha;break;
-												case 1: yp += alpha;break;
-												case 2: zp += alpha;break;
-											}
-											facePoint2 = vertexIndices[(cubeIndex + cubeOffsets[min]) * 3 + axis] = vertexPositions.size() / 3;
-											System.out.println("add vertex " + xp + " " + yp + " " + zp);
-											vertexPositions.add(xp);
-											vertexPositions.add(yp);
-											vertexPositions.add(zp);
-										}
-										if (facePoint0 != -1)
-										{
-											System.out.println("add face " + facePoint0 + " " + facePoint1 + " " + facePoint2);
-											faceIndices.add(facePoint0);
-											faceIndices.add(facePoint1);
-											faceIndices.add(facePoint2);
-										}
-										facePoint0 = facePoint1;
-										facePoint1 = facePoint2;
-									}
-									if (inside[neighbour] && !visited[neighbour])
-									{
-										searchStack.add(neighbour);
-										visited[neighbour] = true;
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-*/	
+
 	public static final void parse(String str, Vectorf vec) throws ParseException
 	{
 		if (str.charAt(0) != '(' || str.charAt(str.length() - 1) != ')')

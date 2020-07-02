@@ -111,16 +111,13 @@ public class RayGenerator extends AbstractRayGenerator{
 		return ignoreRandom ? 0.5 : rand == null ? Math.random() : rand.nextDouble();
 	}
 	
+	@Override
 	public void generate(int index, int numrays, Vector3d position, Vector3d direction, Vector2d textureCoordinate, int color[])
 	{
 		if (source.modCount() != modCount)
 		{
 			modCount = source.modCount();
 			init();
-			if (Double.isNaN(cosArcOpen))
-			{
-				System.out.println("nan");
-			}
 		}
 		double diffuse = 0;
 		if (source instanceof OpticalSurfaceObject)
@@ -185,10 +182,6 @@ public class RayGenerator extends AbstractRayGenerator{
 							{
 								continue;
 							}
-						}*/
-						/*if (color[0] != 0)
-						{
-							System.out.println("hi:" + color[0]);
 						}*/
 						if (surf.alphaAsRadius)
 						{

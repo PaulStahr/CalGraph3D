@@ -392,7 +392,6 @@ public abstract class OpticalObject {
 			if (pendend.contains(includedVariableIds[j]))
 			{
 				SCENE_OBJECT_COLUMN_TYPE sct = SCENE_OBJECT_COLUMN_TYPE.get(includedVariableTypes[j]);
-				System.out.println(Arrays.toString(Arrays.copyOf(includedVariableIds,includedVariableCount)) + Arrays.toString(Arrays.copyOf(includedVariableTypes, includedVariableCount)) + sct);
 				try {
 					updateValue(sct, variables, parser);
 				} catch (OperationParseException e) {

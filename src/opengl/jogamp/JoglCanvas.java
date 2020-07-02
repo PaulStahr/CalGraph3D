@@ -21,6 +21,20 @@
  ******************************************************************************/
 package opengl.jogamp;
 
+import java.awt.Color;
+import java.awt.EventQueue;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.event.HierarchyEvent;
+import java.awt.event.HierarchyListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+
+import javax.imageio.ImageIO;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,21 +48,6 @@ import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.awt.GLCanvas;
 import com.jogamp.opengl.util.FPSAnimator;
 
-import java.util.Arrays;
-
-import javax.imageio.ImageIO;
-
-import java.awt.Color;
-import java.awt.EventQueue;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.event.HierarchyEvent;
-import java.awt.event.HierarchyListener;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-
 import data.Options;
 import data.Options.OptionTreeInnerNode;
 import debug.DebugText;
@@ -61,13 +60,13 @@ import opengl.FramesPerSecondCounter;
 import opengl.GlColor;
 import opengl.GlTextureHandler;
 import opengl.GlTextureHandler.GlTexture;
-import opengl.font.GlTextRenderer;
-import opengl.jogamp.font.JoglBufferedDynamicSingleFrameFont;
 import opengl.ImageLoader;
 import opengl.ImageWriter;
 import opengl.Light.Type;
 import opengl.LightGroup;
 import opengl.OpenGlInterface;
+import opengl.font.GlTextRenderer;
+import opengl.jogamp.font.JoglBufferedDynamicSingleFrameFont;
 import opengl.rendering_algorithm.ObjectRenderer;
 import scene.OpenGlMouseHandler;
 import scene.Scene;
@@ -201,7 +200,8 @@ public final class JoglCanvas extends GLCanvas implements OpenGlInterface, Hiera
     	addHierarchyListener(this);
     }
 
-    public final void repaint(){
+    @Override
+	public final void repaint(){
     	repaint(1);
     }
 
@@ -351,7 +351,8 @@ public final class JoglCanvas extends GLCanvas implements OpenGlInterface, Hiera
         }
    }
 
-    public synchronized final BufferedImage getScreenshot(){
+    @Override
+	public synchronized final BufferedImage getScreenshot(){
         synchronized(mat){
             makeScreenshot = true;
             repaint();
@@ -363,8 +364,7 @@ public final class JoglCanvas extends GLCanvas implements OpenGlInterface, Hiera
     }
 
     private final void takeScreenshotGl(GL2 gl){
-    	System.out.println(Thread.currentThread().getName());
-        final int width = camera.getWidth(), height = camera.getHeight();
+    	final int width = camera.getWidth(), height = camera.getHeight();
         final ByteBuffer bb = ByteBuffer.allocateDirect(width * height*4);    
         gl.glReadPixels(0, 0, width, height, GL2ES1.GL_RGBA, GL2ES1.GL_UNSIGNED_BYTE, bb);
         screenshot = ImageWriter.getImage(bb, width, height);
