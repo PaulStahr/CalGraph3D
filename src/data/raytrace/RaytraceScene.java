@@ -1426,7 +1426,7 @@ public class RaytraceScene {
 			int i = 0;
 			while (true)
 			{
-				i = ArrayUtil.firstUnequalIndex(ovo, i, ovo.length, null);
+				i = ArrayUtil.firstUnsameIndex(ovo, i, ovo.length, null);
 				if (i == ovo.length)
 				{
 					break;

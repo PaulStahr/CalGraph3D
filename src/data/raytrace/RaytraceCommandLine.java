@@ -36,6 +36,7 @@ import maths.Controller;
 import maths.Operation;
 import maths.Operation.CalculationController;
 import maths.OperationCompiler;
+import maths.VariableStack;
 import maths.algorithm.OperationCalculate;
 import maths.exception.OperationParseException;
 import util.IOUtil;
@@ -157,14 +158,17 @@ public class RaytraceCommandLine {
 				}
 				case "math":
 				{
-					for (int i = 1; i < split.size(); ++i)
+					VariableStack vs = DataHandler.globalVariables;
+					if (split.size() == 3)
 					{
-						try {
-							Operation op = OperationCompiler.compile(split.get(i));
-							op.calculate(DataHandler.globalVariables, control);
-						} catch (OperationParseException e) {
-							out.write("Error, Parsing operation");
-						}
+						RaytraceScene scene = RaytraceScene.getScene(split.get(1));
+						vs = scene.vs;
+					}
+					try {
+						Operation op = OperationCompiler.compile(split.get(2));
+						op.calculate(vs, control);
+					} catch (OperationParseException e) {
+						out.write("Error, Parsing operation");
 					}
 					break;
 				}

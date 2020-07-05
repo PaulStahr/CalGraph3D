@@ -312,7 +312,20 @@ public class ArrayUtil {
 		return res;
 	}
 	
-	public static int firstUnequalIndex(Object data[], int begin, int end, Object key)
+	public static int firstEqualIndex(Object data[], int begin, int end, Object key)
+	{
+		for (; begin < end; ++begin)
+		{
+			if (data[begin].equals(key))
+			{
+				return begin;
+			}
+		}
+		return end;
+	}
+
+	
+	public static int firstUnsameIndex(Object data[], int begin, int end, Object key)
 	{
 		for (; begin < end; ++begin)
 		{
