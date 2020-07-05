@@ -28,4 +28,8 @@ public abstract class AbstractRayGenerator {
 	public OpticalSurfaceObject[] getSuccessorSurfaces() {
 		return null;
 	}
+
+	public OpticalObject[] getSuccessors() {
+		return null;
+	}
 }

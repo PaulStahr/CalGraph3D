@@ -1307,7 +1307,7 @@ public class RaytraceScene {
 					successorSurfaces = gen.getSuccessorSurfaces();
 					successorVolumes = gen.getSuccessorVolumes();
 					successorMeshes = gen.getSuccessorMeshes();
-					successor = null;
+					successor = gen.getSuccessors();
 					if (successorSurfaces == null)
 					{
 						successorSurfaces = this.activeSurfaces;
@@ -1546,7 +1546,7 @@ public class RaytraceScene {
 			nearest.distance = Double.POSITIVE_INFINITY;
 			for (int l = 0; l < successor.length; ++l)
 			{
-				successor[l].getIntersection(position, direction, nearest, epsilon, nearest.distance);
+				successor[l].getIntersection(position, direction, nearest, epsilon, nearest.distance);//TODO: origin of null pointer exceptions
 			}
 			/*for (int l = 0; l < surfaceSuccessor.length; ++l)
 			{
