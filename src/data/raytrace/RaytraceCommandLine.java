@@ -92,13 +92,18 @@ public class RaytraceCommandLine {
 		
 		if (split.get(0).equals("if"))
 		{
-			if (split.get(1).equals("true") || split.get(1).equals("1"))
+			String exp = split.get(1);
+			if (exp.equals("true") || exp.equals("1"))
 			{
 				env.interpreterState.add(InterpreterState.TRUE_IF);
 			}
-			else if (split.get(1).equals("false") || split.get(1).equals("0"))
+			else if (exp.equals("false") || exp.equals("0"))
 			{
 				env.interpreterState.add(InterpreterState.FALSE_IF);
+			}
+			else
+			{
+	            throw new RuntimeException("Can't interpret " + exp + " as boolean expression");				
 			}
 		}
 		else if (split.get(0).equals("else"))
