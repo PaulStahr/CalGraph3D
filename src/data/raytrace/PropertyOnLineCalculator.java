@@ -15,6 +15,8 @@ import geometry.Geometry;
 import geometry.Vector3d;
 import io.Drawer;
 import jcomponents.raytrace.RaySimulationData;
+import maths.Controller;
+import maths.Operation.CalculationController;
 import maths.data.ArrayOperation;
 import util.ArrayUtil;
 import util.JFrameUtils;
@@ -72,6 +74,7 @@ public class PropertyOnLineCalculator {
 					 nextVolumes = object.volumeSuccessor;
 					 nextMeshes = object.meshSuccessor;
 				}
+				CalculationController control = new Controller();
 				for (int i = 0; i < objects.size(); ++i)
 				{
 					OpticalObject obj = objects.get(i);
@@ -81,13 +84,13 @@ public class PropertyOnLineCalculator {
 						double ior0, ior1;
 						if (oso.direction.dot(direction) < 0)
 						{
-							ior0 = oso.ior0.doubleValue();
-							ior1 = oso.ior1.doubleValue();
+							ior0 = oso.ior0.calculate(scene.vs, control).doubleValue();
+							ior1 = oso.ior1.calculate(scene.vs, control).doubleValue();
 						}
 						else
 						{
-							ior0 = oso.ior1.doubleValue();
-							ior1 = oso.ior0.doubleValue();
+							ior0 = oso.ior1.calculate(scene.vs, control).doubleValue();
+							ior1 = oso.ior0.calculate(scene.vs, control).doubleValue();
 						}
 						dataPoints.add(dal.getD(i));
 						dataPoints.add(ior0);
