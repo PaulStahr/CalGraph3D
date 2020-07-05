@@ -130,7 +130,7 @@ public class RaytraceCommandLine {
 		{
 			env.interpreterState.remove(interpreterStackSize - 1);
 		}
-		if (env.codeActive())
+		else if (env.codeActive())
 		{
 			switch (split.get(0))
 			{
