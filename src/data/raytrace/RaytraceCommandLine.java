@@ -165,7 +165,7 @@ public class RaytraceCommandLine {
 						vs = scene.vs;
 					}
 					try {
-						Operation op = OperationCompiler.compile(split.get(2));
+						Operation op = OperationCompiler.compile(split.get(split.size() - 1));
 						op.calculate(vs, control);
 					} catch (OperationParseException e) {
 						out.write("Error, Parsing operation");
