@@ -21,7 +21,6 @@
  ******************************************************************************/
 package geometry;
 
-import geometry.Vector3f;
 import util.data.DoubleList;
 
 /** 
@@ -255,20 +254,21 @@ public final class Vector3f implements Vectorf
      * @param y y-Wert des Vektors
      * @param z z-Wert des Vektors
      */
-    public final void set(final float x, final float y, final float z){
-        this.x=x;
+    public final void set(final float x, final float y, final float z){this.x=x;
         this.y=y;
         this.z=z;
     }
 
+    public final void set(Vector3d vec){this.x = (float)vec.x; this.y = (float)vec.y; this.z = (float)vec.z;}
+    
     /**
      * Setzt den Vektor auf bestimmte Werte.
-     * @param vektor der Vektor auf den die Werte gesetzt werden sollen
+     * @param vector der Vektor auf den die Werte gesetzt werden sollen
      */
-    public final void set(final Vector3f vektor){
-        x = vektor.x;
-        y = vektor.y;
-        z = vektor.z;
+    public final void set(final Vector3f vector){
+        x = vector.x;
+        y = vector.y;
+        z = vector.z;
     }
 
     /**
@@ -305,7 +305,8 @@ public final class Vector3f implements Vectorf
     	}
     }
     
-    public final String toString()
+    @Override
+	public final String toString()
     {
     	return toString(new StringBuilder()).toString();    	
     }
@@ -315,7 +316,8 @@ public final class Vector3f implements Vectorf
     	return strB.append('(').append(x).append(',').append(y).append(',').append(z).append(')');
     }
     
-    public final int size()
+    @Override
+	public final int size()
     {
     	return 3;
     }

@@ -2659,6 +2659,22 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 					gd.drawArc((npc.get(0) + globalPaintOffset.x) * scale-5, (npc.get(1) + globalPaintOffset.y) * scale-5, 10, 10, 0, 360);
 					npc.reset();
 				}
+				if (true)
+				{
+					int count = 0;
+					for (int j = 0; j < source.numTracedRays; ++j)
+					{
+						if (accepted[j] == RaytraceScene.STATUS_ACCEPTED)
+						{
+							v0.add(endpos, j * 3);
+							++count;
+						}
+					}
+					gd.setColor(Color.RED);
+					v0.multiply(1./count);
+					gd.drawArc((v0.x + globalPaintOffset.x) * scale-5, (v0.y + globalPaintOffset.y) * scale-5, 10, 10, 0, 360);
+					v0.set(0,0,0);
+				}
 				for (int j = 0, trajectoryIndex = 0; j < source.numTracedRays; ++j)
 				{
 					gd.setColor(accepted[j] == RaytraceScene.STATUS_ACCEPTED ? RAY_BLACK : RAY_RED);

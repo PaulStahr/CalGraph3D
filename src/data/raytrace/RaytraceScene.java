@@ -186,6 +186,11 @@ public class RaytraceScene {
 		int maxBounces = 10;
 		public GuiTextureObject gto;
 		public int passes = 1;
+		private volatile boolean running = false;
+		
+		public boolean isRunning() {
+			return running;
+		}
 		
 		private final RunnableRunner.ParallelRangeRunnable prr = new RunnableRunner.ParallelRangeRunnable() {
 			
@@ -247,6 +252,7 @@ public class RaytraceScene {
    			{
    				return;
    			}
+   			running = true;
    			int width = gto.image.getWidth();
    			int height = gto.image.getHeight();
    			gen.width = width;
@@ -265,13 +271,14 @@ public class RaytraceScene {
 			{
    				sceneEndpointColorAdded = new float[numPixels * 4];
 			}
-   			
    			DataHandler.runnableRunner.runParallelAndWait(prr, "Scene View", null, 0, numPixels, 200000);
    			
    			gto.triggerModificationEvents();
-   			synchronized(this)
+   			running=false;
+   			synchronized(CameraViewRunnable.this)
    			{
-   				notifyAll();
+   				System.out.println(Thread.currentThread().getId() + " notify" + CameraViewRunnable.this);
+   				CameraViewRunnable.this.notifyAll();
    			}
    		}
    		
@@ -1739,5 +1746,14 @@ public class RaytraceScene {
 
 	public final String getId() {
 		return id;
+	}
+
+	public int getSurfaceCount() {
+		return surfaceObjectList.size();
+	}
+	
+	public GuiOpticalSurfaceObject getSurfaceObject(int index)
+	{
+		return surfaceObjectList.get(index);
 	}
 }

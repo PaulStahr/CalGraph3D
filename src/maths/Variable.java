@@ -29,9 +29,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import util.ArrayTools;
-import util.data.SortedIntegerArrayList;
-import util.data.SortedIntegerArrayList.ReadOnlySortedIntegerArrayList;
 import maths.Operation.CalculationController;
 import maths.algorithm.OperationCalculate;
 import maths.data.ArrayOperation;
@@ -43,6 +40,9 @@ import maths.data.StringId.StringIdObject;
 import maths.exception.ArrayIndexOutOfBoundsExceptionOperation;
 import maths.exception.ExceptionOperation;
 import maths.exception.OperationParseException;
+import util.ArrayTools;
+import util.data.SortedIntegerArrayList;
+import util.data.SortedIntegerArrayList.ReadOnlySortedIntegerArrayList;
 
 /** 
 * @author  Paul Stahr
@@ -130,6 +130,15 @@ public final class Variable implements Comparable<Variable>{
         	this.operands = null;
         }
 	}
+    
+    public final void removeVariableListener(VariableListener vl)
+    {
+    	if (vl == null)
+    	{
+    		throw new NullPointerException();
+    	}
+    	variableListenerCount = ArrayTools.remove(variableListeners, variableListenerCount, vl);
+    }
 
 	public final void addVariableListener(VariableListener vl){
     	if (vl == null)

@@ -36,7 +36,7 @@ public class ImageRayGenerator extends AbstractRayGenerator{
 		mapping = null;
 		if (mapping == null)
 		{
-			direction.set((double)(x - width / 2) / width, (double)(height / 2 - y) / width, -1);
+			direction.set((double)(x * 2 - width) / width, (double)(height - y * 2) / width, -1);
 		}
 		else
 		{
@@ -48,11 +48,13 @@ public class ImageRayGenerator extends AbstractRayGenerator{
 		Arrays.fill(color, 0);
 	}
 	
+	@Override
 	public OpticalVolumeObject[] getSuccessorVolumes()
 	{
 		return volumeSuccessor;
 	}
 	
+	@Override
 	public MeshObject[] getSuccessorMeshes()
 	{
 		return meshSuccessor;
@@ -63,6 +65,7 @@ public class ImageRayGenerator extends AbstractRayGenerator{
 		this.surfaceSuccessor = surfaces;
 	}
 
+	@Override
 	public OpticalSurfaceObject[] getSuccessorSurfaces() {
 		return surfaceSuccessor;
 	}

@@ -38,6 +38,7 @@ import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -206,6 +207,8 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 	private static class VolumeScene
 	{
 		private long pointer;
+		private AtomicInteger running = new AtomicInteger();
+		boolean destroy = false;
 		
 		private VolumeScene(IntBuffer bounds, IntBuffer ior, IntBuffer translucency, VolumeRaytraceOptions opt)
 		{
@@ -219,12 +222,34 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		
 		public void traceRays(IntBuffer start_position, ShortBuffer start_direction, IntBuffer end_iteration, FloatBuffer scale, float minimum_brightness, int iterations, IntBuffer path, VolumeRaytraceOptions options)
 		{
+			running.incrementAndGet();
 			trace_rays(pointer, start_position, start_direction, end_iteration, scale, minimum_brightness, iterations, path != null, path, options.pointer);
+			if (running.decrementAndGet() == 0 && destroy)
+			{
+				finalize();
+			}
 		}
 		
 		public void traceRays(IntBuffer start_position, FloatBuffer start_direction, IntBuffer end_iteration, FloatBuffer scale, float minimum_brightness, int iterations, IntBuffer path, VolumeRaytraceOptions options)
 		{
+			running.incrementAndGet();
 			trace_rays(pointer, start_position, start_direction, end_iteration, scale, minimum_brightness, iterations, path != null, path, options.pointer);
+			if (running.decrementAndGet() == 0 && destroy)
+			{
+				finalize();
+			}
+		}
+		
+		public void destroyLazy()
+		{
+			if (running.get() == 0)
+			{
+				finalize();
+			}
+			else
+			{
+				destroy = true;
+			}
 		}
 		
 		@Override
@@ -871,6 +896,10 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 				VolumeRaytraceOptions opt = new VolumeRaytraceOptions();
 				opt.setWriteInstance(raytraceWriteInstance);
 				opt.setLoglevel(raytraceLoglevel);
+				if (vs != null)
+				{
+					vs.destroyLazy();
+				}
 				vs = res = new VolumeScene(bounds, ior, translucency, opt);
 			}
 		}
@@ -905,7 +934,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 					startPosition.put(writeIndex,     clip((int)tmp.z, 0x10000, maxZ));
 					startPosition.put(writeIndex + 1, clip((int)tmp.y, 0x10000, maxY));
 					startPosition.put(writeIndex + 2, clip((int)tmp.x, 0x10000, maxX));
-					Buffers.putRev(startPosition, tmp, writeIndex);
+					//Buffers.putRev(startPosition, tmp, writeIndex);
 					writeIndex += 3;
 				}
 			}
@@ -973,7 +1002,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 				tmp.setLength(0.5);
 				Buffers.putRev(startDirection, tmp, writeIndex);
 				globalToCudaLattice.rdotAffine(position, i, tmp);
-				startPosition.put(writeIndex, clip((int)tmp.z, 0x10000, maxZ));
+				startPosition.put(writeIndex, 	  clip((int)tmp.z, 0x10000, maxZ));
 				startPosition.put(writeIndex + 1, clip((int)tmp.y, 0x10000, maxY));
 				startPosition.put(writeIndex + 2, clip((int)tmp.x, 0x10000, maxX));
 			}
@@ -1016,7 +1045,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 				tmp.setLength(0x3FFF);
 				Buffers.putRev(startDirection, tmp, writeIndex);
 				globalToCudaLattice.rdotAffine(position, i, tmp);
-				startPosition.put(writeIndex, clip((int)tmp.z, 0x10000, maxZ));
+				startPosition.put(writeIndex, 	  clip((int)tmp.z, 0x10000, maxZ));
 				startPosition.put(writeIndex + 1, clip((int)tmp.y, 0x10000, maxY));
 				startPosition.put(writeIndex + 2, clip((int)tmp.x, 0x10000, maxX));
 			}

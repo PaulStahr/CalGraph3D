@@ -851,6 +851,17 @@ public abstract class Calculate
 		private int maxIter = 20;
 		double eps = 1e-10;
 		boolean multithreaded = true;
+		int randomEvaluations = 1000;
+		
+		public void setRandomEvaluations(int randomEvaluations)
+		{
+			this.randomEvaluations = randomEvaluations;
+		}
+		
+		public void setMultithreaded(boolean multithreaded)
+		{
+			this.multithreaded = multithreaded;
+		}
 		
 		public Optimizer(int length)
 		{
@@ -929,7 +940,7 @@ public abstract class Calculate
 								tmp[i] = Math.random() * (upperBound[i] - lowerBound[i]) + lowerBound[i];
 							}
 							double current = func(tmp);
-							synchronized(Optimizer.this.getClass())
+							synchronized(Optimizer.this)
 							{
 								if (current < min)
 								{
@@ -942,18 +953,18 @@ public abstract class Calculate
 					
 					@Override
 					public void finished() {}
-				}, "Optimize", null, 0, 1000, 10);
+				}, "Optimize", null, 0, randomEvaluations, 10);
 			}
 			else
 			{
-				for (int attempt= 0; attempt < 1000; ++attempt)
+				for (int attempt= 0; attempt < randomEvaluations; ++attempt)
 				{
 					for (int i = 0; i < length; ++i)
 					{
 						tmp[i] = Math.random() * (upperBound[i] - lowerBound[i]) + lowerBound[i];
 					}
 					double current = func(tmp);
-					synchronized(Optimizer.this.getClass())
+					synchronized(Optimizer.this)
 					{
 						if (current < min)
 						{
@@ -973,8 +984,6 @@ public abstract class Calculate
 			for(int iteration = 0; iteration < maxIter; ++iteration)
 			{
 				double scalar = 0.001;
-				//min = func(data);
-				//System.out.print(iteration + ":" + min + " " + Arrays.toString(data) + "\t");
 				System.arraycopy(data, 0, tmp, 0, length);
 				double diffSum = 0;
 				for (int i = 0; i < data.length; ++i)
@@ -984,7 +993,6 @@ public abstract class Calculate
 					diffSum += diff[i] * diff[i];
 					tmp[i] = data[i];
 				}
-				//System.out.println(Arrays.toString(diff));
 				scalar /= Math.sqrt(diffSum);
 				if (diffSum < eps)
 				{
@@ -1030,9 +1038,18 @@ public abstract class Calculate
 		}
 	}
 	
+	/**
+	 * Searches a value in a monotone increasing function
+	 * @param min
+	 * @param max
+	 * @param value
+	 * @param eps
+	 * @param df
+	 * @return
+	 */
 	public static final double binarySearch(double min, double max, double value, double eps, DoubleFunctionDouble df)
 	{
-		while (max - min > eps)
+		while (Math.abs(max - min) > eps)
 		{
 			double arg = (min + max) * 0.5;
 			double res = df.apply(arg);

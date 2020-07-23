@@ -211,7 +211,7 @@ public class ErrorAnalysisFrame extends JFrame implements SceneChangeListener, A
 		}
 		Vector3d endpoint = new Vector3d();
 		boolean useSurfaceCoordinates = toggleButtonUseSurfaceCoordinates.isSelected();
-		OpticalObject oo[] = useSurfaceCoordinates ? new OpticalObject[1] : null;
+		OpticalObject oo[] = new OpticalObject[1];
 		scene.calculateRays(0, 1, 1, gen, 0, 0, null, null, endpoints, enddirs, sceneEndpointColor, null, accepted, bounces, oo, 10, false, rso, RaytraceScene.UNACCEPTED_MARK);
 		boolean absoluteDistances = toggleButtonAbsoluteDastances.isSelected();
 		boolean relative = toggleButtonRelative.isSelected();
@@ -355,10 +355,10 @@ public class ErrorAnalysisFrame extends JFrame implements SceneChangeListener, A
 		if (ct == -1 || (ct == RaytraceScene.OBJECT_ADD || ct == RaytraceScene.OBJECT_REMOVE && o instanceof OpticalSurfaceObject))
 		{
 			Object selected = comboBoxSource.getSelectedItem();
-			GuiOpticalSurfaceObject oso[] = new GuiOpticalSurfaceObject[scene.getActiveSurfaceCount()];
+			GuiOpticalSurfaceObject oso[] = new GuiOpticalSurfaceObject[scene.getSurfaceCount()];
 			for (int i = 0; i < oso.length; ++i)
 			{
-				oso[i] = scene.getActiveSurface(i);
+				oso[i] = scene.getSurfaceObject(i);
 			}
 			comboBoxSource.setModel(new DefaultComboBoxModel<GuiOpticalSurfaceObject>(oso));
 			comboBoxSource.setSelectedItem(selected);

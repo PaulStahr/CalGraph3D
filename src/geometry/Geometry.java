@@ -79,6 +79,11 @@ public class Geometry {
 			++count;
 		}
 		
+		public int getCount()
+		{
+			return count;
+		}
+		
 		public final void calculate()
 		{
 			for (int i = 0; i < mat.length; i += nCols + 1)

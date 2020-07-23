@@ -25,7 +25,10 @@ import org.slf4j.LoggerFactory;
 import data.DataHandler;
 import data.Options;
 import data.raytrace.OpticalObject.SCENE_OBJECT_COLUMN_TYPE;
+import data.raytrace.RaytraceScene.RaySimulationObject;
 import data.raytrace.StackPositionProcessor.Mode;
+import data.raytrace.raygen.RayGenerator;
+import geometry.Geometry.NearestPointCalculator;
 import geometry.Vector3d;
 import io.Drawer.SvgDrawer;
 import io.raytrace.SceneIO;
@@ -36,7 +39,10 @@ import maths.Controller;
 import maths.Operation;
 import maths.Operation.CalculationController;
 import maths.OperationCompiler;
+import maths.Variable;
 import maths.VariableStack;
+import maths.algorithm.Calculate;
+import maths.algorithm.DoubleFunctionDouble;
 import maths.algorithm.OperationCalculate;
 import maths.exception.OperationParseException;
 import util.IOUtil;
@@ -399,6 +405,76 @@ public class RaytraceCommandLine {
 							}
 						}
 					}
+				}
+				case "optimize":
+				{
+					/*
+math set(gradient,0)
+math Unnamed set(gradient,0)
+optimize Unnamed S9 Retina lior 2 1
+math set(gradient,1)
+math Unnamed set(gradient,1)
+optimize Unnamed S9 Retina gior 1 0
+optimize Unnamed S11 Retina gradient 0 2
+					 */
+					
+					if (split.get(1).equals("--help"))
+					{
+						out.write("<scene> <source> <destination> <variable> <min> <max>");
+						out.flush();
+						break;
+					}
+					final RaytraceScene scene = RaytraceScene.getScene(split.get(1));
+					final OpticalSurfaceObject source = scene.getSurfaceObject(split.get(2));
+					final OpticalSurfaceObject destination = scene.getSurfaceObject(split.get(3));
+					final Variable v = scene.vs.get(split.get(4));
+					final RayGenerator gen = new RayGenerator();
+					gen.setSource(source);
+					final int numRays = 1000;
+					
+					int bidirCount = numRays * (source.bidirectional ? 2 : 1);
+					final float endpos[] = new float[bidirCount * 3];
+					final float enddir[] = new float[bidirCount * 3];
+					final int bounces[] = new int[numRays];
+					final byte accepted[] = new byte[numRays];
+					final float endpointColors[] = new float[bidirCount * 4];
+					final OpticalObject endObject[] = new OpticalObject[bidirCount];
+					final RaySimulationObject rayObject = new RaySimulationObject();
+					final int maxBounces = 20;
+					final NearestPointCalculator npc = new NearestPointCalculator(3);
+					final Vector3d vec = new Vector3d();
+
+					double result = Calculate.binarySearch(Double.parseDouble(split.get(5)), Double.parseDouble(split.get(6)), 0, 0.001, new DoubleFunctionDouble() {
+						@Override
+						public double apply(double value) {
+							v.setValue(value);
+							try {Thread.sleep(100);} catch (InterruptedException e) {logger.error("Unexpected Interrupt",e);}
+							for (int i = 0; i < scene.volumePipelines.size(); ++i)
+							{
+								VolumePipeline vp = scene.volumePipelines.get(i);
+								while (vp.isCalculating())
+								{
+									try {Thread.sleep(10);} catch (InterruptedException e) {logger.error("Unexpected Interrupt",e);}
+								}
+							}
+							scene.calculateRays(0, numRays, numRays, gen, 0, 0, null, null, endpos, enddir, endpointColors, null, accepted, bounces, endObject, maxBounces, source.bidirectional, rayObject, RaytraceScene.UNACCEPTED_MARK);
+							for (int j = 0; j < numRays; ++j)
+							{
+								if (accepted[j] == RaytraceScene.STATUS_ACCEPTED && endObject[j] == destination)
+								{
+									npc.addPoint(endpos, enddir, j * 3);
+								}
+							}
+							npc.calculate();
+							npc.get(vec);
+							npc.reset();
+							System.out.println();
+							System.out.println(value + "->" + destination.evaluate_inner_outer(vec) + "\t" + vec);
+							return destination.evaluate_inner_outer(vec);
+						}
+					});
+					v.setValue(result);
+					break;
 				}
 				case "linevisualisation":
 				{

@@ -37,14 +37,15 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
 
-import util.SaveLineCreator;
 import maths.Variable;
 import maths.VariableAmount;
+import maths.VariableListener;
+import util.SaveLineCreator;
 /** 
 * @author  Paul Stahr
 * @version 04.02.2012
 */
-public class SliderPanel extends InterfacePanel implements ActionListener, ChangeListener, DocumentListener
+public class SliderPanel extends InterfacePanel implements ActionListener, ChangeListener, DocumentListener, VariableListener
 {
     /**
      * Ein Panel mit einem Slider um Variablen zu �ndern
@@ -56,6 +57,7 @@ public class SliderPanel extends InterfacePanel implements ActionListener, Chang
     private final JLabel labelValue             = new JLabel();
     private final JTextField fieldVariableName  = new JTextField();
     private final VariableAmount variables;
+    private Variable v;
     private double value;
     private double min;
     private double max;
@@ -74,8 +76,16 @@ public class SliderPanel extends InterfacePanel implements ActionListener, Chang
 		if (doc == fieldVariableName.getDocument())
 		{
 			String text = fieldVariableName.getText();
-        	fieldVariableName.setBackground(text.length() == 0 || Variable.isValidName(text) ? Color.WHITE : Color.RED); 
-		}
+			boolean valid = text.length() == 0 || Variable.isValidName(text) ;
+        	fieldVariableName.setBackground(valid ? Color.WHITE : Color.RED); 
+        	if (v != null) {
+        		v.removeVariableListener(this);
+        	}
+        	v = valid ? variables.get(text) : null;
+        	if (v != null) {
+        		v.addVariableListener(this);
+        	}
+        }
 		else if (doc == fieldMinValue.getDocument())
 		{
 			updateMin();
@@ -210,5 +220,9 @@ public class SliderPanel extends InterfacePanel implements ActionListener, Chang
 	@Override
 	public void removeUpdate(DocumentEvent e) {
 		update(e);
+	}
+	@Override
+	public void variableChanged() {
+		//slider.setValue((int)((v.getValue().doubleValue() - min) * 100 / (max - min)));
 	}
 }

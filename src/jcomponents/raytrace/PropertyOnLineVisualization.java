@@ -180,7 +180,7 @@ public class PropertyOnLineVisualization extends JFrame implements ActionListene
 			super.paintComponent(g);
 			OperationCalculate.toDoubleArray(textFieldPosition.get().calculate(scene.vs, controll), position);
 			OperationCalculate.toDoubleArray(textFieldDirection.get().calculate(scene.vs, controll), direction);
-			position.add(direction, -0.00001);
+			position.add(direction, -0.001);
 			drawer.setOutput(g);
 			Operation op = textFieldRange.get().calculate(scene.vs, controll);
 			double rangeBegin = op.get(0).doubleValue();

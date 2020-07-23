@@ -156,6 +156,7 @@ public class StackPositionProcessor {
 			{
 				Options.OptionTreeInnerNode raytrace = Options.getInnerNode("raytrace");
 				double dScale = Options.getFloat(raytrace, "dscale");
+				Vector3d tmp = new Vector3d();
 				for (int i = rangeBegin; i < rangeEnd && isRunning; ++i)
 				{
 					progress.set(i - rangeBegin);
@@ -164,19 +165,32 @@ public class StackPositionProcessor {
 					final int num = i;
 					if (dal != null)
 					{
-						scene.cameraViewRunnable.gen.position.set(dal, index);
-			   			scene.cameraViewRunnable.gen.position.multiply(dScale);
-						scene.cameraViewRunnable.gen.rotation.setRadians(dal, index + 3);
-						Interface.scene.cameraPosition.set(dal, index);
+						tmp.set(dal, index);
+						Interface.scene.cameraPosition.set(tmp);
 						Interface.scene.cameraRotation.setRadians(dal, index + 3);
+						tmp.multiply(dScale);
+						scene.cameraViewRunnable.gen.position.set(tmp);
+						scene.cameraViewRunnable.gen.rotation.setRadians(dal, index + 3);
 					}
-					
+					//scene.cameraViewRunnable.run();
+					while (scene.cameraViewRunnable.isRunning())
+					{
+						try {
+							synchronized(scene.cameraViewRunnable) {
+								scene.cameraViewRunnable.wait(1000);
+							}
+						} catch (InterruptedException e) {}
+					}
 					synchronized(scene.cameraViewRunnable)
 					{
 						try
 						{
+							Thread.sleep(100);
 							variableFrame.setValue(i);
+							scene.cameraViewRunnable.gen.position.set(tmp);
+							scene.cameraViewRunnable.gen.rotation.setRadians(dal, index + 3);
 							scene.cameraViewRunnable.wait();
+							System.out.println(Thread.currentThread().getId() + " woken " + scene.cameraViewRunnable);
 						}catch(InterruptedException e) {}
 					}
 					

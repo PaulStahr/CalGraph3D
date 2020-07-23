@@ -297,6 +297,9 @@ public abstract class OpticalSurfaceObject extends SurfaceObject{
 				return (x * x + y * y + z * z) / this.directionLengthQ - 1;
 			}
 			case CUSTOM:
+			{
+				
+			}
 				break;
 			case CYLINDER:
 			{

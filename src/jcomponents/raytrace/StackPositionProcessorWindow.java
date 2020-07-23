@@ -104,6 +104,7 @@ public class StackPositionProcessorWindow extends JFrame implements ActionListen
 			if (spp.isRunning)
 			{
 				spp.isRunning = false;
+				buttonProgress.setText("Stopping");
 			}
 			else
 			{

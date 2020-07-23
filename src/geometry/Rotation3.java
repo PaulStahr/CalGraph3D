@@ -32,10 +32,10 @@ public final class Rotation3 implements Vectorf, Vectori, Vectord
 {
 	public static final float MULT_INT_TO_DEG = -(float)(180./Integer.MIN_VALUE);
 	public static final float MULT_INT_TO_RAD = -(float)(Math.PI/Integer.MIN_VALUE);
-	public static final double DMULT_INT_TO_RAD = -(double)(Math.PI/Integer.MIN_VALUE);
+	public static final double DMULT_INT_TO_RAD = -(Math.PI/Integer.MIN_VALUE);
 	public static final float MULT_DEG_TO_INT = -(float)(Integer.MIN_VALUE/180.);
 	public static final float MULT_RAD_TO_INT = -(float)(Integer.MIN_VALUE/Math.PI);
-	public static final double DMULT_RAD_TO_INT = -(double)(Integer.MIN_VALUE/Math.PI);
+	public static final double DMULT_RAD_TO_INT = -(Integer.MIN_VALUE/Math.PI);
     private int x,y,z;
 
     public Rotation3(){}
@@ -106,34 +106,34 @@ public final class Rotation3 implements Vectorf, Vectori, Vectord
     }
     
     public final void setDegreesX (final float x){
-    	this.x = (int)(MULT_DEG_TO_INT*x);
+    	this.x = (int)(long)(MULT_DEG_TO_INT*x);
     }
 
     public final void setDegreesY (final float y){
-    	this.y = (int)(MULT_DEG_TO_INT*y);
+    	this.y = (int)(long)(MULT_DEG_TO_INT*y);
     }
 
     public final void setDegreesZ (final float z){
-    	this.z = (int)(MULT_DEG_TO_INT*z);
+    	this.z = (int)(long)(MULT_DEG_TO_INT*z);
     }
 
     public final void setDegrees(final float x, final float y, final float z){
-    	this.x = (int)(MULT_DEG_TO_INT*x);
-    	this.y = (int)(MULT_DEG_TO_INT*y);
-    	this.z = (int)(MULT_DEG_TO_INT*z);
+    	this.x = (int)(long)(MULT_DEG_TO_INT*x);
+    	this.y = (int)(long)(MULT_DEG_TO_INT*y);
+    	this.z = (int)(long)(MULT_DEG_TO_INT*z);
     }
 
     public final void setRadians(final float x, final float y, final float z){
-    	this.x = (int)(MULT_RAD_TO_INT*x);
-    	this.y = (int)(MULT_RAD_TO_INT*y);
-    	this.z = (int)(MULT_RAD_TO_INT*z);
+    	this.x = (int)(long)(MULT_RAD_TO_INT*x);
+    	this.y = (int)(long)(MULT_RAD_TO_INT*y);
+    	this.z = (int)(long)(MULT_RAD_TO_INT*z);
     }
     
     public final void setRadians(DoubleList data, int index)
     {
-    	this.x = (int)(MULT_RAD_TO_INT * data.getD(index));
-    	this.y = (int)(MULT_RAD_TO_INT * data.getD(index + 1));
-    	this.z = (int)(MULT_RAD_TO_INT * data.getD(index + 2));
+    	this.x = (int)(long)(MULT_RAD_TO_INT * data.getD(index));
+    	this.y = (int)(long)(MULT_RAD_TO_INT * data.getD(index + 1));
+    	this.z = (int)(long)(MULT_RAD_TO_INT * data.getD(index + 2));
     }
     
     public final void set(final Rotation3 r){
@@ -142,7 +142,8 @@ public final class Rotation3 implements Vectorf, Vectori, Vectord
         z = r.z;
     }
     
-    public final String toString()
+    @Override
+	public final String toString()
     {
     	return toString(new StringBuilder()).toString();    	
     }
