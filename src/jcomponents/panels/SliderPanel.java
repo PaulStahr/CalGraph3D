@@ -39,13 +39,13 @@ import javax.swing.text.Document;
 
 import maths.Variable;
 import maths.VariableAmount;
-import maths.VariableListener;
 import util.SaveLineCreator;
+import util.TimedUpdateHandler;
 /** 
 * @author  Paul Stahr
 * @version 04.02.2012
 */
-public class SliderPanel extends InterfacePanel implements ActionListener, ChangeListener, DocumentListener, VariableListener
+public class SliderPanel extends InterfacePanel implements ActionListener, ChangeListener, DocumentListener, TimedUpdateHandler
 {
     /**
      * Ein Panel mit einem Slider um Variablen zu �ndern
@@ -61,6 +61,8 @@ public class SliderPanel extends InterfacePanel implements ActionListener, Chang
     private double value;
     private double min;
     private double max;
+	private int vModCount;
+	private boolean updating;
 
     @Override
 	public void actionPerformed(ActionEvent e){
@@ -78,13 +80,7 @@ public class SliderPanel extends InterfacePanel implements ActionListener, Chang
 			String text = fieldVariableName.getText();
 			boolean valid = text.length() == 0 || Variable.isValidName(text) ;
         	fieldVariableName.setBackground(valid ? Color.WHITE : Color.RED); 
-        	if (v != null) {
-        		v.removeVariableListener(this);
-        	}
         	v = valid ? variables.get(text) : null;
-        	if (v != null) {
-        		v.addVariableListener(this);
-        	}
         }
 		else if (doc == fieldMinValue.getDocument())
 		{
@@ -168,11 +164,12 @@ public class SliderPanel extends InterfacePanel implements ActionListener, Chang
         final Variable variable = variables.get(fieldVariableName.getText());
         if (variable != null)
         {
-        	if (variable.getValue().doubleValue() == value)
+        	if (updating || variable.getValue().doubleValue() == value)
             {
             	return;
             }
             variable.setValue(value);
+            vModCount = variable.modCount();
         }
     }
     
@@ -222,7 +219,21 @@ public class SliderPanel extends InterfacePanel implements ActionListener, Chang
 		update(e);
 	}
 	@Override
-	public void variableChanged() {
-		//slider.setValue((int)((v.getValue().doubleValue() - min) * 100 / (max - min)));
+	public int getUpdateInterval() {
+		return 20;
+	}
+	@Override
+	public void update() {
+		final int newModCount = v.modCount();
+    	if (vModCount == newModCount)
+    		return;
+    	vModCount = newModCount;
+    	if (v.getValue().doubleValue() != value)
+    	{
+    		value = v.getValue().doubleValue();
+    		updating = true;
+    		slider.setValue((int)((v.getValue().doubleValue() - min) * 100 / (max - min)));
+    		updating = false;
+    	}
 	}
 }

@@ -398,7 +398,7 @@ public final class Variable implements Comparable<Variable>{
    		return includedVariables;
    	}
     
-    public final int getChCount(){
+    public final int modCount(){
     	return modCount;
     }
 

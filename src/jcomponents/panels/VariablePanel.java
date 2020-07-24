@@ -40,12 +40,12 @@ import javax.swing.JTextField;
 import javax.swing.ListModel;
 import javax.swing.event.ListDataListener;
 
-import util.JFrameUtils;
-import util.TimedUpdateHandler;
 import data.DataHandler;
+import jcomponents.util.JMathTextField;
 import maths.Variable;
 import maths.VariableStack;
-import jcomponents.util.JMathTextField;
+import util.JFrameUtils;
+import util.TimedUpdateHandler;
 /** 
 * @author  Paul Stahr
 * @version 04.02.2012
@@ -93,8 +93,8 @@ public class VariablePanel extends InterfacePanel implements TimedUpdateHandler,
 	        	if (v == null){
 	        		variables[i] = "error";
 	        		changeCounts[i] = -1;
-	        	}else if (v.getChCount() != changeCounts[i]){
-	            	changeCounts[i] = v.getChCount();
+	        	}else if (v.modCount() != changeCounts[i]){
+	            	changeCounts[i] = v.modCount();
 	            	stringBuilder.setLength(0);
 	               	variables[i] = v.toString(stringBuilder).toString();
 	        	}
