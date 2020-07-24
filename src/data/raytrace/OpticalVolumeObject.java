@@ -523,14 +523,14 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 					}
 					if (operationIOR != null)
 					{
-						Operation res = operationIOR.calculate(vs, control);
-						data[index] = (float)res.doubleValue();
+						double res = operationIOR.calculate(vs, control).doubleValue();
+						data[index] = (float)res;
 						if (is != null)
 						{
-							is.setVoxel(x, y, z, res.doubleValue());
+							is.setVoxel(x, y, z, res);
 						}
-						min = Math.min(res.doubleValue(), min);
-						max = Math.max(res.doubleValue(), max);
+						min = Math.min(res, min);
+						max = Math.max(res, max);
 					}
 					if (operationTranslucency != null)
 					{
@@ -890,8 +890,15 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			//IntBuffer ior = Buffers.createIntBuffer(vol.data);
 			FloatBuffer ior = Buffers.createFloatBuffer(vol.data.length);
 			for (int i=0;i<vol.data.length;i++)
-	            ior.put(i,vol.data[i]/0x100);
-			if (native_raytrace)
+			{
+				float value = vol.data[i];
+				if (value <= 0)
+				{
+					throw new RuntimeException("Refractive-index underflow:" + value + "<=" + 0);
+				}
+	            ior.put(i,value/0x100);
+			}
+            if (native_raytrace)
 			{
 				VolumeRaytraceOptions opt = new VolumeRaytraceOptions();
 				opt.setWriteInstance(raytraceWriteInstance);
