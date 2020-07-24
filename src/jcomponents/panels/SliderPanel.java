@@ -37,6 +37,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
 
+import data.DataHandler;
 import maths.Variable;
 import maths.VariableAmount;
 import util.SaveLineCreator;
@@ -157,19 +158,31 @@ public class SliderPanel extends InterfacePanel implements ActionListener, Chang
         updateValue();
     }
     
+    @Override
+	public void setExtended(boolean extended){
+    	if (isExtended() == extended)
+    		return;
+    	super.setExtended(extended);
+    	if (extended){
+    		DataHandler.timedUpdater.add(this);
+    	}else{
+    		DataHandler.timedUpdater.remove(this);    		
+    	}
+    }
+    
     private void updateValue(){
     	final int sValue = slider.getValue();
         labelValue.setText(Double.toString(value = (sValue * max + (1000 - sValue) * min) / 1000));
         
-        final Variable variable = variables.get(fieldVariableName.getText());
-        if (variable != null)
+        v = variables.get(fieldVariableName.getText());
+        if (v != null)
         {
-        	if (updating || variable.getValue().doubleValue() == value)
+        	if (updating || v.getValue().doubleValue() == value)
             {
             	return;
             }
-            variable.setValue(value);
-            vModCount = variable.modCount();
+            v.setValue(value);
+            vModCount = v.modCount();
         }
     }
     
@@ -224,6 +237,10 @@ public class SliderPanel extends InterfacePanel implements ActionListener, Chang
 	}
 	@Override
 	public void update() {
+		if (v == null)
+		{
+			return;
+		}
 		final int newModCount = v.modCount();
     	if (vModCount == newModCount)
     		return;
@@ -232,7 +249,7 @@ public class SliderPanel extends InterfacePanel implements ActionListener, Chang
     	{
     		value = v.getValue().doubleValue();
     		updating = true;
-    		slider.setValue((int)((v.getValue().doubleValue() - min) * 100 / (max - min)));
+    		slider.setValue((int)((v.getValue().doubleValue() - min) * 1000 / (max - min)));
     		updating = false;
     	}
 	}

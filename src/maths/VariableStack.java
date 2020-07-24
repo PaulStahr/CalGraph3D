@@ -607,7 +607,7 @@ public class VariableStack implements VariableAmount, Iterable<Variable>, Variab
     		for (int i=0;i<newLength;i++){
     			Variable v = variable[i];
     			if (v != null){
-	    			newChCount[i] = v.getChCount();
+	    			newChCount[i] = v.modCount();
 	    			newVariableNameId[i] = v.nameId;
 	        		included[i] = v.getPendentVariables();
     			}
