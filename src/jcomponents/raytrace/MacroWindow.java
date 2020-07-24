@@ -14,6 +14,7 @@ import javax.swing.JTextArea;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import data.DataHandler;
 import data.raytrace.RaytraceCommandLine;
 import data.raytrace.RaytraceCommandLine.ExecEnv;
 import data.raytrace.RaytraceScene;
@@ -42,12 +43,19 @@ public class MacroWindow extends JFrame implements ActionListener{
 
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
-		ByteArrayInputStream in = new ByteArrayInputStream(textArea.getText().getBytes());
-		RaytraceCommandLine rcl = new RaytraceCommandLine();
-		try {
-			rcl.run(in, new BufferedWriter(new OutputStreamWriter(System.out)),UniqueObjects.EMPTY_STRING_LIST, new ExecEnv(new File("")));
-		} catch (Exception ex) {
-			JFrameUtils.logErrorAndShow("Error in running Script", ex, logger);
-		}
+		final ByteArrayInputStream in = new ByteArrayInputStream(textArea.getText().getBytes());
+		final RaytraceCommandLine rcl = new RaytraceCommandLine();
+		buttonRun.setEnabled(false);
+		DataHandler.runnableRunner.run(new Runnable() {
+				@Override
+				public void run() {
+					try {
+					rcl.run(in, new BufferedWriter(new OutputStreamWriter(System.out)),UniqueObjects.EMPTY_STRING_LIST, new ExecEnv(new File("")));
+				} catch (Exception ex) {
+					JFrameUtils.logErrorAndShow("Error in running Script", ex, logger);
+				}
+				buttonRun.setEnabled(true);
+			}
+		}, "Run Macro");
 	}
 }
