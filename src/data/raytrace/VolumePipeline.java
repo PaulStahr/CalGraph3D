@@ -88,7 +88,6 @@ public class VolumePipeline implements Runnable {
             }catch (Exception e){
             	logger.error("Exception at calculating Volume", e);
             }
-    		calculating = false;
         }
     };
 	
@@ -172,7 +171,7 @@ public class VolumePipeline implements Runnable {
 			}
 		}
     }
-	public void pipe()
+	public synchronized void pipe()
 	{
 		calculating = true;
 		updateState();
@@ -249,5 +248,9 @@ public class VolumePipeline implements Runnable {
 
 	public boolean getAutoUpdate() {
 		return autoUpdate;
+	}
+
+	public void blockOnCulculation() {
+		synchronized(this) {}
 	}
 }

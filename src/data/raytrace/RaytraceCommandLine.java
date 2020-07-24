@@ -405,19 +405,10 @@ public class RaytraceCommandLine {
 							}
 						}
 					}
+					break;
 				}
 				case "optimize":
 				{
-					/*
-math set(gradient,0)
-math Unnamed set(gradient,0)
-optimize Unnamed S9 Retina lior 2 1
-math set(gradient,1)
-math Unnamed set(gradient,1)
-optimize Unnamed S9 Retina gior 1 0
-optimize Unnamed S11 Retina gradient 0 2
-					 */
-					
 					if (split.get(1).equals("--help"))
 					{
 						out.write("<scene> <source> <destination> <variable> <min> <max>");
@@ -430,7 +421,7 @@ optimize Unnamed S11 Retina gradient 0 2
 					final Variable v = scene.vs.get(split.get(4));
 					final RayGenerator gen = new RayGenerator();
 					gen.setSource(source);
-					final int numRays = 1000;
+					final int numRays = 10000;
 					
 					int bidirCount = numRays * (source.bidirectional ? 2 : 1);
 					final float endpos[] = new float[bidirCount * 3];
@@ -448,14 +439,11 @@ optimize Unnamed S11 Retina gradient 0 2
 						@Override
 						public double apply(double value) {
 							v.setValue(value);
-							try {Thread.sleep(100);} catch (InterruptedException e) {logger.error("Unexpected Interrupt",e);}
+							try {Thread.sleep(500);} catch (InterruptedException e) {logger.error("Unexpected Interrupt",e);}
 							for (int i = 0; i < scene.volumePipelines.size(); ++i)
 							{
 								VolumePipeline vp = scene.volumePipelines.get(i);
-								while (vp.isCalculating())
-								{
-									try {Thread.sleep(10);} catch (InterruptedException e) {logger.error("Unexpected Interrupt",e);}
-								}
+								vp.blockOnCulculation();
 							}
 							scene.calculateRays(0, numRays, numRays, gen, 0, 0, null, null, endpos, enddir, endpointColors, null, accepted, bounces, endObject, maxBounces, source.bidirectional, rayObject, RaytraceScene.UNACCEPTED_MARK);
 							for (int j = 0; j < numRays; ++j)
