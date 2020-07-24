@@ -86,6 +86,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
@@ -1592,9 +1593,13 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		tapPane.add(scenePanel, "Scene");
 		tapPane.add(textAreaProjectInformation,"Description");
 		
-		layout = new GroupLayout(getContentPane());
+		JPanel contentPanel = new JPanel();
+		JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, tapPane, contentPanel);
+		add(splitPane);
+		
     	//layout = new GroupLayout(content);
-        getContentPane().setLayout(layout);
+		layout = new GroupLayout(contentPanel);
+        contentPanel.setLayout(layout);
 		GroupLayout.Group horizontalGroup = layout.createParallelGroup();
     	GroupLayout.Group verticalGroup = layout.createSequentialGroup();
     	horizontalGroup
@@ -2649,7 +2654,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 				{
 					for (int j = 0; j < source.numTracedRays; ++j)
 					{
-						if (accepted[j] == RaytraceScene.STATUS_ACCEPTED)
+						if (accepted[j] == RaytraceScene.STATUS_ACCEPTED && (scene.forceEndpoint == null || scene.forceEndpoint == endObject[j]))
 						{
 							npc.addPoint(endpos, enddir, j * 3);
 						}
@@ -2664,7 +2669,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 					int count = 0;
 					for (int j = 0; j < source.numTracedRays; ++j)
 					{
-						if (accepted[j] == RaytraceScene.STATUS_ACCEPTED)
+						if (accepted[j] == RaytraceScene.STATUS_ACCEPTED && (scene.forceEndpoint == null || scene.forceEndpoint == endObject[j]))
 						{
 							v0.add(endpos, j * 3);
 							++count;
