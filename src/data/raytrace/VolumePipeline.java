@@ -27,11 +27,14 @@ public class VolumePipeline implements Runnable {
 	private Volume cachedSteps[] = Volume.EMPTY_VOLUME_ARRAY;
 	private final ArrayList<WeakReference<Runnable> > updateListener = new ArrayList<>();
 	public final ArrayList<CalculationStep> steps = new ArrayList<>();
-	boolean calculating;
+	private boolean calculating;
 	public OpticalVolumeObject ovo;
 	public final RaytraceScene scene;
 	public boolean calcuteAtCreation;
 	private boolean autoUpdate;
+	public final VolumePipelineTimedUpdater updater;
+	private final VolumeRunnable runnable = new VolumeRunnable();
+	private int begin = 0;
 	public SortedIntegerArrayList vIds[] = SortedIntegerArrayList.EMPTY_SORTED_INTEGER_ARRAY_LIST_ARRAY;
 	
 	private class VolumePipelineTimedUpdater implements TimedUpdateHandler{
@@ -54,8 +57,15 @@ public class VolumePipeline implements Runnable {
 				{
 					if (allChangedVariables.hasMatch(vIds[i]))
 					{
-						begin = Math.min(i, begin);
-						DataHandler.runnableRunner.run(runnable, false);
+						synchronized(this)
+						{
+							begin = Math.min(i, begin);
+							if (!calculating)
+							{
+								calculating = true;
+								DataHandler.runnableRunner.run(runnable, false);
+							}
+						}
 						break;
 					}
 				}
@@ -74,9 +84,6 @@ public class VolumePipeline implements Runnable {
 		updater = new VolumePipelineTimedUpdater(scene);
 	}
 	
-	public final VolumePipelineTimedUpdater updater;
-	private final VolumeRunnable runnable = new VolumeRunnable();
-	int begin = 0;
 	private final class VolumeRunnable extends RunnableRunner.RunnableObject {
 		public VolumeRunnable() {
 			super("VolumePipeline", null);
@@ -173,7 +180,6 @@ public class VolumePipeline implements Runnable {
     }
 	public synchronized void pipe()
 	{
-		calculating = true;
 		updateState();
 		if (cachedSteps.length != steps.size())
 		{
@@ -188,46 +194,68 @@ public class VolumePipeline implements Runnable {
 		}
 		try
 		{
-			for (; begin < steps.size(); ++begin)
+			for (;true; )
 			{
+				int current;
+				synchronized(this)
+				{
+					current = begin++;
+					if (current == steps.size())
+					{
+						ovo.setVolume(cachedSteps[cachedSteps.length - 1]);
+						ovo.triggerModificationEvents();	
+						calculating = false;
+						notifyAll();
+						break;
+					}
+				}
 				updateState();
-				CalculationStep ps = steps.get(begin);
+				CalculationStep ps = steps.get(current);
 				if (ps instanceof CalculationCalcuationStep)
 				{
-					if (begin != 0)
+					if (current != 0)
 					{
-						cachedSteps[begin] = cachedSteps[begin].readOrClone(cachedSteps[begin - 1]);
+						cachedSteps[current] = cachedSteps[current].readOrClone(cachedSteps[current - 1]);
 					}
 					else
 					{
 						cachedSteps[0].readOrClone(ovo.getVolume());
 					}
 					CalculationCalcuationStep cps = (CalculationCalcuationStep)ps;
-					ovo.editValues(scene.copyActiveSurfaces(), OperationCompiler.compile(cps.ior, (Operation)null), OperationCompiler.compile(cps.translucency, (Operation)null), OperationCompiler.compile(cps.givenValues, (Operation)null), OperationCompiler.compile(cps.isGiven, (Operation)null), scene.vs, cachedSteps[begin]);
+					ovo.editValues(scene.copyActiveSurfaces(), OperationCompiler.compile(cps.ior, (Operation)null), OperationCompiler.compile(cps.translucency, (Operation)null), OperationCompiler.compile(cps.givenValues, (Operation)null), OperationCompiler.compile(cps.isGiven, (Operation)null), scene.vs, cachedSteps[current]);
 				}
 				else if (ps instanceof GenerationCalculationStep)
 				{
 					GenerationCalculationStep gps = (GenerationCalculationStep)ps;
 					Controller control = new Controller();
 					int values[] = OperationCalculate.toIntArray(OperationCompiler.compile(gps.size).calculate(scene.vs, control));
-					cachedSteps[begin] = new Volume(values[0], values[1], values[2]);
+					cachedSteps[current] = new Volume(values[0], values[1], values[2]);
 				}
 			}
-			ovo.setVolume(cachedSteps[cachedSteps.length - 1]);
-			ovo.triggerModificationEvents();			
 		}
 		catch(final Exception ex)
 		{
 			JFrameUtils.logErrorAndShow("Can't pipe calculations", ex, logger);
+			synchronized(this) {
+				calculating = false;
+				notifyAll();
+			}
 		}
-		calculating = false;
+		
 		updateState();
 	}
 	
 	@Override
 	public void run() {
-		begin = 0;
-		DataHandler.runnableRunner.run(runnable, false);
+		synchronized(this)
+		{
+			begin = 0;
+			if (!calculating)
+			{
+				calculating = true;
+				DataHandler.runnableRunner.run(runnable, false);
+			}
+		}
 	}
 
 	public void setAutoUpdate(boolean selected) {
@@ -251,6 +279,16 @@ public class VolumePipeline implements Runnable {
 	}
 
 	public void blockOnCulculation() {
-		synchronized(this) {}
+		synchronized(this)
+		{
+			if (calculating)
+			{
+				try {
+					wait();
+				} catch (InterruptedException e) {
+					logger.error("Unexpected Interrupt", e);
+				}
+			}
+		}
 	}
 }
