@@ -29,6 +29,7 @@ import java.util.List;
 import maths.Operation;
 import maths.VariableAmount;
 import maths.algorithm.OperationCalculate;
+import maths.data.BooleanOperation;
 import maths.exception.ExceptionOperation;
 import maths.functions.FunctionOperation;
 
@@ -75,6 +76,7 @@ public class WriteCsvOperation extends FunctionOperation {
 				}
 				outBuf.close();
 				fw.close();
+				return BooleanOperation.TRUE;
 			} catch (IOException e) {
 				return new ExceptionOperation(e.getMessage());
 			}
@@ -108,7 +110,7 @@ public class WriteCsvOperation extends FunctionOperation {
 	
 	@Override
 	public String getFunctionName() {
-		return "write";
+		return "writecsv";
 	}
 
 	@Override

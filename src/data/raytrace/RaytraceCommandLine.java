@@ -29,9 +29,11 @@ import data.raytrace.RaytraceScene.RaySimulationObject;
 import data.raytrace.StackPositionProcessor.Mode;
 import data.raytrace.raygen.RayGenerator;
 import geometry.Geometry.NearestPointCalculator;
+import geometry.Vector2d;
 import geometry.Vector3d;
 import io.Drawer.SvgDrawer;
 import io.raytrace.SceneIO;
+import jcomponents.raytrace.RaySimulationData;
 import jcomponents.raytrace.RaySimulationGui;
 import jcomponents.raytrace.TextureView;
 import logging.LockbackUtil;
@@ -48,6 +50,7 @@ import maths.exception.OperationParseException;
 import util.IOUtil;
 import util.JFrameUtils;
 import util.StringUtils;
+import util.data.DoubleArrayList;
 import util.functional.BooleanFunction;
 import util.stream.NullOutputStream;
 
@@ -174,7 +177,7 @@ public class RaytraceCommandLine {
 						Operation op = OperationCompiler.compile(split.get(split.size() - 1));
 						op.calculate(vs, control);
 					} catch (OperationParseException e) {
-						out.write("Error, Parsing operation");
+						out.write("Error, Parsing operation " + e);
 					}
 					break;
 				}
@@ -378,7 +381,7 @@ public class RaytraceCommandLine {
 				}
 				case "wait":
 				{
-					switch(split.get(2))
+					switch(split.get(1))
 					{
 						case "volumes":{
 							final RaytraceScene scene = RaytraceScene.getScene(split.get(2));
@@ -404,6 +407,96 @@ public class RaytraceCommandLine {
 								}
 							}
 						}
+					}
+					break;
+				}
+				case "vp":
+				{
+					if (split.get(1).equals("--help"))
+					{
+						out.write("<scene> <volume> <recalculate/edit>");
+						out.flush();
+						break;
+					}
+					final RaytraceScene scene = RaytraceScene.getScene(split.get(1));
+					if (scene == null)
+					{
+						out.write("Scene" + ' ' + split.get(1) +  "doesn't exist");
+						out.flush();
+					}
+					else
+					{
+						for (int i = 0; i < scene.volumePipelines.size(); ++i)
+						{
+							VolumePipeline pipe = scene.volumePipelines.get(i);
+							if (pipe.ovo.id.equals(split.get(1)))
+							{
+								if (split.get(2).equals("recalculate"))
+								{
+									pipe.run();
+								}
+							}
+						}
+					}
+					break;
+				}
+				case "raysim":
+				{
+					if (split.get(1).equals("--help"))
+					{
+						out.write("<scene> <source> <destination> <mathop>");
+						out.flush();
+						break;
+					}
+					final RaytraceScene scene = RaytraceScene.getScene(split.get(1));
+					final OpticalSurfaceObject source = scene.getSurfaceObject(split.get(2));
+					final OpticalSurfaceObject destination = scene.getSurfaceObject(split.get(3));
+					final RayGenerator gen = new RayGenerator();
+					gen.setSource(source);
+					final int raycount = 10000;
+
+					final RaySimulationObject rayObject = new RaySimulationObject();
+					RaySimulationData rsd = new RaySimulationData(raycount, false);
+					final int maxBounces = 20;
+					final NearestPointCalculator npc = new NearestPointCalculator(3);
+					scene.calculateRays(0, raycount, raycount, gen, 0, 0, null, null, rsd.endpoints, rsd.enddirs, rsd.endcolor, null, rsd.accepted, rsd.bounces, rsd.lastObject, maxBounces, source.bidirectional, rayObject, RaytraceScene.UNACCEPTED_MARK);
+					Vector3d position = new Vector3d();
+					Vector3d direction = new Vector3d();
+					DoubleArrayList destinationElevations = new DoubleArrayList();
+					Vector2d tc = new Vector2d();
+					Vector3d bundleWeightPoint = new Vector3d();
+					Vector3d focalPoint = new Vector3d();
+					for (int k = 0; k < raycount; ++k)
+					{
+						if (rsd.lastObject[k] == destination && rsd.accepted[k] == RaytraceScene.STATUS_ACCEPTED)
+						{
+							bundleWeightPoint.add(rsd.endpoints, k * 3);
+							npc.addPoint(rsd.endpoints, rsd.enddirs, k * 3);
+						}
+					}
+					npc.calculate();
+					npc.get(focalPoint);
+
+					for (int k = 0; k < raycount; ++k)
+					{
+						if (rsd.lastObject[k] == destination && rsd.accepted[k] == RaytraceScene.STATUS_ACCEPTED)
+						{
+							position.set(rsd.endpoints, k * 3);
+							direction.set(rsd.enddirs,  k * 3);
+							destination.getTextureCoordinates(position, direction, tc);
+							destinationElevations.add(destination.directionNormalized.acosDistance(position, destination.midpoint));
+						}
+					}
+					VariableStack vs = new VariableStack(scene.vs);
+					double average = destinationElevations.average();
+					vs.add(new Variable("elevation", average));
+					vs.add(new Variable("velevation", destinationElevations.diffSumQ(average)));
+					try {
+						Operation op = OperationCompiler.compile(split.get(4));
+						System.out.println("parsed oparation: " + op);
+						System.out.println(op.calculate(vs, control));
+					} catch (OperationParseException e) {
+						out.write("Error, Parsing operation " + e);
 					}
 					break;
 				}
