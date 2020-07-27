@@ -123,7 +123,6 @@ public class FocusAnalysis {
 						gen.setArcs(sourceElevations[i], azimuths[i][j]);
 						scene.calculateRays(0, raycount, raycount, gen, 0, 0, null, null, rsd.endpoints, rsd.enddirs, rsd.endcolor, null, rsd.accepted, rsd.bounces, rsd.lastObject, maxBounces, false, currentRay, RaytraceScene.UNACCEPTED_DELETE);
 						
-						int bundleAcceptedCount = 0;
 						npc.reset();
 						for (int k = 0; k < raycount; ++k)
 						{
@@ -131,9 +130,9 @@ public class FocusAnalysis {
 							{
 								bundleWeightPoint.add(rsd.endpoints, k * 3);
 								npc.addPoint(rsd.endpoints, rsd.enddirs, k * 3);
-								++bundleAcceptedCount;
 							}
 						}
+						int bundleAcceptedCount = npc.getCount();
 						npc.calculate();
 						npc.get(focalPoint);
 						if (bundleAcceptedCount == 0){focalPoint.set(Double.NaN, Double.NaN, Double.NaN);}
