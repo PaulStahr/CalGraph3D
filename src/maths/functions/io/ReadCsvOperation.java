@@ -19,7 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-package maths.functions;
+package maths.functions.io;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -35,6 +35,7 @@ import maths.VariableAmount;
 import maths.data.ArrayOperation;
 import maths.exception.ExceptionOperation;
 import maths.exception.OperationParseException;
+import maths.functions.FunctionOperation;
 
 public class ReadCsvOperation extends FunctionOperation{
 	final Operation a;

@@ -19,8 +19,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-package maths.functions;
+package maths.functions.io;
 
+import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
@@ -28,14 +29,13 @@ import java.util.List;
 import maths.Operation;
 import maths.VariableAmount;
 import maths.algorithm.OperationCalculate;
-import maths.data.BooleanOperation;
-import maths.data.RealDoubleOperation;
 import maths.exception.ExceptionOperation;
+import maths.functions.FunctionOperation;
 
-public class WriteOperation extends FunctionOperation {
+public class WriteCsvOperation extends FunctionOperation {
 	public final Operation a, b;
 	
-	public WriteOperation(Operation a, Operation b){
+	public WriteCsvOperation(Operation a, Operation b){
 		if ((this.a = a)==null || (this.b = b)==null)
 			throw new NullPointerException();
 	}
@@ -43,30 +43,46 @@ public class WriteOperation extends FunctionOperation {
 	public static final Operation calculate(Operation a, Operation b){
 		if (a.isString()){
 			final String path = a.stringValue();
-			final int index = path.lastIndexOf('.');
-			if (index == -1)
-				return new ExceptionOperation("You must define a file type");
-			final String type = path.substring(index+1);
-			if (type.equals("txt")){
-				if (!(b.isString()))
-					return b.isPrimitive() ? RealDoubleOperation.NaN : new WriteOperation(a, b);
-				try {
-					final FileWriter writer = new FileWriter(path);
-					writer.write(b.stringValue());
-					writer.close();
-				} catch (IOException e) {
-					return new ExceptionOperation(e.toString());
+			try {
+				FileWriter fw = new FileWriter(path);
+				BufferedWriter outBuf = new BufferedWriter(fw);
+				StringBuilder strB = new StringBuilder();
+				if (b.isArray())
+				{
+					for (int i = 0; i < b.size(); ++i)
+					{
+						Operation op = b.get(i);
+						if (op.isArray())
+						{
+							for (int j = 0; j < op.size(); ++i)
+							{
+								op.get(j).toString(strB).append(' ');
+							}
+						}
+						else
+						{
+							op.toString(strB);
+						}
+						outBuf.append(strB);
+						outBuf.newLine();
+						strB.setLength(0);
+					}
 				}
-				return BooleanOperation.TRUE;
-			} else if (type.equals("jpg"))
-			{
-				//TODO
+				else
+				{
+					b.toString(strB);
+					outBuf.append(strB);
+				}
+				outBuf.close();
+				fw.close();
+			} catch (IOException e) {
+				return new ExceptionOperation(e.getMessage());
 			}
 		}
 		Operation erg = OperationCalculate.standardCalculations(a,b);
 		if (erg != null)
 			return erg;
-		return new WriteOperation(a, b);		
+		return new WriteCsvOperation(a, b);		
 	}
 	
 	
@@ -97,6 +113,6 @@ public class WriteOperation extends FunctionOperation {
 
 	@Override
 	public Operation getInstance(List<Operation> subclasses) {
-		return new WriteOperation(subclasses.get(0), subclasses.get(1));
+		return new WriteCsvOperation(subclasses.get(0), subclasses.get(1));
 	}
 }

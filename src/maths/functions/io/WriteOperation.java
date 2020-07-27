@@ -19,92 +19,85 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-package maths.functions;
+package maths.functions.io;
 
-import javax.swing.*;
-
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.List;
 
 import maths.Operation;
 import maths.VariableAmount;
-import maths.data.StringOperation;
-import util.JFrameUtils;
+import maths.algorithm.OperationCalculate;
+import maths.data.BooleanOperation;
+import maths.data.RealDoubleOperation;
+import maths.exception.ExceptionOperation;
+import maths.functions.FunctionOperation;
 
-import java.awt.event.*;
-import java.util.List;
-
-/** 
-* @author  Paul Stahr
-* @version 04.02.2012
-*/
-public class RequestOperation extends FunctionOperation {
-	public final Operation question;
+public class WriteOperation extends FunctionOperation {
+	public final Operation a, b;
 	
-	public RequestOperation (Operation question){
-		if ((this.question = question) == null)
+	public WriteOperation(Operation a, Operation b){
+		if ((this.a = a)==null || (this.b = b)==null)
 			throw new NullPointerException();
 	}
-
+	
+	public static final Operation calculate(Operation a, Operation b){
+		if (a.isString()){
+			final String path = a.stringValue();
+			final int index = path.lastIndexOf('.');
+			if (index == -1)
+				return new ExceptionOperation("You must define a file type");
+			final String type = path.substring(index+1);
+			if (type.equals("txt")){
+				if (!(b.isString()))
+					return b.isPrimitive() ? RealDoubleOperation.NaN : new WriteOperation(a, b);
+				try {
+					final FileWriter writer = new FileWriter(path);
+					writer.write(b.stringValue());
+					writer.close();
+				} catch (IOException e) {
+					return new ExceptionOperation(e.toString());
+				}
+				return BooleanOperation.TRUE;
+			} else if (type.equals("jpg"))
+			{
+				//TODO
+			}
+		}
+		Operation erg = OperationCalculate.standardCalculations(a,b);
+		if (erg != null)
+			return erg;
+		return new WriteOperation(a, b);		
+	}
+	
 	
 	@Override
-	public Operation calculate(final VariableAmount object, CalculationController control) {
-		final JFrame frame = new JFrame();
-		final Operation a = question.calculate(object, control);
-		if (!(a.isString()))
-			return new RequestOperation(a);
-		final JLabel label = new JLabel(a.stringValue());
-		final JTextField textField = new JTextField();
-		final JButton button = new JButton("OK");
-		frame.setLayout(JFrameUtils.SINGLE_ROW_LAYOUT);
-		
-		frame.add(label);
-		frame.add(textField);
-		button.addActionListener(
-			new ActionListener(){
-				@Override
-				public void actionPerformed(ActionEvent ae){
-					synchronized (frame) {
-						frame.notifyAll();
-					}
-				}
-			}
-		);
-		frame.add(button);
-		
-		frame.setTitle("Abfrage");
-		frame.setBounds(500,500,400,100);
-		frame.setVisible(true);
-		
-		synchronized (frame) {
-			try {
-				frame.wait();
-			} catch (InterruptedException e) {}
-		}
-		frame.dispose();
-		return new StringOperation(textField.getText());
+	public Operation calculate(VariableAmount object, CalculationController control) {
+		return calculate(a.calculate(object, control), b.calculate(object, control));
 	}
 
 	@Override
 	public final int size() {
-		return 1;
+		return 2;
 	}
 
 	
 	@Override
 	public final Operation get(int index) {
 		switch (index){
-			case 0: return question;
+			case 0: return a;
+			case 1: return b;
 			default:throw new ArrayIndexOutOfBoundsException(index);
 		}
-	}
-    
+	}    
 	
 	@Override
 	public String getFunctionName() {
-		return "request";
+		return "write";
 	}
 
 	@Override
 	public Operation getInstance(List<Operation> subclasses) {
-		return new RequestOperation(subclasses.get(0));
+		return new WriteOperation(subclasses.get(0), subclasses.get(1));
 	}
 }

@@ -19,7 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-package maths.functions;
+package maths.functions.io;
 
 import javax.swing.*;
 
@@ -27,6 +27,7 @@ import javax.swing.*;
 import maths.Operation;
 import maths.VariableAmount;
 import maths.data.StringOperation;
+import maths.functions.FunctionOperation;
 import util.JFrameUtils;
 
 import java.awt.event.*;
@@ -36,11 +37,11 @@ import java.util.List;
 * @author  Paul Stahr
 * @version 04.02.2012
 */
-public class RequestTimeoutOperation extends FunctionOperation {
-	public final Operation question, timeout;
+public class RequestOperation extends FunctionOperation {
+	public final Operation question;
 	
-	public RequestTimeoutOperation (Operation question, Operation timeout){
-		if ((this.question = question) == null || (this.timeout = timeout) == null)
+	public RequestOperation (Operation question){
+		if ((this.question = question) == null)
 			throw new NullPointerException();
 	}
 
@@ -49,10 +50,8 @@ public class RequestTimeoutOperation extends FunctionOperation {
 	public Operation calculate(final VariableAmount object, CalculationController control) {
 		final JFrame frame = new JFrame();
 		final Operation a = question.calculate(object, control);
-		final Operation b = timeout.calculate(object, control);
-		if (!(a.isString() && b.isComplexFloatingNumber()))
-			return new RequestTimeoutOperation(a, b);
-		final double timeout = (b.doubleValue() * 1000);
+		if (!(a.isString()))
+			return new RequestOperation(a);
 		final JLabel label = new JLabel(a.stringValue());
 		final JTextField textField = new JTextField();
 		final JButton button = new JButton("OK");
@@ -75,11 +74,11 @@ public class RequestTimeoutOperation extends FunctionOperation {
 		frame.setTitle("Abfrage");
 		frame.setBounds(500,500,400,100);
 		frame.setVisible(true);
-
+		
 		synchronized (frame) {
-			try{
-				frame.wait(timeout < 0 ? 0 : timeout > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int)timeout);
-			}catch(Exception e){}
+			try {
+				frame.wait();
+			} catch (InterruptedException e) {}
 		}
 		frame.dispose();
 		return new StringOperation(textField.getText());
@@ -87,7 +86,7 @@ public class RequestTimeoutOperation extends FunctionOperation {
 
 	@Override
 	public final int size() {
-		return 2;
+		return 1;
 	}
 
 	
@@ -95,7 +94,6 @@ public class RequestTimeoutOperation extends FunctionOperation {
 	public final Operation get(int index) {
 		switch (index){
 			case 0: return question;
-			case 1: return timeout;
 			default:throw new ArrayIndexOutOfBoundsException(index);
 		}
 	}
@@ -108,6 +106,6 @@ public class RequestTimeoutOperation extends FunctionOperation {
 
 	@Override
 	public Operation getInstance(List<Operation> subclasses) {
-		return new RequestTimeoutOperation(subclasses.get(0), subclasses.get(1));
+		return new RequestOperation(subclasses.get(0));
 	}
 }
