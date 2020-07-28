@@ -392,20 +392,13 @@ public class RaytraceCommandLine {
 							}
 							else
 							{
-								for (int i = 0; i < scene.volumePipelines.size(); ++i)
-								{
-									VolumePipeline vp = scene.volumePipelines.get(i);
-									while (vp.isCalculating())
-									{
-										try {
-											Thread.sleep(10);
-										} catch (InterruptedException e) {
-											// TODO Auto-generated catch block
-											e.printStackTrace();
-										}
-									}
-								}
+								scene.blockOnPipelineCalculations();
 							}
+						}
+						break;
+						default:{
+							out.write("Unknown argument: " + split.get(1));
+							out.flush();
 						}
 					}
 					break;
@@ -426,14 +419,15 @@ public class RaytraceCommandLine {
 					}
 					else
 					{
-						for (int i = 0; i < scene.volumePipelines.size(); ++i)
+						for (int i = 0; i < scene.volumePipelineCount(); ++i)
 						{
-							VolumePipeline pipe = scene.volumePipelines.get(i);
-							if (pipe.ovo.id.equals(split.get(1)))
+							VolumePipeline pipe = scene.getVolumePipeline(i);
+							if (pipe.ovo.id.equals(split.get(2)))
 							{
-								if (split.get(2).equals("recalculate"))
+								switch(split.get(3))
 								{
-									pipe.run();
+									case "recalculate":	pipe.run();break;
+									case "wait":		pipe.blockOnCulculation();break;
 								}
 							}
 						}
@@ -533,11 +527,7 @@ public class RaytraceCommandLine {
 						public double apply(double value) {
 							v.setValue(value);
 							try {Thread.sleep(500);} catch (InterruptedException e) {logger.error("Unexpected Interrupt",e);}
-							for (int i = 0; i < scene.volumePipelines.size(); ++i)
-							{
-								VolumePipeline vp = scene.volumePipelines.get(i);
-								vp.blockOnCulculation();
-							}
+							scene.blockOnPipelineCalculations();
 							scene.calculateRays(0, numRays, numRays, gen, 0, 0, null, null, endpos, enddir, endpointColors, null, accepted, bounces, endObject, maxBounces, source.bidirectional, rayObject, RaytraceScene.UNACCEPTED_MARK);
 							for (int j = 0; j < numRays; ++j)
 							{

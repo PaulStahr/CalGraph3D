@@ -32,7 +32,7 @@ import util.TimedUpdateHandler;
 import util.data.UniqueObjects;
 
 public class RaytraceScene {
-	public final ArrayList<VolumePipeline> volumePipelines = new ArrayList<VolumePipeline>();
+	private final ArrayList<VolumePipeline> volumePipelines = new ArrayList<VolumePipeline>();
 	public final ArrayList<GuiOpticalSurfaceObject> surfaceObjectList = new ArrayList<GuiOpticalSurfaceObject>();
 	public final ArrayList<GuiOpticalVolumeObject> volumeObjectList = new ArrayList<GuiOpticalVolumeObject>();
 	public final ArrayList<GuiTextureObject> textureObjectList = new ArrayList<GuiTextureObject>();
@@ -363,7 +363,6 @@ public class RaytraceScene {
 			tmpMeshArrayList.clear();
 			tmpSurfaceArrayList.clear();
 			tmpVolumeArrayList.clear();
-			volumePipelines.clear();
 		}
 		else
 		{
@@ -869,6 +868,7 @@ public class RaytraceScene {
 		setWritableEnvironmentTexture(null);
 		setEnvironmentTexture(null);
 		setRenderToTexture(null);
+		volumePipelines.clear();
 		vs.clear();
 	}
 	
@@ -1755,5 +1755,25 @@ public class RaytraceScene {
 	public GuiOpticalSurfaceObject getSurfaceObject(int index)
 	{
 		return surfaceObjectList.get(index);
+	}
+
+	public void add(VolumePipeline pipeline) {
+		volumePipelines.add(pipeline);
+	}
+
+	public void blockOnPipelineCalculations() {
+		for (int i = 0; i < volumePipelines.size(); ++i)
+		{
+			VolumePipeline vp = volumePipelines.get(i);
+			vp.blockOnCulculation();
+		}
+	}
+
+	public int volumePipelineCount() {
+		return volumePipelines.size();
+	}
+
+	public VolumePipeline getVolumePipeline(int i) {
+		return volumePipelines.get(i);
 	}
 }

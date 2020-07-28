@@ -47,7 +47,7 @@ public class VolumePipelines extends JFrame implements ActionListener{
 
 	public VolumePipelinePanel addPipeline() {
 		VolumePipelinePanel vp = new VolumePipelinePanel(scene);
-		scene.volumePipelines.add(vp.pipeline);
+		scene.add(vp.pipeline);
 		tapPane.add("Pipe", vp);
 		return vp;
 	}
