@@ -1,0 +1,1 @@
+g++ -shared -fPIC  -Wall -Wextra -pedantic -g -O2 -fopenmp -std=c++14 -I"${JAVA_HOME}/include" -I"${JAVA_HOME}/include/linux" armadillo.cpp util.cpp -larmadillo -o armadillo_java.so
