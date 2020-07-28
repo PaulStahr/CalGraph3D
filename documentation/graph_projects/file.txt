@@ -1,0 +1,10 @@
+set(erg,0)
+set(i,0)
+set(oldErg,1000)
+set(c,x+y*ⅈ)
+while(abs(erg)<10˄i<100˄abs(erg-oldErg)>0.0000001)
+set(i,i+1)
+set(oldErg,erg)
+set(erg,erg²+c)
+endwhile
+return(ifn(abs(erg)<10,abs(erg),-1))
