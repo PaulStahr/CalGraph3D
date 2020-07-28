@@ -526,7 +526,6 @@ public class RaytraceCommandLine {
 						@Override
 						public double apply(double value) {
 							v.setValue(value);
-							try {Thread.sleep(500);} catch (InterruptedException e) {logger.error("Unexpected Interrupt",e);}
 							scene.blockOnPipelineCalculations();
 							scene.calculateRays(0, numRays, numRays, gen, 0, 0, null, null, endpos, enddir, endpointColors, null, accepted, bounces, endObject, maxBounces, source.bidirectional, rayObject, RaytraceScene.UNACCEPTED_MARK);
 							for (int j = 0; j < numRays; ++j)
