@@ -49,7 +49,7 @@ public class VolumePipeline implements Runnable {
 		}
 		
 		@Override
-		public void update() {
+		public synchronized void update() {
 			if (scene.vs.modCount() != modCount){
 				modCount = scene.vs.modCount();
 				observer.updateChanges();
@@ -279,6 +279,7 @@ public class VolumePipeline implements Runnable {
 	}
 
 	public void blockOnCulculation() {
+		updater.update();
 		logger.debug("blocking");
 		synchronized(this)
 		{
