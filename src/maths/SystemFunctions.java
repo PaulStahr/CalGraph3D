@@ -26,6 +26,7 @@ import java.util.List;
 import maths.data.BooleanOperation;
 import maths.data.RealDoubleOperation;
 import maths.functions.FunctionOperation;
+import maths.variable.VariableAmount;
 
 /** 
 * @author  Paul Stahr
@@ -43,7 +44,6 @@ public abstract class SystemFunctions extends FunctionOperation
 	public final int size() {
 		return 0;
 	}
-
 	
 	@Override
 	public final Operation get(int index) {

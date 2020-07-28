@@ -24,6 +24,7 @@ package maths;
 import maths.Operation.CalculationController;
 import maths.algorithm.OperationCalculate;
 import maths.algorithm.OperationCalculate.OperationList;
+import maths.variable.VariableAmount;
 import util.data.Stack;
 
 public class Controller implements CalculationController{
@@ -43,14 +44,17 @@ public class Controller implements CalculationController{
 		stop = value;
 	}
 
+	@Override
 	public final boolean getStopFlag(){
 		return stop;
 	}
 	
+	@Override
 	public final boolean calculateRandom(){
 		return calculateRandom;
 	}
 	
+	@Override
 	public final boolean calculateLoop(){
 		return calculateLoop;
 	}
@@ -68,11 +72,13 @@ public class Controller implements CalculationController{
 		connectEmptyVariables = value;
 	}
 	
+	@Override
 	public void returnToChached(OperationList ol){
 		ol.clear();
 		cacheOperationList.push(ol);	
 	}
 	
+	@Override
 	public OperationList getOperationList(){
 		OperationCalculate.OperationList ol = cacheOperationList.pop();
 		return ol == null ? new OperationList() : ol;

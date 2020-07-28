@@ -41,10 +41,10 @@ import jcomponents.raytrace.RaySimulationGui;
 import jcomponents.raytrace.VolumePipelinePanel;
 import maths.Controller;
 import maths.OperationCompiler;
-import maths.Variable;
 import maths.data.Characters;
 import maths.exception.OperationParseException;
 import maths.functions.TransposeOperation;
+import maths.variable.Variable;
 import util.JFrameUtils;
 
 public class SceneIO {

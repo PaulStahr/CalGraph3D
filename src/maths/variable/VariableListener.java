@@ -19,58 +19,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-package maths;
+package maths.variable;
 
-import java.util.List;
-
-
-/** 
-* @author  Paul Stahr
-* @version 04.02.2012
-*/
-public final class UserVariableOperationInserted extends Operation
+/**
+ * This interface can be used as listener for variables.
+ * 
+ * @author Paul Stahr
+ * @version 09.10.2011
+ */
+public interface VariableListener
 {
-    public final int nameId;
-    public final Variable variable;
-    
-    public UserVariableOperationInserted(Variable v){
-        this.variable = v;
-    	nameId = v.nameObject.id;
-    }
-    
-	@Override
-	public final Operation calculate (VariableAmount object, CalculationController control){
-        Operation erg = variable.getValue();
-        return erg == null ? this : erg.calculate(object, control);
-    }
+	public static final VariableListener EMPTY_VARIABLE_LISTENER_ARRAY[] = new VariableListener[0];
 
-	@Override
-	public final StringBuilder toString(Print type, StringBuilder stringBuilder){
-        return stringBuilder.append(variable.nameObject.string);
-    }   
 	
-	@Override
-	public final int size() {
-		return 0;
-	}
-
-	@Override
-	public final Operation get(int index) {
-		throw new ArrayIndexOutOfBoundsException(index);
-	}
-    
-	@Override
-	public final String toString(){
-    	return variable.nameObject.string;
-    }
-    
-	@Override
-	public final boolean equals(Object o){
-    	return o instanceof UserVariableOperationInserted && ((UserVariableOperationInserted)o).nameId == nameId;
-    }
-	
-	@Override
-	public Operation getInstance(List<Operation> subclasses) {
-		return this;
-	}
+    public void variableChanged();
 }

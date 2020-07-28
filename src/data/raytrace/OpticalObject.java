@@ -16,10 +16,10 @@ import data.raytrace.RaySimulation.SurfaceType;
 import geometry.Matrix4d;
 import geometry.Vector3d;
 import maths.Operation;
-import maths.VariableAmount;
-import maths.VariableStack.VariableObserver;
 import maths.algorithm.OperationCalculate;
 import maths.exception.OperationParseException;
+import maths.variable.VariableAmount;
+import maths.variable.VariableStack.VariableObserver;
 import util.ArrayTools;
 import util.ArrayTools.UnmodifiableArrayList;
 import util.ArrayUtil;
@@ -37,6 +37,7 @@ public abstract class OpticalObject {
 	public final ObjectAttachmentContainer attachements = new ObjectAttachmentContainer();
 	public String successorArray[];
 	public String predessorArray[];
+	public String endObjectArray[];
 	public OpticalSurfaceObject surfaceSuccessor[] = OpticalSurfaceObject.EMPTY_SURFACE_ARRAY;
 	public OpticalSurfaceObject surfacePredessor[] = OpticalSurfaceObject.EMPTY_SURFACE_ARRAY;
 	public OpticalVolumeObject volumeSuccessor[] = OpticalVolumeObject.EMPTY_VOLUME_ARRAY;
@@ -185,6 +186,7 @@ public abstract class OpticalObject {
 		CONIC_CONSTANT("ConicConstant", TYPE_TEXTFIELD, 1, null),
 		PREVIOUS_OBJECTS("PreviousObjects", TYPE_TEXTFIELD, null, null),
 		FOLLOWING_OBJECTS("FollowingObjects", TYPE_TEXTFIELD, null, null),
+		END_OBJECTS("EndObjects", TYPE_TEXTFIELD, null, null),
 		VOLUME_SCALING("VolumeScaling", TYPE_TEXTFIELD, 1000, null),
 		MAX_STEPS("MaxSteps", TYPE_TEXTFIELD, 8000, null),
 		COLOR("Color", TYPE_COLOR, new int[] {255,255,255,255}, null),

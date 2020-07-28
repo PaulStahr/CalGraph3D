@@ -27,11 +27,11 @@ import java.io.IOException;
 import java.util.List;
 
 import maths.Operation;
-import maths.VariableAmount;
 import maths.algorithm.OperationCalculate;
 import maths.data.BooleanOperation;
 import maths.exception.ExceptionOperation;
 import maths.functions.FunctionOperation;
+import maths.variable.VariableAmount;
 
 public class WriteCsvOperation extends FunctionOperation {
 	public final Operation a, b;

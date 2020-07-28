@@ -33,8 +33,8 @@ import data.raytrace.RaySimulation.SurfaceType;
 import geometry.Vector3d;
 import maths.Controller;
 import maths.Operation;
-import maths.VariableAmount;
 import maths.exception.OperationParseException;
+import maths.variable.VariableAmount;
 
 public class GuiOpticalSurfaceObject extends OpticalSurfaceObject {
 	public static final COLUMN_TYPES TYPES = new COLUMN_TYPES(new SCENE_OBJECT_COLUMN_TYPE[]{
@@ -159,6 +159,7 @@ public class GuiOpticalSurfaceObject extends OpticalSurfaceObject {
 	String diffuseStr;
 	private String successorStr;
 	private String predessorStr;
+	private String endObjectStr;
 	int modCount = 0;
 	private final ArrayList<OpticalSurfaceObjectChangeListener> changeListeners = new ArrayList<>();
 	public final Vector3d position = new Vector3d();
@@ -256,6 +257,7 @@ public class GuiOpticalSurfaceObject extends OpticalSurfaceObject {
 			case CONIC_CONSTANT:conicConstant = parser.parseDoubleString(conicConstantStr, variables, controll);break;
 			case FOLLOWING_OBJECTS:	successorArray = parser.parseStringArray(successorStr, controll);break;
 			case PREVIOUS_OBJECTS:predessorArray= parser.parseStringArray(predessorStr, controll);break;
+			case END_OBJECTS: endObjectArray = parser.parseStringArray(endObjectStr, controll);break;
 			case COLOR:color = parser.parseColor(colorStr, variables, controll);break;
 			case TEXTURE_OBJECT:ParseUtil.parseString(textureObjectStr);break;
 			case TEXTURE_MAPPING:break;

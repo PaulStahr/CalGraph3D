@@ -25,7 +25,7 @@ package maths.data;
 import java.util.List;
 
 import maths.Operation;
-import maths.VariableAmount;
+import maths.variable.VariableAmount;
 
 
 public class ComplexLongOperation extends Operation{

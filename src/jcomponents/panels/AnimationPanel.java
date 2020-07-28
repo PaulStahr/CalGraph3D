@@ -21,22 +21,28 @@
  ******************************************************************************/
 package jcomponents.panels;
 
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Color;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
-import javax.swing.*;
-import javax.swing.event.*;
+import javax.swing.ButtonGroup;
+import javax.swing.GroupLayout;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
+import javax.swing.JToggleButton;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
 
-import util.SaveLineCreator;
-import util.TimedUpdateHandler;
 import data.DataHandler;
 import data.ProgramIcons;
 import jcomponents.util.JMathTextField;
 import jcomponents.util.MathDocumentListener;
 import maths.Controller;
-import maths.Variable;
-import maths.VariableAmount;
+import maths.variable.Variable;
+import maths.variable.VariableAmount;
+import util.SaveLineCreator;
+import util.TimedUpdateHandler;
 
 /** 
 * @author  Paul Stahr
@@ -94,6 +100,7 @@ public class AnimationPanel extends InterfacePanel implements TimedUpdateHandler
 		}
 	};
 
+	@Override
 	public void actionPerformed(ActionEvent e) {
 		Object source = e.getSource();
 		if (source == buttonPlayBackward)

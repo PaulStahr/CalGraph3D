@@ -25,10 +25,10 @@ package maths.functions;
 import java.util.List;
 
 import maths.Operation;
-import maths.VariableAmount;
-import maths.VariableStack;
 import maths.data.RealDoubleOperation;
 import maths.exception.ExceptionOperation;
+import maths.variable.VariableAmount;
+import maths.variable.VariableStack;
 
 public class ForOperation extends FunctionOperation {
     public final Operation a, b, c, d;

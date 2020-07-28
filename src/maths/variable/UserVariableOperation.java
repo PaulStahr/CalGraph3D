@@ -19,77 +19,78 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-package maths.functions.hyperbolic;
-
+package maths.variable;
 
 import java.util.List;
 
 import maths.Operation;
-import maths.variable.VariableAmount;
-import maths.algorithm.OperationCalculate;
-import maths.data.ArrayOperation;
-import maths.data.RealDoubleOperation;
-import maths.functions.FunctionOperation;
+import maths.data.StringId;
 
 /** 
 * @author  Paul Stahr
 * @version 04.02.2012
 */
-public final class ArcTangensOperation extends FunctionOperation
+public final class UserVariableOperation extends Operation
 {
-    public final Operation a;
-
-    public ArcTangensOperation (Operation a){
-    	if ((this.a = a) == null)
-    		throw new NullPointerException();
+    public final int nameId;
+    public final StringId.StringIdObject nameObject;
+    
+    public UserVariableOperation(StringId.StringIdObject name){
+        if (!Variable.isValidName((nameObject= name).string))
+            throw new RuntimeException ("Name not supported");    	
+    	nameId = name.id;
     }
-
-    private static Operation calculate(final Operation a){
-        if (a.isRealFloatingNumber())
-            return new RealDoubleOperation(Math.atan(a.doubleValue()));
-        if (a.isArray()){
-        	return new ArrayOperation.ArrayCreator(a.size()){
-				
-				@Override
-				public final Operation get(int index) {
-					return calculate(a.get(index));
-				}
-        	}.getArray();
-        }
-        Operation tmp = OperationCalculate.standardCalculations(a);
-        if (tmp != null)
-        	return tmp;
-        return new ArcTangensOperation (a);
+    
+    public UserVariableOperation (String name){
+    	this(StringId.getStringAndId(name));
     }
-
+    
+    public UserVariableOperation (String name, int begin, int end){
+    	this(StringId.getStringAndId(name, begin, end));
+    }
     
 	@Override
-	public Operation calculate (VariableAmount object, CalculationController control){
-        return calculate(a.calculate(object, control));
+	public final Operation calculate (VariableAmount object, CalculationController control){
+        if (object == null)
+            return this;
+        Variable variable = object.getById(nameId);
+        if (variable==null)
+            return this;
+        Operation erg = variable.getValue();
+        if (erg != null)
+        {
+        	return erg.calculate(object, control);
+        }
+        return control.connectEmptyVariables() ? variable.inserted : this;
     }
 
+	@Override
+	public final StringBuilder toString(Print type, StringBuilder stringBuilder){
+        return stringBuilder.append(nameObject.string);
+    }   
+	
 	@Override
 	public final int size() {
-		return 1;
+		return 0;
 	}
 
-	
 	@Override
 	public final Operation get(int index) {
-		switch (index){
-			case 0: return a;
-			default:throw new ArrayIndexOutOfBoundsException(index);
-		}
+		throw new ArrayIndexOutOfBoundsException(index);
 	}
     
-	
 	@Override
-	public String getFunctionName() {
-		return "atan";
-	}
+	public final String toString(){
+    	return nameObject.string;
+    }
+    
+	@Override
+	public final boolean equals(Object o){
+    	return o instanceof UserVariableOperation && ((UserVariableOperation)o).nameId == nameId;
+    }
 	
 	@Override
 	public Operation getInstance(List<Operation> subclasses) {
-		return new ArcTangensOperation(subclasses.get(0));
+		return this;
 	}
-}    
+}

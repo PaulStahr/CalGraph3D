@@ -3,7 +3,7 @@ package maths.functions;
 import java.util.List;
 
 import maths.Operation;
-import maths.VariableAmount;
+import maths.variable.VariableAmount;
 import util.ClassFactory;
 
 public class JavaCommand extends FunctionOperation{

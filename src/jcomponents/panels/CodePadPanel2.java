@@ -23,22 +23,25 @@ package jcomponents.panels;
 
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.event.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.util.ArrayList;
 
-import javax.swing.*;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import util.JFrameUtils;
 import data.DataHandler;
 import maths.Controller;
 import maths.Operation;
 import maths.OperationCompiler;
 import maths.exception.OperationParseException;
-import maths.Variable;
-import maths.VariableStack;
+import maths.variable.Variable;
+import maths.variable.VariableStack;
+import util.JFrameUtils;
 /** 
 * @author  Paul Stahr
 * @version 04.02.2012

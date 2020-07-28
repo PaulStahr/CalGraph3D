@@ -54,7 +54,7 @@ import data.raytrace.OpticalObject;
 import data.raytrace.OpticalObject.COLUMN_TYPES;
 import data.raytrace.OpticalObject.SCENE_OBJECT_COLUMN_TYPE;
 import data.raytrace.ParseUtil;
-import maths.VariableAmount;
+import maths.variable.VariableAmount;
 import maths.exception.OperationParseException;
 
 public class OpticalObjectPanel extends JPanel implements OpticalSurfaceObjectChangeListener, OpticalVolumeObjectChangeListener, MeshObjectChangeListener, ItemListener, DocumentListener{

@@ -25,9 +25,9 @@ import javax.swing.*;
 
 
 import maths.Operation;
-import maths.VariableAmount;
 import maths.data.StringOperation;
 import maths.functions.FunctionOperation;
+import maths.variable.VariableAmount;
 import util.JFrameUtils;
 
 import java.awt.event.*;

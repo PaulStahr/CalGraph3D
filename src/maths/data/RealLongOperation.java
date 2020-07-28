@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import maths.Operation;
-import maths.VariableAmount;
+import maths.variable.VariableAmount;
 
 
 

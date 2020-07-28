@@ -31,11 +31,11 @@ import java.util.List;
 
 import maths.Operation;
 import maths.OperationCompiler;
-import maths.VariableAmount;
 import maths.data.ArrayOperation;
 import maths.exception.ExceptionOperation;
 import maths.exception.OperationParseException;
 import maths.functions.FunctionOperation;
+import maths.variable.VariableAmount;
 
 public class ReadCsvOperation extends FunctionOperation{
 	final Operation a;

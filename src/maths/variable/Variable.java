@@ -19,7 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-package maths;
+package maths.variable;
 
 import java.util.AbstractList;
 import java.util.Arrays;
@@ -29,6 +29,8 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import maths.Operation;
+import maths.OperationCompiler;
 import maths.Operation.CalculationController;
 import maths.algorithm.OperationCalculate;
 import maths.data.ArrayOperation;
@@ -66,6 +68,7 @@ public final class Variable implements Comparable<Variable>{
     private final StringId.StringIdObject operands[];
     private ReadOnlySortedIntegerArrayList includedVariables = SortedIntegerArrayList.EMPTY_LIST;
     private int includedVariablesChCount = 0;
+    public final UserVariableOperationInserted inserted;
  
     public Variable(String name){
     	this (name, (Operation)null);
@@ -129,6 +132,7 @@ public final class Variable implements Comparable<Variable>{
         }else{
         	this.operands = null;
         }
+        inserted = new UserVariableOperationInserted(this);
 	}
     
     public final void removeVariableListener(VariableListener vl)

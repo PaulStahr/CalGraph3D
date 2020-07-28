@@ -19,7 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-package maths;
+package maths.variable;
 
 import java.util.AbstractList;
 import java.util.Arrays;
@@ -29,6 +29,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import maths.Operation;
 import maths.data.StringId;
 import maths.data.StringId.StringIdObject;
 import util.data.SortedIntegerArrayList.ReadOnlySortedIntegerArrayList;

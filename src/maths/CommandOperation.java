@@ -23,6 +23,8 @@ package maths;
 
 import java.util.List;
 
+import maths.variable.VariableAmount;
+
 public class CommandOperation extends Operation {
     public final Operation a, b;
 

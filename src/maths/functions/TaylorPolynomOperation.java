@@ -24,10 +24,6 @@ package maths.functions;
 import java.util.List;
 
 import maths.Operation;
-import maths.UserVariableOperation;
-import maths.Variable;
-import maths.VariableAmount;
-import maths.VariableStack;
 import maths.algorithm.OperationCalculate;
 import maths.data.RealLongOperation;
 import maths.exception.ArrayIndexOutOfBoundsExceptionOperation;
@@ -37,6 +33,10 @@ import maths.functions.atomic.DivisionOperation;
 import maths.functions.atomic.MultiplicationOperation;
 import maths.functions.atomic.PowerOperation;
 import maths.functions.atomic.SubtractionOperation;
+import maths.variable.UserVariableOperation;
+import maths.variable.Variable;
+import maths.variable.VariableAmount;
+import maths.variable.VariableStack;
 
 public class TaylorPolynomOperation extends FunctionOperation {
     public final Operation function, differentations, point, variables;

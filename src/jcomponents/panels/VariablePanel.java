@@ -42,8 +42,8 @@ import javax.swing.event.ListDataListener;
 
 import data.DataHandler;
 import jcomponents.util.JMathTextField;
-import maths.Variable;
-import maths.VariableStack;
+import maths.variable.Variable;
+import maths.variable.VariableStack;
 import util.JFrameUtils;
 import util.TimedUpdateHandler;
 /** 

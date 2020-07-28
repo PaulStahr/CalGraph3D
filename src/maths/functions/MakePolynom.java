@@ -25,7 +25,7 @@ package maths.functions;
 import java.util.List;
 
 import maths.Operation;
-import maths.VariableAmount;
+import maths.variable.VariableAmount;
 
 public class MakePolynom extends Operation {
 	public MakePolynom(Operation a, Operation b, Operation c){

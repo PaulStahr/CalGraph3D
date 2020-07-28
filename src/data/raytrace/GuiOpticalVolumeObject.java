@@ -19,9 +19,9 @@ import geometry.Matrixd;
 import jcomponents.raytrace.TextureView;
 import jcomponents.raytrace.Volume;
 import maths.Controller;
-import maths.VariableAmount;
 import maths.data.ArrayOperation;
 import maths.exception.OperationParseException;
+import maths.variable.VariableAmount;
 import util.ArrayUtil;
 
 public class GuiOpticalVolumeObject extends OpticalVolumeObject {

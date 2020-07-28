@@ -26,7 +26,7 @@ import java.util.List;
 
 import maths.Operation;
 import maths.OperationCompiler;
-import maths.VariableAmount;
+import maths.variable.VariableAmount;
 import maths.data.ArrayOperation;
 import maths.data.RealDoubleOperation;
 import maths.exception.OperationParseException;

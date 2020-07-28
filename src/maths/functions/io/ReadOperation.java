@@ -39,13 +39,13 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 import maths.Operation;
 import maths.OperationCompiler;
 import maths.OperationCompiler.CompileOptions;
-import maths.VariableAmount;
 import maths.data.ArrayOperation;
 import maths.data.RealLongOperation;
 import maths.data.StringOperation;
 import maths.exception.ExceptionOperation;
 import maths.exception.OperationParseException;
 import maths.functions.FunctionOperation;
+import maths.variable.VariableAmount;
 import util.StringUtils;
 
 public class ReadOperation extends FunctionOperation{

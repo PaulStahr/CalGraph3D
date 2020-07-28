@@ -21,22 +21,29 @@
  ******************************************************************************/
 package jcomponents.panels;
 
-import java.awt.event.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.util.ArrayList;
 
-import javax.swing.*;
-import javax.swing.text.*;
+import javax.swing.GroupLayout;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import util.SaveLineCreator;
 import data.DataHandler;
 import jcomponents.util.JMathTextField;
 import maths.Controller;
 import maths.Operation;
-import maths.Variable;
-import maths.VariableStack;
+import maths.variable.Variable;
+import maths.variable.VariableStack;
+import util.SaveLineCreator;
 /** 
 * @author  Paul Stahr
 * @version 04.02.2012

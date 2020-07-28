@@ -31,8 +31,6 @@ import maths.Controller;
 import maths.Operation;
 import maths.Operation.CalculationController;
 import maths.UserFunctionOperation;
-import maths.UserVariableOperation;
-import maths.Variable;
 import maths.data.ArrayOperation;
 import maths.data.RealDoubleOperation;
 import maths.data.RealLongOperation;
@@ -46,9 +44,11 @@ import maths.functions.atomic.MultiplicationOperation;
 import maths.functions.atomic.NegativeOperation;
 import maths.functions.atomic.PowerOperation;
 import maths.functions.atomic.SubtractionOperation;
+import maths.variable.UserVariableOperation;
+import maths.variable.Variable;
 import util.data.BinaryTree;
-import util.data.SortedIntegerArrayList;
 import util.data.DoubleList;
+import util.data.SortedIntegerArrayList;
 
 public final class OperationCalculate {
 	private static final Comparator<Operation> operationMultiplicationComparator = new Comparator<Operation>() {
@@ -344,7 +344,8 @@ public final class OperationCalculate {
     		return strB;
     	}
     	
-    	public String toString(){
+    	@Override
+		public String toString(){
     		return toString(new StringBuilder(), 0).toString();
     	}
     }

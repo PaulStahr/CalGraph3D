@@ -25,7 +25,7 @@ package maths.functions;
 import java.util.List;
 
 import maths.Operation;
-import maths.VariableAmount;
+import maths.variable.VariableAmount;
 
 public class ExpandOperation extends FunctionOperation {
 	public final Operation a;

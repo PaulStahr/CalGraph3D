@@ -19,53 +19,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-package maths;
+package maths.variable;
 
 import java.util.List;
 
-import maths.data.StringId;
+import maths.Operation;
+
 
 /** 
 * @author  Paul Stahr
 * @version 04.02.2012
 */
-public final class UserVariableOperation extends Operation
+public final class UserVariableOperationInserted extends Operation
 {
     public final int nameId;
-    public final StringId.StringIdObject nameObject;
+    public final Variable variable;
     
-    public UserVariableOperation(StringId.StringIdObject name){
-        if (!Variable.isValidName((nameObject= name).string))
-            throw new RuntimeException ("Name not supported");    	
-    	nameId = name.id;
-    }
-    
-    public UserVariableOperation (String name){
-    	this(StringId.getStringAndId(name));
-    }
-    
-    public UserVariableOperation (String name, int begin, int end){
-    	this(StringId.getStringAndId(name, begin, end));
+    public UserVariableOperationInserted(Variable v){
+        this.variable = v;
+    	nameId = v.nameObject.id;
     }
     
 	@Override
 	public final Operation calculate (VariableAmount object, CalculationController control){
-        if (object == null)
-            return this;
-        Variable variable = object.getById(nameId);
-        if (variable==null)
-            return this;
         Operation erg = variable.getValue();
-        if (erg != null)
-        {
-        	return erg.calculate(object, control);
-        }
-        return control.connectEmptyVariables() ? new UserVariableOperationInserted(variable) : this;
+        return erg == null ? this : erg.calculate(object, control);
     }
 
 	@Override
 	public final StringBuilder toString(Print type, StringBuilder stringBuilder){
-        return stringBuilder.append(nameObject.string);
+        return stringBuilder.append(variable.nameObject.string);
     }   
 	
 	@Override
@@ -80,12 +63,12 @@ public final class UserVariableOperation extends Operation
     
 	@Override
 	public final String toString(){
-    	return nameObject.string;
+    	return variable.nameObject.string;
     }
     
 	@Override
 	public final boolean equals(Object o){
-    	return o instanceof UserVariableOperation && ((UserVariableOperation)o).nameId == nameId;
+    	return o instanceof UserVariableOperationInserted && ((UserVariableOperationInserted)o).nameId == nameId;
     }
 	
 	@Override

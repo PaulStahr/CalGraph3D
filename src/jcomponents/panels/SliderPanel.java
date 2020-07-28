@@ -38,8 +38,8 @@ import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
 
 import data.DataHandler;
-import maths.Variable;
-import maths.VariableAmount;
+import maths.variable.Variable;
+import maths.variable.VariableAmount;
 import util.SaveLineCreator;
 import util.TimedUpdateHandler;
 /** 

@@ -28,6 +28,8 @@ import maths.data.BooleanOperation;
 import maths.exception.ExceptionOperation;
 import maths.exception.OperationParseException;
 import maths.functions.FunctionOperation;
+import maths.variable.VariableAmount;
+import maths.variable.VariableStack;
 import util.ArrayTools;
 import util.StringUtils;
 

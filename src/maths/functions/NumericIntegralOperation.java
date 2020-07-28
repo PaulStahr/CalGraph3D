@@ -25,16 +25,16 @@ package maths.functions;
 import java.util.List;
 
 import maths.Operation;
-import maths.UserVariableOperation;
-import maths.Variable;
-import maths.VariableAmount;
-import maths.VariableStack;
 import maths.data.RealDoubleOperation;
 import maths.data.RealLongOperation;
 import maths.functions.atomic.AdditionOperation;
 import maths.functions.atomic.DivisionOperation;
 import maths.functions.atomic.MultiplicationOperation;
 import maths.functions.atomic.SubtractionOperation;
+import maths.variable.UserVariableOperation;
+import maths.variable.Variable;
+import maths.variable.VariableAmount;
+import maths.variable.VariableStack;
 
 public class NumericIntegralOperation extends FunctionOperation {
 	private final Operation a, b, c, d;

@@ -25,8 +25,6 @@ package maths.functions;
 import java.util.List;
 
 import maths.Operation;
-import maths.UserVariableOperation;
-import maths.VariableAmount;
 import maths.algorithm.OperationCalculate;
 import maths.data.ArrayOperation;
 import maths.data.RealLongOperation;
@@ -47,6 +45,8 @@ import maths.functions.hyperbolic.SinusHyperbolicOperation;
 import maths.functions.hyperbolic.SinusOperation;
 import maths.functions.hyperbolic.TangensOperation;
 import maths.functions.interators.SumIteratorOperation;
+import maths.variable.UserVariableOperation;
+import maths.variable.VariableAmount;
 
 
 public class DifferentiationOperation extends FunctionOperation {

@@ -29,7 +29,7 @@ import maths.functions.atomic.AdditionOperation;
 import maths.functions.atomic.MultiplicationOperation;
 
 import maths.Operation;
-import maths.VariableAmount;
+import maths.variable.VariableAmount;
 
 public class DeterminantenOperation extends FunctionOperation {
 	public final Operation a;

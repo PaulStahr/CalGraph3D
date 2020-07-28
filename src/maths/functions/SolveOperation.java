@@ -25,8 +25,6 @@ package maths.functions;
 import java.util.List;
 
 import maths.Operation;
-import maths.UserVariableOperation;
-import maths.VariableAmount;
 import maths.data.RealLongOperation;
 import maths.data.StringId;
 import maths.data.StringId.StringIdObject;
@@ -38,6 +36,8 @@ import maths.functions.atomic.NegativeOperation;
 import maths.functions.atomic.NotOperation;
 import maths.functions.atomic.PowerOperation;
 import maths.functions.atomic.SubtractionOperation;
+import maths.variable.UserVariableOperation;
+import maths.variable.VariableAmount;
 
 /** 
 * @author  Paul Stahr

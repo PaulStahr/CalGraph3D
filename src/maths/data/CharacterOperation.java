@@ -25,7 +25,7 @@ package maths.data;
 import java.util.List;
 
 import maths.Operation;
-import maths.VariableAmount;
+import maths.variable.VariableAmount;
 
 
 /** 
@@ -54,6 +54,7 @@ public final class CharacterOperation extends Operation
        	value = c;
     }
 
+	@Override
 	public int getTypeBitmask(){
 		return BITMASK_INT_REAL | BITMASK_RATIONAL_REAL | BITMASK_FLOAT_REAL | BITMASK_INT_COMPLEX | BITMASK_RATIONAL_COMPLEX | BITMASK_FLOAT_COMPLEX | BITMASK_CHARACTER;
 	}
@@ -154,20 +155,24 @@ public final class CharacterOperation extends Operation
 		return new RealLongOperation(-value);
 	}
 	
+	@Override
 	public Operation getInvers(){
 		if(value == 1)
 			return this;
 		return RealRationalOperation.getInvers(value);
 	}
 	
+	@Override
 	public boolean isZero() {
 		return value == 0;
 	}
 	
+	@Override
 	public boolean isNaN() {
 		return false;
 	}
 	
+	@Override
 	public final boolean equals(Object o){
 		if (!(o instanceof Operation))
 			return false;

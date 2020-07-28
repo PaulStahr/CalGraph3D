@@ -25,6 +25,10 @@ import java.util.List;
 
 import maths.data.StringId;
 import maths.functions.FunctionOperation;
+import maths.variable.UserVariableOperation;
+import maths.variable.Variable;
+import maths.variable.VariableAmount;
+import maths.variable.VariableStack;
 
 public class UserFunctionOperation extends FunctionOperation {
     public final int nameId;

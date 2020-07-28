@@ -22,11 +22,11 @@
 package maths.algorithm;
 
 import maths.Operation;
-import maths.UserVariableOperation;
-import maths.Variable;
-import maths.VariableAmount;
-import maths.VariableStack;
 import maths.data.StringId.StringIdObject;
+import maths.variable.UserVariableOperation;
+import maths.variable.Variable;
+import maths.variable.VariableAmount;
+import maths.variable.VariableStack;
 
 public abstract class OperationIterator {
 	private final OperationIteratorInterface iterator;

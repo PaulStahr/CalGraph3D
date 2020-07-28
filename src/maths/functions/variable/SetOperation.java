@@ -26,9 +26,6 @@ import java.util.List;
 
 import maths.Operation;
 import maths.UserFunctionOperation;
-import maths.UserVariableOperation;
-import maths.Variable;
-import maths.VariableAmount;
 import maths.data.ArrayOperation;
 import maths.data.Characters;
 import maths.data.StringId;
@@ -36,6 +33,9 @@ import maths.data.StringId.StringIdObject;
 import maths.exception.ExceptionOperation;
 import maths.functions.ArrayIndexOperation;
 import maths.functions.atomic.LinkingOperation;
+import maths.variable.UserVariableOperation;
+import maths.variable.Variable;
+import maths.variable.VariableAmount;
 
 /** 
 * @author  Paul Stahr

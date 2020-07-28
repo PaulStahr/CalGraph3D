@@ -21,8 +21,8 @@
  ******************************************************************************/
 package jcomponents.panels;
 
+import maths.variable.VariableStack;
 import util.SaveLineCreator;
-import maths.VariableStack;
 /** 
 * @author  Paul Stahr
 * @version 04.02.2012

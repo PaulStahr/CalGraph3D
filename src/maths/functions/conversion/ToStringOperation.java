@@ -25,7 +25,7 @@ package maths.functions.conversion;
 import java.util.List;
 
 import maths.Operation;
-import maths.VariableAmount;
+import maths.variable.VariableAmount;
 import maths.data.ArrayOperation;
 import maths.data.StringOperation;
 import maths.functions.FunctionOperation;

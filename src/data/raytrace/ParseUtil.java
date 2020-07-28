@@ -8,12 +8,12 @@ import geometry.Vector3d;
 import maths.Controller;
 import maths.Operation;
 import maths.OperationCompiler;
-import maths.VariableAmount;
 import maths.algorithm.OperationCalculate;
 import maths.data.ArrayOperation;
 import maths.data.RealDoubleOperation;
 import maths.data.RealLongOperation;
 import maths.exception.OperationParseException;
+import maths.variable.VariableAmount;
 import util.OperationGeometry;
 
 public class ParseUtil {

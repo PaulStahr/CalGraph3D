@@ -25,6 +25,7 @@ package maths;
 import java.util.List;
 
 import maths.algorithm.OperationCalculate.OperationList;
+import maths.variable.VariableAmount;
 
 /** 
 * @author  Paul Stahr

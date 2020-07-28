@@ -25,10 +25,10 @@ package maths.functions.variable;
 import java.util.List;
 
 import maths.Operation;
-import maths.UserVariableOperation;
-import maths.VariableAmount;
 import maths.data.BooleanOperation;
 import maths.functions.FunctionOperation;
+import maths.variable.UserVariableOperation;
+import maths.variable.VariableAmount;
 
 /** 
 * @author  Paul Stahr

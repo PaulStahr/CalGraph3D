@@ -25,7 +25,7 @@ import java.util.List;
 
 import maths.MengenOperation;
 import maths.Operation;
-import maths.VariableAmount;
+import maths.variable.VariableAmount;
 import maths.functions.atomic.EqualsOperation;
 
 public class RealLongArrayOperation extends MengenOperation {

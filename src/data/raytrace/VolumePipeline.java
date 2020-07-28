@@ -12,10 +12,10 @@ import jcomponents.raytrace.Volume;
 import maths.Controller;
 import maths.Operation;
 import maths.OperationCompiler;
-import maths.VariableStack;
-import maths.VariableStack.VariableObserver.PendendList;
 import maths.algorithm.OperationCalculate;
 import maths.exception.OperationParseException;
+import maths.variable.VariableStack;
+import maths.variable.VariableStack.VariableObserver.PendendList;
 import util.JFrameUtils;
 import util.ListTools;
 import util.RunnableRunner;
@@ -279,6 +279,7 @@ public class VolumePipeline implements Runnable {
 	}
 
 	public void blockOnCulculation() {
+		logger.debug("blocking");
 		synchronized(this)
 		{
 			if (calculating)
@@ -290,5 +291,6 @@ public class VolumePipeline implements Runnable {
 				}
 			}
 		}
+		logger.debug("unblocking");
 	}
 }

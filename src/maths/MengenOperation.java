@@ -26,6 +26,7 @@ import java.util.List;
 import maths.algorithm.Calculate;
 import maths.data.Characters;
 import maths.data.RealLongOperation;
+import maths.variable.VariableAmount;
 
 /** 
 * @author  Paul Stahr
@@ -68,7 +69,8 @@ public abstract class MengenOperation extends Operation
             return 0;
 		}
 		
- 		public final boolean isArray(){
+ 		@Override
+		public final boolean isArray(){
  			return true;
  		}
 		
@@ -197,6 +199,7 @@ public abstract class MengenOperation extends Operation
                 return 0;
 			}
 			
+			@Override
 			public Operation get(int index){
 				return new RealLongOperation(Calculate.getPrime(index));
 			}

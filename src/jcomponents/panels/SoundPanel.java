@@ -34,11 +34,11 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
 
-import util.SaveLineCreator;
-import util.TimedUpdateHandler;
 import data.DataHandler;
 import data.ProgramIcons;
-import maths.Variable;
+import maths.variable.Variable;
+import util.SaveLineCreator;
+import util.TimedUpdateHandler;
 
 /** 
 * @author  Paul Stahr

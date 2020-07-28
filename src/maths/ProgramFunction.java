@@ -25,6 +25,7 @@ import java.util.List;
 
 import maths.data.BooleanOperation;
 import maths.functions.FunctionOperation;
+import maths.variable.VariableAmount;
 
 /** 
 * @author  Paul Stahr

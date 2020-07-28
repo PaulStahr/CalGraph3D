@@ -35,9 +35,9 @@ import javax.swing.JTextField;
 
 import maths.Operation;
 import maths.ProgramOperation;
-import maths.Variable;
-import maths.VariableAmount;
 import maths.exception.OperationParseException;
+import maths.variable.Variable;
+import maths.variable.VariableAmount;
 import util.JFrameUtils;
 
 public class ProgramEditorPanel extends InterfacePanel implements ActionListener{

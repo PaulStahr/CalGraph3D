@@ -132,6 +132,8 @@ import maths.functions.io.WriteOperation;
 import maths.functions.variable.DefineOperation;
 import maths.functions.variable.DeleteOperation;
 import maths.functions.variable.SetOperation;
+import maths.variable.UserVariableOperation;
+import maths.variable.Variable;
 import util.StringUtils;
 import util.data.IntegerArrayList;
 

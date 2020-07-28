@@ -29,8 +29,8 @@ import java.util.List;
 import geometry.Matrixd;
 import maths.MengenOperation;
 import maths.Operation;
-import maths.VariableAmount;
 import maths.functions.atomic.EqualsOperation;
+import maths.variable.VariableAmount;
 import util.data.DoubleList;
 import util.data.IntegerList;
 
@@ -79,9 +79,11 @@ public final class ArrayOperation extends MengenOperation
     		this.length = length;
     	}
     	
-    	public abstract Operation get(int index);
+    	@Override
+		public abstract Operation get(int index);
     
-    	public int size(){
+    	@Override
+		public int size(){
     		return length;
     	}
     	

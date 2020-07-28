@@ -17,8 +17,8 @@ import geometry.Matrix3d;
 import geometry.Vector3d;
 import ij.ImagePlus;
 import maths.Controller;
-import maths.VariableAmount;
 import maths.exception.OperationParseException;
+import maths.variable.VariableAmount;
 import util.StringUtils;
 
 public class GuiTextureObject extends OpticalObject{
