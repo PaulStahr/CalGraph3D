@@ -55,7 +55,7 @@ public class WriteCsvOperation extends FunctionOperation {
 						Operation op = b.get(i);
 						if (op.isArray())
 						{
-							for (int j = 0; j < op.size(); ++i)
+							for (int j = 0; j < op.size(); ++j)
 							{
 								op.get(j).toString(strB).append(' ');
 							}
