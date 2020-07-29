@@ -28,8 +28,8 @@ public class FocusAnalysis {
 	public double sourceElevations[];
 	public double destinationEucledeanVariance[];
 	public double acceptedRatio[];
-	public double focalDistances[];
-	public double focalHitpointDistances[];
+	public double focusToDestinationDistances[];
+	public double focusToHitpointDistances[];
 	public double destinationElevationAveraged[];
 	int acceptedRayCounts[];
 	public double destinationElevationVariance[];
@@ -58,8 +58,8 @@ public class FocusAnalysis {
 		destinationEucledeanVariance = new double[numElevations];
 		acceptedRatio = new double[numElevations];
 		acceptedRatio = new double[numElevations];
-		focalDistances = new double[numElevations];
-		focalHitpointDistances = new double[numElevations];
+		focusToDestinationDistances = new double[numElevations];
+		focusToHitpointDistances = new double[numElevations];
 		destinationElevationAveraged = new double[numElevations];
 		acceptedRayCounts = new int[numElevations];
 		destinationElevationVariance = new double[numElevations];
@@ -112,8 +112,8 @@ public class FocusAnalysis {
 				for (int i = from; i < to; ++i)
 				{
 					double lineVariance = 0;
-					double rayLineFocalHitpointDistance = 0;
-					double lineFocalDistance = 0;
+					double rayLineFocalToHitpointDistance = 0;
+					double lineFocusToDestinationMidpointDistance = 0;
 					int lineAcceptedCount = 0;
 					destinationElevations.clear();
 					for (int j = 0; j < azimuths[i].length; ++j)
@@ -137,7 +137,7 @@ public class FocusAnalysis {
 						npc.get(focalPoint);
 						if (bundleAcceptedCount == 0){focalPoint.set(Double.NaN, Double.NaN, Double.NaN);}
 						focalPoint.write(vertices, (startIndex[i] + j) * 3);
-						lineFocalDistance += destination.midpoint.distance(focalPoint);
+						lineFocusToDestinationMidpointDistance += destination.midpoint.distance(focalPoint);
 						lineAcceptedCount += bundleAcceptedCount;
 						bundleWeightPoint.multiply(1/(double)bundleAcceptedCount);
 						double bundleVariance = 0;
@@ -146,7 +146,7 @@ public class FocusAnalysis {
 						{
 							if (rsd.lastObject[k] == destination && rsd.accepted[k] == RaytraceScene.STATUS_ACCEPTED)
 							{
-								rayLineFocalHitpointDistance += focalPoint.distance(rsd.endpoints, k * 3);
+								rayLineFocalToHitpointDistance += focalPoint.distance(rsd.endpoints, k * 3);
 								bundleVariance += bundleWeightPoint.distanceQ(rsd.endpoints, k * 3);
 							}
 						}
@@ -179,10 +179,10 @@ public class FocusAnalysis {
 						lineVariance += bundleVariance;
 					}
 					acceptedRayCounts[i] = lineAcceptedCount;
-					focalHitpointDistances[i] = rayLineFocalHitpointDistance / lineAcceptedCount;
+					focusToHitpointDistances[i] = rayLineFocalToHitpointDistance / lineAcceptedCount;
 					destinationEucledeanVariance[i] = lineVariance / azimuths[i].length;
 					acceptedRatio[i] = (double)lineAcceptedCount / azimuths[i].length;
-					focalDistances[i] = lineFocalDistance / azimuths[i].length;
+					focusToDestinationDistances[i] = lineFocusToDestinationMidpointDistance / azimuths[i].length;
 					destinationElevationAveraged[i] = destinationElevations.average();
 					destinationElevationVariance[i] = destinationElevations.diffSumQ(destinationElevationAveraged[i]) / destinationElevations.size();
 					System.out.println();

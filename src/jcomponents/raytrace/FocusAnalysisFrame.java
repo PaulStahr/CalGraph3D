@@ -102,7 +102,7 @@ public class FocusAnalysisFrame extends JFrame  implements ActionListener{
 					System.out.println("SurfaceElevation " + Arrays.toString(fc.destinationElevationAveraged));
 					System.out.println("Variance " + Arrays.toString(fc.destinationEucledeanVariance));
 					System.out.println("CountPerArc " + Arrays.toString(fc.acceptedRatio));
-					System.out.println("FocalDistance " + Arrays.toString(fc.focalDistances));
+					System.out.println("FocalDistance " + Arrays.toString(fc.focusToDestinationDistances));
 					
 					try
 					{
@@ -110,7 +110,7 @@ public class FocusAnalysisFrame extends JFrame  implements ActionListener{
 						BufferedWriter outBuf = new BufferedWriter(out);
 						util.IOUtil.writeColumnTable(
 								new String[]{"Elevation", "SurfaceElevation", "SurfaceElevationVariance", "Variance", "CountPerArc", "FocalDistance", "HitpointDistance"},
-								new Object[] {fc.sourceElevations, fc.destinationElevationAveraged, fc.destinationElevationVariance, fc.destinationEucledeanVariance, fc.acceptedRatio, fc.focalDistances, fc.focalHitpointDistances}, outBuf);
+								new Object[] {fc.sourceElevations, fc.destinationElevationAveraged, fc.destinationElevationVariance, fc.destinationEucledeanVariance, fc.acceptedRatio, fc.focusToDestinationDistances, fc.focusToHitpointDistances}, outBuf);
 						outBuf.close();
 						out.close();
 					}catch(IOException ex)
@@ -123,7 +123,7 @@ public class FocusAnalysisFrame extends JFrame  implements ActionListener{
 					
 					DataHandler.globalVariables.setGlobal("FocusArcs", new ArrayOperation(fc.sourceElevations));
 					DataHandler.globalVariables.setGlobal("FocusVariance", new ArrayOperation(fc.destinationEucledeanVariance));
-					DataHandler.globalVariables.setGlobal("FocusDistance", new ArrayOperation(fc.focalDistances));
+					DataHandler.globalVariables.setGlobal("FocusDistance", new ArrayOperation(fc.focusToDestinationDistances));
 					for (int y = 0; y < fc.height; ++y)
 					{
 						for (int x = 0; x < fc.width; ++x)
