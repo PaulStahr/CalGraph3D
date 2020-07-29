@@ -332,9 +332,10 @@ public final class OperationCompiler
     }
 
     private static final Operation compileRek (final String str, final int begin, final int end, final CompileOptions opt) throws OperationParseException{
-
     	if (begin == end)
+    	{
             throw new OperationParseException(str);
+    	}
     	final int length = end - begin;
         final char firstChar = str.charAt(begin), lastChar = str.charAt(end-1);
         switch (length){
@@ -563,6 +564,7 @@ public final class OperationCompiler
 				                case "java":  return new CallProgramFunction(a, b, c, d);
 		                        case "writecsv" :return new WriteCsvOperation(a, b, c, d);
 		                  	}
+		                  	break;
 		                }
 		            }
 		            return new UserFunctionOperation(functionName, parameter);

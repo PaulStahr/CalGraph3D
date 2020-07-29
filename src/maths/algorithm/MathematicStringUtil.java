@@ -70,6 +70,7 @@ public class MathematicStringUtil
 	            return list;
 	        int deth = 0;
 	        boolean isStr = false;
+	        boolean isChar = false;
 	        
 	        for (int i=begin;i<end;i++){
 	            final char charAt = str.charAt(i);
@@ -78,18 +79,22 @@ public class MathematicStringUtil
 	            else if (charAt == '"')
 	            	isStr = !isStr;
 	            else if (!isStr){
-	            	switch (charAt){
-	            	case '(':
-	            	case '{':
-	            	case '[': deth++;break;
-	            	case ')':
-	            	case '}':
-	            	case ']': deth--;break;
-	            	default : 
-	            		if (deth == 0 && charAt == c){
-	        				list.add(i);
-	        			}
-	            	}
+		            if (charAt == '\''){
+		            	isChar = !isChar;
+		            }else if (!isChar){
+		            	switch (charAt){
+		            	case '(':
+		            	case '{':
+		            	case '[': deth++;break;
+		            	case ')':
+		            	case '}':
+		            	case ']': deth--;break;
+		            	default:
+		            		if (deth == 0 && charAt == c){
+		        				list.add(i);
+		        			}
+		            	}
+		            }
 	            }
 	        }
 	        return list;
