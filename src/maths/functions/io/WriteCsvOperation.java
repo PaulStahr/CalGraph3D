@@ -29,21 +29,29 @@ import java.util.List;
 import maths.Operation;
 import maths.algorithm.OperationCalculate;
 import maths.data.BooleanOperation;
+import maths.data.CharacterOperation;
 import maths.exception.ExceptionOperation;
 import maths.functions.FunctionOperation;
 import maths.variable.VariableAmount;
 
 public class WriteCsvOperation extends FunctionOperation {
-	public final Operation a, b;
+	public final Operation a, b, csep, rsep;
 	
 	public WriteCsvOperation(Operation a, Operation b){
-		if ((this.a = a)==null || (this.b = b)==null)
+		this(a, b, CharacterOperation.getInstance(' '), CharacterOperation.getInstance('\n'));
+	}
+
+	public WriteCsvOperation(Operation a, Operation b, Operation csep, Operation rsep)
+	{
+		if ((this.a = a)==null || (this.b = b)==null || (this.csep = csep)==null || (this.rsep = rsep)==null)
 			throw new NullPointerException();
 	}
 	
-	public static final Operation calculate(Operation a, Operation b){
-		if (a.isString()){
+	public static final Operation calculate(Operation a, Operation b, Operation csep, Operation rsep){
+		if (a.isString() && csep.isCharacter() && rsep.isCharacter()){
 			final String path = a.stringValue();
+			char csepChar = (char)csep.longValue();
+			char rsepChar = (char)rsep.longValue();
 			try {
 				FileWriter fw = new FileWriter(path);
 				BufferedWriter outBuf = new BufferedWriter(fw);
@@ -57,15 +65,15 @@ public class WriteCsvOperation extends FunctionOperation {
 						{
 							for (int j = 0; j < op.size(); ++j)
 							{
-								op.get(j).toString(strB).append(' ');
+								op.get(j).toString(strB).append(csepChar);
 							}
 						}
 						else
 						{
 							op.toString(strB);
 						}
+						strB.append(rsepChar);
 						outBuf.append(strB);
-						outBuf.newLine();
 						strB.setLength(0);
 					}
 				}
@@ -90,12 +98,12 @@ public class WriteCsvOperation extends FunctionOperation {
 	
 	@Override
 	public Operation calculate(VariableAmount object, CalculationController control) {
-		return calculate(a.calculate(object, control), b.calculate(object, control));
+		return calculate(a.calculate(object, control), b.calculate(object, control), csep.calculate(object, control), rsep.calculate(object, control));
 	}
 
 	@Override
 	public final int size() {
-		return 2;
+		return 4;
 	}
 
 	
@@ -104,6 +112,8 @@ public class WriteCsvOperation extends FunctionOperation {
 		switch (index){
 			case 0: return a;
 			case 1: return b;
+			case 2: return csep;
+			case 3: return rsep;
 			default:throw new ArrayIndexOutOfBoundsException(index);
 		}
 	}    
@@ -115,6 +125,6 @@ public class WriteCsvOperation extends FunctionOperation {
 
 	@Override
 	public Operation getInstance(List<Operation> subclasses) {
-		return new WriteCsvOperation(subclasses.get(0), subclasses.get(1));
+		return new WriteCsvOperation(subclasses.get(0), subclasses.get(1), subclasses.get(2), subclasses.get(3));
 	}
 }

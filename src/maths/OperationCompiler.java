@@ -561,6 +561,7 @@ public final class OperationCompiler
 		                  		case "taylor_polynom":return new TaylorPolynomOperation(a, b, c, d);
 		                  		case "nint":return new NumericIntegralOperation(a, b, c, d);
 				                case "java":  return new CallProgramFunction(a, b, c, d);
+		                        case "writecsv" :return new WriteCsvOperation(a, b, c, d);
 		                  	}
 		                }
 		            }
