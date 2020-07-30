@@ -173,14 +173,7 @@ public class StackPositionProcessor {
 						scene.cameraViewRunnable.gen.rotation.setRadians(dal, index + 3);
 					}
 					//scene.cameraViewRunnable.run();
-					while (scene.cameraViewRunnable.isRunning())
-					{
-						try {
-							synchronized(scene.cameraViewRunnable) {
-								scene.cameraViewRunnable.wait(1000);
-							}
-						} catch (InterruptedException e) {}
-					}
+					scene.cameraViewRunnable.blockOnCalculation();
 					synchronized(scene.cameraViewRunnable)
 					{
 						try
@@ -189,7 +182,7 @@ public class StackPositionProcessor {
 							variableFrame.setValue(i);
 							scene.cameraViewRunnable.gen.position.set(tmp);
 							scene.cameraViewRunnable.gen.rotation.setRadians(dal, index + 3);
-							scene.cameraViewRunnable.wait();
+							scene.cameraViewRunnable.blockOnCalculation();
 							System.out.println(Thread.currentThread().getId() + " woken " + scene.cameraViewRunnable);
 						}catch(InterruptedException e) {}
 					}

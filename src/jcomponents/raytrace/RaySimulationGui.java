@@ -110,6 +110,7 @@ import org.slf4j.LoggerFactory;
 import data.DataHandler;
 import data.ObjectAttachmentContainer;
 import data.Options;
+import data.raytrace.CameraViewRunnable;
 import data.raytrace.DataChangeListener;
 import data.raytrace.GuiOpticalSurfaceObject;
 import data.raytrace.GuiOpticalVolumeObject;
@@ -1889,7 +1890,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
         	DataHandler.timedUpdater.add(this);
     	}
     	
-    	RaytraceScene.CameraViewRunnable cvr = scene.new CameraViewRunnable() {
+    	CameraViewRunnable cvr = new CameraViewRunnable(scene) {
     		@Override
     		public void finished()
     		{

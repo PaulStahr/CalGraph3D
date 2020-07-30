@@ -1,6 +1,5 @@
 package data.raytrace;
 
-import java.awt.image.WritableRaster;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -16,7 +15,6 @@ import data.raytrace.OpticalObject.SCENE_OBJECT_COLUMN_TYPE;
 import data.raytrace.RaySimulation.AlphaCalculation;
 import data.raytrace.RaySimulation.MaterialType;
 import data.raytrace.raygen.AbstractRayGenerator;
-import data.raytrace.raygen.ImageRayGenerator;
 import geometry.Vector2d;
 import geometry.Vector3d;
 import maths.Controller;
@@ -26,12 +24,19 @@ import maths.variable.VariableStack;
 import maths.variable.VariableStack.VariableObserver.PendendList;
 import util.ArrayUtil;
 import util.ListTools;
-import util.RunnableRunner;
-import util.RunnableRunner.RunnableObject;
 import util.TimedUpdateHandler;
-import util.data.UniqueObjects;
 
 public class RaytraceScene {
+	public static final byte FORCE_STARTPOINT = 0;
+	public static final byte FORCE_ENDPOINT = 1;
+	public static final byte ENVIRONMENT_TEXTURE = 2;
+	public static final byte WRITABLE_ENVIRONMENT_TEXTURE = 3;
+	public static final byte RENDER_TO_TEXTURE = 4;
+	public static final byte OBJECT_ADD= 5;
+	public static final byte OBJECT_REMOVE= 6;
+	public static final byte VERIFY_REFRACTION_INDICES = 7;
+	public static final byte ENVIRONMENT_MAPPING = 8;
+
 	private final ArrayList<VolumePipeline> volumePipelines = new ArrayList<VolumePipeline>();
 	public final ArrayList<GuiOpticalSurfaceObject> surfaceObjectList = new ArrayList<GuiOpticalSurfaceObject>();
 	public final ArrayList<GuiOpticalVolumeObject> volumeObjectList = new ArrayList<GuiOpticalVolumeObject>();
@@ -68,16 +73,12 @@ public class RaytraceScene {
 	public TextureMapping environment_mapping = TextureMapping.SPHERICAL;
 	public static final ArrayList<WeakReference<RaytraceScene> > openedInstances = new ArrayList<>(); 
 	private String id;
+   	public final CameraViewRunnable cameraViewRunnable = new CameraViewRunnable(this);
 	
-	public static final byte FORCE_STARTPOINT = 0;
-	public static final byte FORCE_ENDPOINT = 1;
-	public static final byte ENVIRONMENT_TEXTURE = 2;
-	public static final byte WRITABLE_ENVIRONMENT_TEXTURE = 3;
-	public static final byte RENDER_TO_TEXTURE = 4;
-	public static final byte OBJECT_ADD= 5;
-	public static final byte OBJECT_REMOVE= 6;
-	public static final byte VERIFY_REFRACTION_INDICES = 7;
-	public static final byte ENVIRONMENT_MAPPING = 8;
+	private int updateCount = 0;
+	private int lastSceneUpdate = 0;
+	private Object forceEndpointObject;
+	private Object forceStartpointObject;
 	
 	public final TimedUpdateHandler rayUpdateHandler = new TimedUpdateHandler() {
     	
@@ -164,133 +165,6 @@ public class RaytraceScene {
 			sceneChangeListener.get(i).valueChanged(sct, o);
 		}
 	}
-	
-	public class CameraViewRunnable extends RunnableObject
-	{
-		public CameraViewRunnable()
-		{
-			super("Scene View", null);
-			cameraViewRunnables.add(new WeakReference<CameraViewRunnable>(this));
-		}
-		private final RunnableRunner.ThreadLocal<RaySimulationObject> rso = DataHandler.runnableRunner.new ThreadLocal<>();
-   		public final ImageRayGenerator gen = new ImageRayGenerator();
-   		
-   		float enddirs[] = UniqueObjects.EMPTY_FLOAT_ARRAY;
-   		float endpoints[] = UniqueObjects.EMPTY_FLOAT_ARRAY;
-   		byte accepted[] = UniqueObjects.EMPTY_BYTE_ARRAY;
-		private float sceneEndpointColor[] = UniqueObjects.EMPTY_FLOAT_ARRAY;
-		private float sceneEndpointColorAdded[] = UniqueObjects.EMPTY_FLOAT_ARRAY;
-		int bounces[] = UniqueObjects.EMPTY_INT_ARRAY;
-		private OpticalObject lastObject[] = OpticalObject.EMPTY_ARRAY;
-		int numPixels;
-		int maxBounces = 10;
-		public GuiTextureObject gto;
-		public int passes = 1;
-		private volatile boolean running = false;
-		
-		public boolean isRunning() {
-			return running;
-		}
-		
-		private final RunnableRunner.ParallelRangeRunnable prr = new RunnableRunner.ParallelRangeRunnable() {
-			
-			@Override
-			public void run(int from, int to) {
-				Arrays.fill(sceneEndpointColor, from * 4, to * 4, 0);
-				WritableRaster raster = gto.raster;
-				RaySimulationObject r = rso.get();
-				if (r == null)
-				{
-					rso.set(r = new RaySimulationObject());
-				}
-				
-				if (passes > 1)
-				{
-					Arrays.fill(sceneEndpointColorAdded, from * 4, to * 4, 0);
-				}
-				for (int i = 0; i < passes; ++i)
-				{
-					calculateRays(from, to, numPixels, gen, from, from, null, null, endpoints, enddirs, sceneEndpointColor, null, accepted, bounces, lastObject, maxBounces, false, r, UNACCEPTED_MARK);
-					if (passes > 1)
-					{
-						for (int j = from * 4; j < to * 4; ++j)
-						{
-							sceneEndpointColorAdded[j] += sceneEndpointColor[j];
-						}
-					}
-				}
-				if (passes > 1)
-				{
-					for (int j = from * 4; j < to * 4; ++j)
-					{
-						sceneEndpointColor[j] = sceneEndpointColorAdded[j] / passes;
-					}
-				}
-				
-				int pixel[] = r.color;
-				pixel[3] = 255;
-	   			int width = raster.getWidth();
-	   			for (int i = from; i < to; ++i)
-	   			{
-	   				for (int j = 0; j < 3; ++j)
-	   				{
-	   					pixel[j] = (int)(sceneEndpointColor[i * 4 + j] * 255);
-	   				}
-	   				raster.setPixel(i % width, i / width, pixel);
-	   			}
-	   			gto.modified();
-   			}
-			
-			@Override
-			public void finished() {CameraViewRunnable.this.finished();}
-		};
-		
-   		@Override
-   		public void run()
-   		{
-   			if (gto == null)
-   			{
-   				return;
-   			}
-   			running = true;
-   			int width = gto.image.getWidth();
-   			int height = gto.image.getHeight();
-   			gen.width = width;
-   			gen.height = height;
-   			numPixels = width * height;
-   			if (enddirs.length != numPixels * 3 || bounces.length  != numPixels)
-   			{
-   				endpoints = new float[numPixels * 3];
-   				enddirs = new float[numPixels * 3];
-   				sceneEndpointColor = new float[numPixels * 4];
-   				accepted = new byte[numPixels];
-   				bounces = new int[numPixels];
-   				lastObject = new OpticalObject[numPixels];
-   			}
-   			if (passes > 1 && sceneEndpointColorAdded.length != numPixels * 4)
-			{
-   				sceneEndpointColorAdded = new float[numPixels * 4];
-			}
-   			DataHandler.runnableRunner.runParallelAndWait(prr, "Scene View", null, 0, numPixels, 200000);
-   			
-   			gto.triggerModificationEvents();
-   			running=false;
-   			synchronized(CameraViewRunnable.this)
-   			{
-   				System.out.println(Thread.currentThread().getId() + " notify" + CameraViewRunnable.this);
-   				CameraViewRunnable.this.notifyAll();
-   			}
-   		}
-   		
-   		public void finished() {}
-	}
-	
-   	public final CameraViewRunnable cameraViewRunnable = new CameraViewRunnable();
-	
-	private int updateCount = 0;
-	private int lastSceneUpdate = 0;
-	private Object forceEndpointObject;
-	private Object forceStartpointObject;
 	
 	private void getObjects(String ids[], double ior, ArrayList<GuiOpticalSurfaceObject> surfaces, ArrayList<GuiOpticalVolumeObject> volumes, ArrayList<MeshObject> meshes) {
 		for (GuiOpticalSurfaceObject goo : activeSurfaces)
@@ -1555,24 +1429,10 @@ public class RaytraceScene {
 			{
 				successor[l].getIntersection(position, direction, nearest, epsilon, nearest.distance);//TODO: origin of null pointer exceptions
 			}
-			/*for (int l = 0; l < surfaceSuccessor.length; ++l)
-			{
-				surfaceSuccessor[l].getIntersection(position, direction, nearest, epsilon, nearest.distance);
-			}
-			for (int l = 0; l < volumeSuccessor.length; ++l)
-			{
-				volumeSuccessor[l].getIntersection(position, direction, nearest, epsilon, nearest.distance);
-			}
-			for (int l = 0; l < meshSuccessor.length; ++l)
-			{
-				meshSuccessor[l].getIntersection(position, direction, nearest, epsilon, nearest.distance);
-			}*/
 			
 			final int b = 3 * ray.numBounces;
 			if (Double.isFinite(nearest.distance))
-			{								
-				//position.set(position, direction,nearest.distance);
-
+			{
 				position.set(nearest.position);
 				res = nearest.object;
 				if (nearest.object instanceof OpticalVolumeObject)
@@ -1647,20 +1507,7 @@ public class RaytraceScene {
 					default:
 						throw new IllegalArgumentException("Object with illegal material: " + obj.id);
 				}
-				if (c < 0)
-				{
-					//surfaceSuccessor = obj.surfaceSuccessor;
-					//volumeSuccessor = obj.volumeSuccessor;
-					//meshSuccessor = obj.meshSuccessor;
-					successor = obj.successor;
-				}
-				else
-				{
-					//surfaceSuccessor = obj.surfacePredessor;
-					//volumeSuccessor = obj.volumePredessor;	
-					//meshSuccessor = obj.meshPredessor;
-					successor =obj.predessor;
-				}
+				successor = c < 0 ? obj.successor : obj.predessor;
 				if (obj.diffuse != 0)
 				{
 					double dirnorm = direction.getLength() * obj.diffuse;
@@ -1775,5 +1622,9 @@ public class RaytraceScene {
 
 	public VolumePipeline getVolumePipeline(int i) {
 		return volumePipelines.get(i);
+	}
+
+	public void add(data.raytrace.CameraViewRunnable cameraViewRunnable) {
+		cameraViewRunnables.add(new WeakReference<CameraViewRunnable>(cameraViewRunnable));
 	}
 }

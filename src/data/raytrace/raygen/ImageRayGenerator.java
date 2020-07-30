@@ -15,6 +15,7 @@ public class ImageRayGenerator extends AbstractRayGenerator{
 	public int height;
 	public Vector3d position = new Vector3d();
 	public Rotation3 rotation = new Rotation3();
+	public Vector3d movement = new Vector3d();
 	public double arpertureSize;
 	public double focalDistance;
 	public OpticalVolumeObject[] volumeSuccessor = OpticalVolumeObject.EMPTY_VOLUME_ARRAY;
@@ -44,7 +45,7 @@ public class ImageRayGenerator extends AbstractRayGenerator{
 			direction.invert();
 		}
 		direction.rotateXYZEuler(rotation);
-		
+		direction.add(movement);
 		Arrays.fill(color, 0);
 	}
 	
