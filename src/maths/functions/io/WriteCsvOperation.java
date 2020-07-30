@@ -63,9 +63,13 @@ public class WriteCsvOperation extends FunctionOperation {
 						Operation op = b.get(i);
 						if (op.isArray())
 						{
-							for (int j = 0; j < op.size(); ++j)
+							if (op.size() != 0)
 							{
-								op.get(j).toString(strB).append(csepChar);
+								op.get(0).toString(strB);
+								for (int j = 0; j < op.size(); ++j)
+								{
+									op.get(j).toString(strB.append(csepChar));
+								}
 							}
 						}
 						else
