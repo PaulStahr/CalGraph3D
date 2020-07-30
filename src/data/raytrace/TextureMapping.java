@@ -8,7 +8,49 @@ import maths.algorithm.Calculate;
 
 public enum TextureMapping
 {
-	SPHERICAL("Spherical") {
+	PERSPECTIVE("Perspective") {
+
+		@Override
+		public double mapCartToTex(double x, double y, double z, Vector2d out) {
+			out.x = x / z;
+			out.y = y / z;
+			return 1;
+		}
+
+		@Override
+		public double mapTexToCart(double x, double y, Vector3d out) {
+			out.z = 1;
+			out.x = x;
+			out.y = y;
+			return 1;
+		}
+
+		@Override
+		public double mapTexToCart(double x, double y) {
+			return 1;
+		}
+
+		@Override
+		public double mapTexToSpherical(double x, double y, Vector2d out) {
+			out.x = (Math.atan2(y, x) + Math.PI) * INV_TWO_PI;
+		    out.y = Math.atan(Math.sqrt(x * x + y * y)) * INV_PI;
+		    return Double.NaN;
+		}
+
+		@Override
+		public double mapSphericalToTex(double azimuth, double elevation, Vector2d out) {
+			double sin = Math.sin(elevation);
+			double cos = Math.cos(elevation);
+			out.x = sin * Math.cos(azimuth) / cos;
+			out.y = sin * Math.sin(azimuth) / cos;
+			return Double.NaN;
+		}
+
+		@Override
+		public void densityCompensation(WritableRaster r) {
+			throw new RuntimeException("Method not implemented");
+		}
+	},	SPHERICAL("Spherical") {
 		@Override
 		public double mapCartToTex(double x, double y, double z, Vector2d out) {
 			out.x = (Math.atan2(y, x) + Math.PI) * INV_TWO_PI;
@@ -181,11 +223,11 @@ public enum TextureMapping
 			double multy = 1./midY;
 			for (int x = 0; x < r.getWidth(); ++x)
 			{
-				double diffX = (double)(x - midX) * multx;
+				double diffX = (x - midX) * multx;
 				diffX *= diffX;
 				for (int y = 0; y < r.getHeight(); ++y)
 				{
-					double diffY = (double)(y - midY) * multy;
+					double diffY = (y - midY) * multy;
 					diffY *= diffY;
 					double dist = Calculate.TWO_PI * Math.sqrt(diffX + diffY);
 					r.getPixel(x, y, pixelValue);
@@ -241,6 +283,7 @@ public enum TextureMapping
 		}
 		
 	}, FLAT("Flat") {
+		@Override
 		public double mapCartToTex(double x, double y, double z, Vector2d out) {
 			double len = Math.sqrt(x * x + y * y);
 			len = len == 0 ? 0 : (INV_TWO_PI * Math.atan2(len, z)/ len);
@@ -355,6 +398,7 @@ public enum TextureMapping
 		return valueOf(name);
 	}
 
+	@Override
 	public String toString()
 	{
 		return name;
