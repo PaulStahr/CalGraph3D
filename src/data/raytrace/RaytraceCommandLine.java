@@ -5,6 +5,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -196,6 +197,14 @@ public class RaytraceCommandLine {
 						fis.close();
 					}
 					gui.setVisible(true);
+					break;
+				}
+				case "save":
+				{
+					RaytraceScene scene = RaytraceScene.getScene(split.get(1));
+					RaySimulationGui gui = RaySimulationGui.getOpenGui(scene);
+					FileOutputStream fout = new FileOutputStream(split.get(2));
+					SceneIO.saveScene(fout, false, scene, gui);
 					break;
 				}
 				case "echo":

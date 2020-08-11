@@ -41,6 +41,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -94,7 +95,7 @@ public abstract class DataHandler
     private static final String resourceFolder = "/resources/";
     private static final ArrayList<WeakReference<JFrame> > updateUIList = new ArrayList<WeakReference<JFrame>>();
     
-    public static volatile int openWindows = 0;
+    public static AtomicInteger openWindows = new AtomicInteger();
     
     public static final JFrame findJFrame(BooleanFunction<JFrame> func)
     {

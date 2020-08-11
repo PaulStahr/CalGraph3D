@@ -62,6 +62,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -282,7 +283,8 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 	private final RaytraceSession session = new RaytraceSession();
 	public final RaytraceScene scene;
 	private final GuiTextureObject previewTexture;
-
+	private static final ArrayList<WeakReference<RaySimulationGui> > openGuis = new ArrayList<>();
+	
    	private static final Runnable optionRunnable = new Runnable() {
 		@Override
 		public void run() {
@@ -1478,7 +1480,8 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
     	previewTexture = new GuiTextureObject(scene.vs, parser);
         currentVisualization = panelVisualization;
     	JMenuBar menuBar = new JMenuBar();
-    	++DataHandler.openWindows;
+    	DataHandler.openWindows.incrementAndGet();
+    	openGuis.add(new WeakReference<RaySimulationGui>(this));
     	addWindowListener(this);
     	DataHandler.timedUpdater.add(rayUpdateHandler);
         setLayout(JFrameUtils.SINGLE_COLUMN_LAYOUT);
@@ -2941,10 +2944,24 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 	public void windowActivated(WindowEvent arg0) {}
 	@Override
 	public void windowClosed(WindowEvent arg0) {
-		if (--DataHandler.openWindows == 0)
+		if (DataHandler.openWindows.decrementAndGet() == 0)
 		{
 			System.exit(0);
 		}
+		//TODO clean gui-references
+	}
+	
+	public static RaySimulationGui getOpenGui(RaytraceScene scene)
+	{
+		for (int i = 0; i < openGuis.size(); ++i)
+		{
+			RaySimulationGui gui = openGuis.get(i).get();
+			if (gui != null && gui.scene == scene)
+			{
+				return gui;
+			}
+		}
+		return null;
 	}
 
 	@Override
