@@ -90,12 +90,18 @@ public class CodePadPanel extends InterfacePanel implements KeyListener, Runnabl
     			}
     			stringBuilder.append('\n');
     			append(stringBuilder.toString(), SET_OPERATION);
-    			Operation erg = qo.operation.calculate(stack, control);
+    			Operation res = qo.operation.calculate(stack, control);
     			control.setStopFlag(false);
     			stringBuilder.setLength(0);
-                append(erg.toString(stringBuilder.append('=')).append('\n').toString(), SET_RESULT);             
+    			res.toString(stringBuilder.append('=')).append('\n');
+    			if (stringBuilder.length() > 1000)
+    			{
+    				stringBuilder.setLength(1000);
+    				stringBuilder.append('.').append('.').append('.');
+    			}
+				append(stringBuilder.toString(), SET_RESULT);      
                 textAreaHistory.setCaretPosition(textAreaHistory.getDocument().getLength());
-                ans.setValue(erg);
+                ans.setValue(res);
 			}catch(Exception e){
 				logger.error("Error at calculating: " + e);
 				e.printStackTrace();
