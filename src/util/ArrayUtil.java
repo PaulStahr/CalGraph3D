@@ -344,10 +344,18 @@ public class ArrayUtil {
 		}
 	}
 	
-	public static void setTo(float[] data0, int begin0, int end0, int[] data1, int begin1, float mult) {
-		for (; begin0 != end0; ++begin0, ++begin1)
+	public static void setTo(float[] input, int ibegin, int oend, int[] output, int obegin, float mult) {
+		if (input == null)
 		{
-			data1[begin1] = (int)(data0[begin0] * mult);
+			throw new NullPointerException("InputArray IsNull");
+		}
+		if (output == null)
+		{
+			throw new NullPointerException("OutputArray Is Null");
+		}
+		for (; ibegin != oend; ++ibegin, ++obegin)
+		{
+			output[obegin] = (int)(input[ibegin] * mult);
 		}
 	}
 
@@ -465,6 +473,13 @@ public class ArrayUtil {
 		for (; from < to; ++from)
 		{
 			data[from] *= mult;
+		}
+	}
+
+	public static void arraycopy(float[] input, int inputBegin, int[] output, int outputBegin, int size) {
+		for (size += inputBegin; inputBegin < size; ++inputBegin, ++outputBegin)
+		{
+			output[outputBegin] = (int)input[inputBegin];
 		}
 	}
 }
