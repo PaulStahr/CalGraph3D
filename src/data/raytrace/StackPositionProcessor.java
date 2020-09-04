@@ -25,7 +25,6 @@ import geometry.Vector2d;
 import geometry.Vector3d;
 import jcomponents.Interface;
 import jcomponents.raytrace.RaySimulationData;
-import jcomponents.raytrace.TextureView;
 import jcomponents.util.ImageUtil;
 import maths.Controller;
 import maths.Operation;
@@ -215,8 +214,12 @@ public class StackPositionProcessor {
 				case SINGLE:
 				{
 					final int countArray[] = new int[trWidth * trHeight];
+					final float imageColorArray[] = new float[trWidth * trHeight * 5];
+					img = new BufferedImage(trWidth, trHeight, BufferedImage.TYPE_4BYTE_ABGR);
 					numIterations = rangeEnd - rangeBegin;
 					final double avarage[] = new double[2 * (rangeEnd - rangeBegin)];
+					System.out.println(rangeBegin);
+					System.out.println(rangeEnd);
 					DataHandler.runnableRunner.runParallelAndWait(new RunnableRunner.ParallelRangeRunnable() {
 						@Override
 						public void run(int from, int to)
@@ -237,6 +240,10 @@ public class StackPositionProcessor {
 								threadLocal.rso = new RaySimulationObject();
 								threadLocal.variables = new VariableStack(scene.vs);
 								threadLocal.color = new float[5];
+								threadLocal.rso.readColorGen = true;
+								threadLocal.rso.readColorBack = false;
+								threadLocal.rso.readColorFront = false;
+								threadLocal.rso.readColorGen = true;
 							}
 							RaySimulationData rsd = threadLocal.rsd;
 							RaySimulationObject currentRay = threadLocal.rso;
@@ -248,13 +255,16 @@ public class StackPositionProcessor {
 								int idx = i - from;
 								if (source instanceof OpticalSurfaceObject)
 								{
-									double azimuth = dal.getD(i * 2);
-									double elevation = dal.getD(i * 2 + 1);
-									if (Double.isNaN(azimuth) || Double.isNaN(elevation))
+									if (dal != null)
 									{
-										continue;
+										double azimuth = dal.getD(i * 2);
+										double elevation = dal.getD(i * 2 + 1);
+										if (Double.isNaN(azimuth) || Double.isNaN(elevation))
+										{
+											continue;
+										}
+										gen.setArcs(elevation, azimuth);
 									}
-									gen.setArcs(elevation, azimuth);
 								}
 								else if (source instanceof MeshObject)	
 								{
@@ -268,23 +278,22 @@ public class StackPositionProcessor {
 										logger.error("Can't update Transformation", e);
 									}
 								}
-								scene.calculateRays(0, numRays, numRays, gen, 0, 0, null, null, rsd.endpoints, rsd.enddirs, null, null, rsd.accepted, rsd.bounces, rsd.lastObject, 10, bidir, currentRay, RaytraceScene.UNACCEPTED_DELETE);
+								scene.calculateRays(0, numRays, numRays, gen, 0, 0, null, null, rsd.endpoints, rsd.enddirs, rsd.endcolor, null, rsd.accepted, rsd.bounces, rsd.lastObject, 10, bidir, currentRay, RaytraceScene.UNACCEPTED_DELETE);
 								int count = 0;
+								float tt[] = new float[5];
+								tt[4] = 1;
 								for (int j = 0; j < numRays; ++j)
 								{
-									if (rsd.lastObject[j] instanceof OpticalSurfaceObject && rsd.lastObject[j] != null && rsd.accepted[j] == RaytraceScene.STATUS_ACCEPTED)
+									if (rsd.lastObject[j] == evaluationObject && rsd.accepted[j] == RaytraceScene.STATUS_ACCEPTED)
 									{
-										OpticalSurfaceObject surf = (OpticalSurfaceObject)rsd.lastObject[j];
-										if (surf == evaluationObject)
-										{
-											currentRay.position.set(rsd.endpoints, j * 3);
-											currentRay.direction.set(rsd.enddirs, j * 3);
-											surf.getTextureCoordinates(currentRay.position, currentRay.direction, currentRay.v3);
-											++count;
-											
-											ImageUtil.addToPixel(currentRay.v3.x * trWidth, currentRay.v3.y * trHeight, trWidth, trHeight, 1, countArray);
-											currentRay.v3.addTo(avarage, idx * 2);
-										}
+										currentRay.position.set(rsd.endpoints, j * 3);
+										currentRay.direction.set(rsd.enddirs, j * 3);
+										evaluationObject.getTextureCoordinates(currentRay.position, currentRay.direction, currentRay.v3);
+										++count;
+										ImageUtil.addToPixel(currentRay.v3.x * trWidth, currentRay.v3.y * trHeight, trWidth, trHeight, 1, countArray);
+										currentRay.v3.addTo(avarage, idx * 2);
+										System.arraycopy(rsd.endcolor, j * 4, tt, 0, 4);
+										ImageUtil.addToPixel(currentRay.v3.x * trWidth, currentRay.v3.y * trHeight, trWidth, trHeight, tt, 0, 5, 1, imageColorArray);
 									}
 								}
 								ArrayUtil.mult(avarage, idx * 2, idx * 2 + 1, 1. / count);
@@ -299,10 +308,27 @@ public class StackPositionProcessor {
 					{
 						StringUtils.writeTapSeperated(avarage, new File(outputStr), 2);
 					}
-					if (gto != null)
+					for (int i = 0; i < trWidth * trHeight; ++i)
 					{
-						int pixel[] = new int[4];
-						ImageUtil.setRGBAChannels(gto.raster, countArray, pixel);
+						if (imageColorArray[i * 5 + 4] != 0)
+						{
+							ArrayUtil.mult(imageColorArray, i * 5, i * 5 + 4, 255f/imageColorArray[i * 5 + 4]);
+							imageColorArray[i * 5 + 4] = -imageColorArray[i * 5 + 4];
+						}
+					}
+					//normalizationFactor = ArrayUtil.normalizeTo(imageColorArray, 0, imageColorArray.length, 255);
+					for (int i = 0; i < trWidth * trHeight; ++i)
+					{
+						if (imageColorArray[i * 5 + 4] != 0)
+						{
+							imageColorArray[i * 5 + 3] = 255;
+						}
+					}
+					img = new BufferedImage(trWidth, trHeight, BufferedImage.TYPE_4BYTE_ABGR);
+					ImageUtil.setRGB(img.getRaster(), imageColorArray, new int[4], 4, 5);
+					/*if (gto != null)
+					{
+						ImageUtil.setRGBAChannels(gto.raster, countArray, new int[4]);
 						if (surfaceCompensationMode && evaluationObject instanceof GuiOpticalSurfaceObject)
 						{
 							((GuiOpticalSurfaceObject)evaluationObject).textureMapping.densityCompensation(gto.raster);
@@ -315,7 +341,7 @@ public class StackPositionProcessor {
 						} catch (IOException e1) {
 							logger.error("Input Output error", e1);
 						}
-					}
+					}*/
 					break;
 				}
 				case ARRAY:
@@ -386,7 +412,6 @@ public class StackPositionProcessor {
 									threadLocal.rso = new RaySimulationObject();
 									//threadLocal.rso.textureDrawMode = TextureDrawMode.ALPHA_ADDITIVE;
 									threadLocal.rso.readColorGen = true;
-									
 									threadLocal.rso.readColorBack = false;
 									threadLocal.rso.readColorFront = false;
 									threadLocal.rso.readColorGen = true;
@@ -395,7 +420,6 @@ public class StackPositionProcessor {
 									threadLocal.startpoints = new float[threadLocal.rsd.endpoints.length];
 									threadLocal.color = new float[5];
 									stl.set(threadLocal);
-										
 								}
 								RaySimulationData rsd = threadLocal.rsd;
 								RaySimulationObject currentRay = threadLocal.rso;
@@ -483,6 +507,7 @@ public class StackPositionProcessor {
 					final float midDir[] = new float[numRays * 3];
 					final float textureCoords[] = new float[numRays * 2];
 					final float color[] = new float[numRays * 5];
+					final OpticalObject centerObject = scene.getOpticalObject("AnteriorCornea"); //TODO
 					Arrays.fill(midPos, Float.NaN);
 					Arrays.fill(midDir, Float.NaN);
 					Arrays.fill(textureCoords, Float.NaN);
@@ -510,7 +535,6 @@ public class StackPositionProcessor {
 								threadLocal.startdirs = new float[threadLocal.rsd.enddirs.length];
 								threadLocal.startpoints = new float[threadLocal.rsd.endpoints.length];
 								stl.set(threadLocal);
-									
 							}
 							RaySimulationData rsd = threadLocal.rsd;
 							RaySimulationObject currentRay = threadLocal.rso;
@@ -526,7 +550,7 @@ public class StackPositionProcessor {
 							Vector2d v2 = currentRay.v3;
 							for (int j = 0; j < toCalculate; ++j)
 							{
-								if (rsd.accepted[j] == RaytraceScene.STATUS_ACCEPTED && lastObject[j] != null && lastObject[j].toString().equals("AnteriorCornea"))
+								if (rsd.accepted[j] == RaytraceScene.STATUS_ACCEPTED && lastObject[j] == centerObject)
 								{
 									System.arraycopy(rsd.endpoints, j * 3, midPos, (from + j) * 3, 3);
 									System.arraycopy(rsd.enddirs, j * 3, midDir, (from + j) * 3, 3);

@@ -755,7 +755,12 @@ public class RaytraceCommandLine {
 								{
 									String filename = split.get(++i);
 									File file = new File(filename);
-									file.getParentFile().mkdirs();
+									File parent = file.getParentFile();
+									if (parent == null)
+									{
+										throw new NullPointerException("Can't parse filename " + filename);
+									}
+									parent.mkdirs();
 									ImageIO.write(img, filename.substring(filename.lastIndexOf('.') + 1), file);
 									break;
 								}
