@@ -63,6 +63,10 @@ public class ImageUtil {
 		
 		int ch = addEnd - addBegin;
 		int pIndex = (y * width + x) * ch;
+		if (addEnd > add.length)
+		{
+			throw new ArrayIndexOutOfBoundsException("Illegal Input range: " + addBegin + '-' + addEnd + " for size " + add.length);
+		}
 		for (int i = 0; i < ch; ++i)
 		{
 			int addIndex = i + addBegin;
@@ -391,7 +395,6 @@ public class ImageUtil {
 			}
 		}
 	}
-	
 
 	public static void setRGB(WritableRaster raster, float[] imageColorArray, int[] pixel, int channels, int stride) {
 		final int width = raster.getWidth(), height = raster.getHeight();
@@ -399,10 +402,7 @@ public class ImageUtil {
 		{
 			for (int x = 0; x < width; ++x)
 			{
-				for (int i = 0, read = (y * width + x) * stride; i < channels; ++i, ++read)//TODO copy
-				{
-					pixel[i] = (int)imageColorArray[read];
-				}
+				ArrayUtil.arraycopy(imageColorArray, (y * width + x) * stride, pixel, 0, channels);
 				raster.setPixel(x, y, pixel);
 			}
 		}
