@@ -142,7 +142,7 @@ public class ArrayUtil {
 		return min;
 	}
 
-	public static final int minIndex(int data[], int begin, int end)
+	public static final int argMin(int data[], int begin, int end)
 	{
 		int min = Integer.MAX_VALUE;
 		int index = -1;
@@ -159,7 +159,7 @@ public class ArrayUtil {
 	
 	public void increaseMin(int array[], int begin, int end)
 	{
-		int idx = minIndex(array, begin, end);
+		int idx = argMin(array, begin, end);
 		++array[idx];
 	}
 	
@@ -480,6 +480,21 @@ public class ArrayUtil {
 		for (size += inputBegin; inputBegin < size; ++inputBegin, ++outputBegin)
 		{
 			output[outputBegin] = (int)input[inputBegin];
+		}
+	}
+
+	public static void arraycopy(float[] source, int inputBegin, double[] dest, int outputBegin, int size) {
+		if (inputBegin + size > source.length)
+		{
+			throw new ArrayIndexOutOfBoundsException("Index " + size + inputBegin + " out of bounds for length " + source.length);
+		}
+		if (outputBegin + size > dest.length)
+		{
+			throw new ArrayIndexOutOfBoundsException("Index " + size + outputBegin + " out of bounds for length " + dest.length);
+		}
+		for (size += inputBegin; inputBegin < size; ++inputBegin, ++outputBegin)
+		{
+			dest[outputBegin] = source[inputBegin];
 		}
 	}
 }

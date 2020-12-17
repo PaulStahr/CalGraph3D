@@ -1329,12 +1329,9 @@ public class RaytraceScene {
 						if (path != null)
 						{
 							int numInnerSteps = current.numInnerTrajectoryPoints;
-							for (int l = 0; l < numInnerSteps; ++l)
+							for (int l = 0; l < numInnerSteps && bounces[j] < maxBounces; ++l)
 							{
-								for (int k = 0; k < 3; ++k)
-								{
-									trajectory[outBeginIndex + (j - beginRay) * (bidir ? 2 : 1) * trajectoryStep + bounces[j] * 3 + k] = path[(j * current.maxSteps + l * endIteration[j] / numInnerSteps) * 3  + k];
-								}
+								ArrayUtil.arraycopy(path, (j * current.maxSteps + l * endIteration[j] / numInnerSteps) * 3, trajectory, outBeginIndex + (j - beginRay) * (bidir ? 2 : 1) * trajectoryStep + bounces[j] * 3, 3);
 								++bounces[j];
 							}
 						}
