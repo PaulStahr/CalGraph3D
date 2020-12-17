@@ -142,7 +142,7 @@ public class GuiTextureObject extends OpticalObject{
 				}
 				else
 				{
-				int tmp = parser.parseIntegerString(frameString, variables, controll);
+					int tmp = parser.parseIntegerString(frameString, variables, controll);
 					if (tmp != frameNumber)
 					{
 						frameNumber = tmp;

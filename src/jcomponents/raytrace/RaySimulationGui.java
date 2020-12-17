@@ -1271,36 +1271,19 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
     
     @Override
 	public void tableChanged(TableModelEvent e) {
-    	if (!EventQueue.isDispatchThread())
-    	{
-    		throw new RuntimeException("Table Changes only allowed by dispatchment thread");
-    	}
-       	if (!isUpdating)
-		{
-    		int rowBegin = e.getFirstRow();
-        	if (rowBegin == TableModelEvent.HEADER_ROW)
-        	{
-        		return;
-        	}
-        	isUpdating = true;
- 			Object source = e.getSource();
-    		int colBegin = e.getColumn() == TableModelEvent.ALL_COLUMNS ? 0 : e.getColumn();
-        	int rowEnd = e.getLastRow() + 1;
-			if (source == tableModelSurfaces)
-			{
-				tablechanged(e, tableSurfaces, scene.surfaceObjectList, colBegin, rowBegin, rowEnd, tableModelSurfaces, GuiOpticalSurfaceObject.TYPES);
-			}else if (source == tableModelVolumes)
-			{
-				tablechanged(e, tableVolumes, scene.volumeObjectList, colBegin, rowBegin, rowEnd, tableModelVolumes, GuiOpticalVolumeObject.TYPES);
-			}else if (source == tableModelTextures)
-			{
-				tablechanged(e, tableTextures, scene.textureObjectList, colBegin, rowBegin, rowEnd, tableModelTextures, GuiTextureObject.TYPES);
-			}else if (source == tableModelMeshes)
-			{
-				tablechanged(e, tableMeshes, scene.meshObjectList, colBegin, rowBegin, rowEnd, tableModelMeshes, MeshObject.TYPES);				
-			}
-			isUpdating = false;
-		}
+    	if (!EventQueue.isDispatchThread()){throw new RuntimeException("Table Changes only allowed by dispatchment thread");}
+       	if (isUpdating){return;}
+		int rowBegin = e.getFirstRow();
+    	if (rowBegin == TableModelEvent.HEADER_ROW){return;}
+    	isUpdating = true;
+		Object source = e.getSource();
+		int colBegin = e.getColumn() == TableModelEvent.ALL_COLUMNS ? 0 : e.getColumn();
+    	int rowEnd = e.getLastRow() + 1;
+		if 		(source == tableModelSurfaces)	{tablechanged(e, tableSurfaces, scene.surfaceObjectList, colBegin, rowBegin, rowEnd, tableModelSurfaces, GuiOpticalSurfaceObject.TYPES);}
+		else if (source == tableModelVolumes)	{tablechanged(e, tableVolumes, 	scene.volumeObjectList,  colBegin, rowBegin, rowEnd, tableModelVolumes,  GuiOpticalVolumeObject.TYPES);}
+		else if (source == tableModelTextures)	{tablechanged(e, tableTextures, scene.textureObjectList, colBegin, rowBegin, rowEnd, tableModelTextures, GuiTextureObject.TYPES);}
+		else if (source == tableModelMeshes)	{tablechanged(e, tableMeshes, 	scene.meshObjectList, 	 colBegin, rowBegin, rowEnd, tableModelMeshes,   MeshObject.TYPES);}
+		isUpdating = false;
 	}
      
 	@Override
@@ -1401,26 +1384,11 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 				{
 					Object selected = ((JComboBox<?>)source).getSelectedItem();
 					isUpdating = true;
-					if (source == forceStartpoint)
-					{
-						scene.setForceStartpoint(selected);
-					}
-					else if (source == forceEndpoint)
-					{
-						scene.setForceEndpoint(forceEndpoint.getSelectedItem());
-					}
-					else if (source == comboBoxWritableEnvironment)
-					{
-						scene.setWritableEnvironmentTexture(selected == null ? null : selected.toString());
-					}
-					else if (source == comboBoxRenderToTexture)
-					{						
-						scene.setRenderToTexture(selected == null ? null : selected.toString());
-					}	
-					else if (source == comboBoxTextureMapping)
-					{
-						scene.setTextureMapping((TextureMapping)comboBoxTextureMapping.getSelectedItem());
-					}
+					if (source == forceStartpoint)					{scene.setForceStartpoint(selected);}
+					else if (source == forceEndpoint)				{scene.setForceEndpoint(forceEndpoint.getSelectedItem());}
+					else if (source == comboBoxWritableEnvironment)	{scene.setWritableEnvironmentTexture(selected == null ? null : selected.toString());}
+					else if (source == comboBoxRenderToTexture)		{scene.setRenderToTexture(selected == null ? null : selected.toString());}	
+					else if (source == comboBoxTextureMapping)		{scene.setTextureMapping((TextureMapping)comboBoxTextureMapping.getSelectedItem());}
 					isUpdating = false;
 				}
 			}
@@ -2091,26 +2059,10 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		scrollPane.setPreferredSize(new Dimension(dim.width, dim.height + table.getTableHeader().getPreferredSize().height + 8));
     }
     
-    void updateSurfaceTable()
-    {
-    	updateTable(tableSurfaces, scrollPaneSurfaces, scene.surfaceObjectList, GuiOpticalSurfaceObject.TYPES, tableModelSurfaces, surfaceDeleteColumn);
-    	
-    }
-    
-    void updateVolumeTable()
-    {
-    	updateTable(tableVolumes, scrollPaneVolumes, scene.volumeObjectList, GuiOpticalVolumeObject.TYPES, tableModelVolumes, volumeDeleteColumn, volumeLoadColumn, volumeViewColumn);
-    }
-    
-    void updateTextureTable()
-    {
-    	updateTable(tableTextures, scrollPaneTextures, scene.textureObjectList, GuiTextureObject.TYPES, tableModelTextures, texturOpenColumn,texturLoadColumn, texturSaveColumn, texturSaveToColumn, texturViewColumn, texturDeleteColumn);
-    }
-	    
-    void updateMeshTable()
-    {
-    	updateTable(tableMeshes, scrollPaneMeshes, scene.meshObjectList, MeshObject.TYPES, tableModelMeshes, meshOpenColumn, meshSaveColumn, meshDeleteColumn);
-    }
+    void updateSurfaceTable()	{updateTable(tableSurfaces, scrollPaneSurfaces, scene.surfaceObjectList, GuiOpticalSurfaceObject.TYPES, tableModelSurfaces, surfaceDeleteColumn);}
+    void updateVolumeTable()	{updateTable(tableVolumes, 	scrollPaneVolumes, 	scene.volumeObjectList,	 GuiOpticalVolumeObject.TYPES, 	tableModelVolumes, 	volumeDeleteColumn, volumeLoadColumn, volumeViewColumn);}
+    void updateTextureTable()	{updateTable(tableTextures, scrollPaneTextures, scene.textureObjectList, GuiTextureObject.TYPES, 		tableModelTextures, texturOpenColumn,	texturLoadColumn, texturSaveColumn, texturSaveToColumn, texturViewColumn, texturDeleteColumn);}
+    void updateMeshTable()	    {updateTable(tableMeshes,	 scrollPaneMeshes, 	scene.meshObjectList, 	 MeshObject.TYPES, 				tableModelMeshes, 	meshOpenColumn, 	meshSaveColumn,   meshDeleteColumn);}
     
     private static float[] drawVolume(OpticalVolumeObject v, Drawer g, Vector2d translation, double scale, float vertices[]) throws IOException
     {

@@ -218,8 +218,7 @@ public class StackPositionProcessor {
 					img = new BufferedImage(trWidth, trHeight, BufferedImage.TYPE_4BYTE_ABGR);
 					numIterations = rangeEnd - rangeBegin;
 					final double avarage[] = new double[2 * (rangeEnd - rangeBegin)];
-					System.out.println(rangeBegin);
-					System.out.println(rangeEnd);
+					System.out.println(rangeBegin + '-' + rangeEnd);
 					DataHandler.runnableRunner.runParallelAndWait(new RunnableRunner.ParallelRangeRunnable() {
 						@Override
 						public void run(int from, int to)

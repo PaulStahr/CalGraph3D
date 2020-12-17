@@ -515,6 +515,11 @@ public void sub(final Vector3d vektor){
         this.z += z;
     }
     
+    public final void add(final double x, final double y){
+        this.x += x;
+        this.y += y;
+    }
+
     public final void cross(Vector3d v0, Vector3d v1)
     {
     	x = v0.y * v1.z - v0.z * v1.y;

@@ -205,7 +205,7 @@ public enum TextureMapping
 				out.y = 0.5;
 				return 1;
 			}
-			len = 2 * INV_TWO_PI * Math.atan2(len, z)/ len;
+			len = Math.atan2(len, z)/ (len * Math.PI);
 			out.x = x * len + 0.5;
 			out.y = y * len + 0.5;
 			return Math.sin(len) / len;
