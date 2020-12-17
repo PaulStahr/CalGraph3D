@@ -228,68 +228,29 @@ public class RayGenerator extends AbstractRayGenerator{
 		}
 		if (diffuse != 0)
 		{
-			diffuse *= 2;
 			direction.normalize();
 			if (threeDimensional || source instanceof MeshObject)
-			{
-				/*double x,y,z;
-				do {
-					x = rand() - 0.5;
-					y = rand() - 0.5;
-					z = rand() - 0.5;
-				}while(x * x + y * y + z * z > 0.25);
-				x *= diffuse; y *= diffuse; z *= diffuse;
-				double prod = 1 - (x * direction.x + y * direction.y + z * direction.z);
-				direction.x = direction.x * prod + x;
-				direction.y = direction.y * prod + y;
-				direction.z = direction.z * prod + z;*/
-				
-				double x,y, z;
-				do {
-					x = rand() - 0.5;
-					y = rand() - 0.5;
-					z = rand() - 0.5;
-				}while(x * x + y * y + z * z> 0.25);
-				x *= diffuse;
-				y *= diffuse;
-				z *= diffuse;
-				double randdot = x * x + y * y + z * z;
-				double dot = direction.dot(x, y, z);
-				
-				double prod = -dot+Math.sqrt(dot * dot + (1 - randdot));
-				direction.x = direction.x * prod + x;
-				direction.y = direction.y * prod + y;
-				direction.z = direction.z * prod + z;
-			
+			{	
+				double w = rand() * diffuse * diffuse;
+				double rho = rand() * (Math.PI * 2);
+				double xf = Math.sqrt(w)*Math.cos(rho);
+				double yf = Math.sqrt(w)*Math.sin(rho);
+				double zf = Math.sqrt(1-w);
+				direction.z -= 1;
+				double dot = 2 / direction.dot() * direction.dot(xf,yf,zf);
+				direction.x = xf - dot * direction.x;
+				direction.y = yf - dot * direction.y;
+				direction.z = zf - dot * direction.z;
 			}
 			else
 			{
-				double x,y;
-				do {
-					x = rand() - 0.5;
-					y = rand() - 0.5;
-				}while(x * x + y * y > 0.25);
-				x *= diffuse;
-				y *= diffuse;
-				double randdot = x * x + y * y;
-				double dot = direction.dot(x, y, 0);
-				
-				double prod = -dot+Math.sqrt(dot * dot + (1 - randdot));
-				direction.x = direction.x * prod + x;
-				direction.y = direction.y * prod + y;
-				direction.z = direction.z * prod;
-				
-				/*double x,y;
-				do {
-					x = rand() * 0.5;
-					y = (rand() - 0.5) * diffuse;
-				}while(x * x + y * y > 0.25);//TODO explicit formular
-				x = Math.sqrt(0.25 - y * y);
-				//x *= diffuse; y *= diffuse;
-				//double prod = 1 - (x * direction.x + y * direction.y);
-				direction.set(direction.x * x + direction.y * y, direction.y * x - direction.x * y, direction.z);
-				//direction.set(-0.2,0.8,0);
-				 */
+				double w  = (2 * rand() - 1) * diffuse;
+				double h  = Math.sqrt(1 - w * w);
+				double x = direction.x * h + direction.y * w;
+				double y = direction.y * h - direction.x * w;
+				direction.x = x;
+				direction.y = y;
+				direction.z *= h;
 			}
 		}
 	}
