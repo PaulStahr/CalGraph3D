@@ -33,24 +33,12 @@ import util.data.DoubleList;
 public final class Vector3d implements Vectord
 {
     public double x, y, z;
-    
-    /**
-     * erzeugt einen neuen Vektor
-     */
-    public Vector3d(){}
 
-    /**
-     * erzeugt einen neuen Vektor
-     * @param x L\u00E4nge des Vektors in x-Richtung
-     * @param y L\u00E4nge des Vektors in y-Richtung
-     * @param z L\u00E4nge des Vektors in z-Tichtung
-     */
-    public Vector3d(final double x,final double y,final double z){
-        this.x=x;
-        this.y=y;
-        this.z=z;
-    }
-    
+    public Vector3d(){}
+    public Vector3d(final double x,final double y,final double z){this.x=x;this.y=y;this.z=z;}
+    public Vector3d(final Vector3f vector){set(vector);}
+    public Vector3d(final Vector3d vector){set(vector);}
+
     @Override
 	public double getD(int index)
     {
@@ -75,59 +63,26 @@ public final class Vector3d implements Vectord
     	}
     }
 
-    /**
-     * erzeugt einen neuen Vektor
-     * @param vektor der Vektor dessen eigenschaften \u00FCbernommen werden
-     */
-    public Vector3d(final Vector3f vector){
-       set(vector);
-    }
-        
-    /**
-     * erzeugt einen neuen Vektor
-     * @param vektor der Vektor dessen eigenschaften \u00FCbernommen werden
-     */
-    public Vector3d(final Vector3d vector){
-       set(vector);
-    }
-        
     @Override
-    public final boolean equals(Object other)
+    public final boolean equals(Object o)
     {
-    	if (other instanceof Vector3d)
+    	if (o instanceof Vector3d)
     	{
-    		Vector3d vec = (Vector3d)other;
-    		return vec.x == x && vec.y == y && vec.z == z;
+    		Vector3d v = (Vector3d)o;
+    		return v.x == x && v.y == y && v.z == z;
     	}
     	return false;
     }
     
-    /**
-     * Subtrahiert den Vektor
-     * @param vektor der Subtrahiert
-     */
-    public void sub(final Vector3f vektor){
-        x -= vektor.x;
-        y -= vektor.y;
-        z -= vektor.z;
-    }
+    public void sub(final Vector3f v){x -= v.x;y -= v.y;z -= v.z;}
+    public void sub(final Vector3d v){x -= v.x;y -= v.y;z -= v.z;}
 
-   
-    public final boolean containsNaN()
-    {
-    	return Double.isNaN(x) || Double.isNaN(y) || Double.isNaN(z);
-    }
+    public void sqrt() {x = Math.sqrt(x);y = Math.sqrt(y);z = Math.sqrt(z);}
+	public void divide(Vector3d v) 	 {x /= v.x;y /= v.y;z /= v.z;}
+
+    public final boolean containsNaN(){return Double.isNaN(x) || Double.isNaN(y) || Double.isNaN(z);}
     
-/**
- * Subtrahiert den Vektor
- * @param vektor der Subtrahiert
- */
-public void sub(final Vector3d vektor){
-    x -= vektor.x;
-    y -= vektor.y;
-    z -= vektor.z;
-}
-    /**
+     /**
      * erzeugt eine Normale
      */
     public static final Vector3f getNormal(final Vector3f v0, final Vector3f v1, final Vector3f v2){
@@ -147,114 +102,47 @@ public void sub(final Vector3d vektor){
         z = ax*by - ay*bx;
     }
 
-    /**
-     * Setzt die L\u00E4nge des Vektors auf 1
-     */
-    public final void normalize(){
-        multiply(1/getLength());
-    }
+    public final void normalize(){multiply(1/norm());}
+    public final void setNorm(double length){multiply(length / norm());}
+    public final double norm(){return Math.sqrt(dot());}
+    
+    public final void multiply(final double m){x*=m;y*=m;z*=m;}
+	public final void multiply(Vector3d v) {x *= v.x;y *= v.y;z *= v.z;}
 
-    /**
-     * Multipliziert die L\u00E4nge des Vektors
-     * @param mult Multiplikator
-     */
-    public final void multiply(final double mult){
-        x*=mult;
-        y*=mult;
-        z*=mult;
-    }
-    
-    public final void set(float data[], int pos)
-    {
-    	x = data[pos];
-    	y = data[pos + 1];
-    	z = data[pos + 2];
-    }
-    
+    public final void set(float data[], int pos){x = data[pos];y = data[pos + 1];z = data[pos + 2];}
+    public final void set(double data[], int pos){x = data[pos];y = data[pos + 1];z = data[pos + 2];}
+
     public final void set(Object data, int pos)
     {
-    	if (data instanceof float[])
-    	{
-    		set((float[])data, pos);
-    	}
-    	else if (data instanceof double[])
-    	{
-    		set((double[])data, pos);
-    	}
-    	else if (data instanceof DoubleList)
-    	{
-    		set((DoubleList)data, pos);
-    	}
-    	else
-    	{
-    		throw new IllegalArgumentException(data.getClass().toString());
-    	}
+    	if 		(data instanceof float[])	{set((float[])data, pos);}
+    	else if (data instanceof double[])	{set((double[])data, pos);}
+    	else if (data instanceof DoubleList){set((DoubleList)data, pos);}
+    	else{throw new IllegalArgumentException(data.getClass().toString());}
     }
     
     public final void write(Object data, int pos)
     {
-    	if (data instanceof float[])
-    	{
-    		write((float[])data, pos);
-    	}
-    	else if (data instanceof double[])
-    	{
-    		write((double[])data, pos);
-    	}
-    	else if (data instanceof DoubleList)
-    	{
-    		write((DoubleList)data, pos);
-    	}
-    	else if (data instanceof IntBuffer)
-    	{
-    		write((IntBuffer)data, pos);
-    	}
-    	else
-    	{
-    		throw new IllegalArgumentException(data.getClass().toString());
-    	}
+    	if 		(data instanceof float[])	{write((float[])data, pos);}
+    	else if (data instanceof double[])	{write((double[])data, pos);}
+    	else if (data instanceof DoubleList){write((DoubleList)data, pos);}
+    	else if (data instanceof IntBuffer)	{write((IntBuffer)data, pos);}
+    	else{throw new IllegalArgumentException(data.getClass().toString());}
     }
     
-    public final void set(double data[], int pos)
+    public final void write(final double data[], final int pos){data[pos] = x;data[pos + 1] = y;data[pos + 2] = z;}
+    public final void write(float data[], int pos){data[pos] = (float)x;data[pos + 1] = (float)y;data[pos + 2] = (float)z;}
+    public final void write(DoubleList list, int index)
     {
-    	x = data[pos];
-    	y = data[pos + 1];
-    	z = data[pos + 2];
-    }
-
-    public final void write(final double data[], final int pos)
-    {
-    	data[pos] = x;
-    	data[pos + 1] = y;
-    	data[pos + 2] = z;
-    }
-
-    public final void write(float data[], int pos)
-    {
-    	data[pos] = (float)x;
-    	data[pos + 1] = (float)y;
-    	data[pos + 2] = (float)z;
-    }
-
-    /**
-     * Setzt den Vektor auf eine Bestimmte L\u00E4nge
-     * @param length die neue L\u00E4nge des Vektors
-     */
-    public final void setLength(double length){
-        multiply(length / getLength());
-    }
-
-    /**
-     * Berechnet die aktuelle L\u00E4nge des Vektors
-     * @return L\u00E4nge des Vektors
-     */
-    public final double getLength(){
-        return Math.sqrt(dot());
+    	list.setElem(index, this.x);
+    	list.setElem(index + 1, this.y);
+    	list.setElem(index + 2, this.z);
     }
     
-    @Override
-	public final double dot() {
-    	return x * x + y * y + z * z;
+    public final void write(IntBuffer list, int index)
+    {
+    	list.put(index, 	(int)this.x);
+    	list.put(index + 1, (int)this.y);
+    	list.put(index + 2, (int)this.z);
     }
 
     /**
@@ -313,99 +201,38 @@ public void sub(final Vector3d vektor){
         x = tmp;
     }
     
-    public final double dot(Vector3d other)
-    {
-    	return x * other.x + y * other.y + z * other.z;
-    }
+    @Override
+	public final double dot() {return x * x + y * y + z * z;}
+    public final double dot(Vector3d v){return x * v.x + y * v.y + z * v.z;}
+    public final double dot(final double x, final double y, final double z){return this.x * x + this.y * y + this.z * z;}
+	public final double dot(double[] data, int i) 	{return data[i] * x + data[i + 1] * y + data[i + 2] * z;}
+	public final double dot(Vector3d v, Vector3d w) {return x * (v.x - w.x) + y * (v.y - w.y) + z * (v.z - w.z);}
+	public final double dot(float[] data, int i) 	{return data[i] * x + data[i + 1] * y + data[i + 2] * z;}
 
-    public final double dot(final double x, final double y, final double z)
-    {
-    	return this.x * x + this.y * y + this.z * z;
-    }
-
-    /**
-     * Setzt den Vektor auf die bestimmte Werte.
-     * @param x x-Wert des Vektors
-     * @param y y-Wert des Vektors
-     * @param z z-Wert des Vektors
-     */
-    public final void set(final double x, final double y, final double z){
-        this.x=x;
-        this.y=y;
-        this.z=z;
-    }
-
-    public final void set(DoubleList list, int index)
-    {
-    	this.x = list.getD(index);
-    	this.y = list.getD(index + 1);
-    	this.z = list.getD(index + 2);
-    }
+    public final void set(final double x, final double y, final double z){this.x=x;this.y=y;this.z=z;}
+    public final void set(DoubleList list, int index){this.x = list.getD(index);this.y = list.getD(index + 1);this.z = list.getD(index + 2);}
     
-    public final void write(DoubleList list, int index)
-    {
-    	list.setElem(index, this.x);
-    	list.setElem(index + 1, this.y);
-    	list.setElem(index + 2, this.z);
-    }
-    
-    public final void write(IntBuffer list, int index)
-    {
-    	list.put(index, 	(int)this.x);
-    	list.put(index + 1, (int)this.y);
-    	list.put(index + 2, (int)this.z);
-    }
-    
-    /**
-     * Setzt den Vektor auf bestimmte Werte.
-     * @param vektor der Vektor auf den die Werte gesetzt werden sollen
-     */
-    public final void set(final Vector3f vektor){
-        x = vektor.x;
-        y = vektor.y;
-        z = vektor.z;
+    public final void set(final Vector3f v){x = v.x;y = v.y;z = v.z;}
+    public final void set(final Vector2d v){x = v.x;y = v.y;}
+    public final void set(final Vector3d v){x = v.x;y = v.y;z = v.z;}
+    public final void set(final Vector3d v, double s){x = v.x * s;y = v.y * s;z = v.z * s;}
+
+    public final void set(final Vector3d v, final Vector3d w, double s){
+        x = v.x + w.x * s;
+        y = v.y + w.y * s;
+        z = v.z + w.z * s;
     }
 
-    /**
-     * Setzt den Vektor auf bestimmte Werte.
-     * @param vektor der Vektor auf den die Werte gesetzt werden sollen
-     */
-    public final void set(final Vector2d vektor){
-        x = vektor.x;
-        y = vektor.y;
+    public final void set(final double x, final double y, final double z, final Vector3d v, final double s){
+        this.x = x + v.x * s;
+        this.y = y + v.y * s;
+        this.z = z + v.z * s;
     }
 
-    /**
-     * Setzt den Vektor auf bestimmte Werte.
-     * @param vektor der Vektor auf den die Werte gesetzt werden sollen
-     */
-    public final void set(final Vector3d vektor){
-        x = vektor.x;
-        y = vektor.y;
-        z = vektor.z;
-    }
-    public final void set(final Vector3d v, double s){
-        x = v.x * s;
-        y = v.y * s;
-        z = v.z * s;
-    }
-
-    public final void set(final Vector3d v0, final Vector3d v1, double s1){
-        x = v0.x + v1.x * s1;
-        y = v0.y + v1.y * s1;
-        z = v0.z + v1.z * s1;
-    }
-
-    public final void set(final double x, final double y, final double z, final Vector3d v1, final double s1){
-        this.x = x + v1.x * s1;
-        this.y = y + v1.y * s1;
-        this.z = z + v1.z * s1;
-    }
-
-    public final void set(final Vector3d v0, double s0, final Vector3d v1, double s1){
-        x = v0.x * s0 + v1.x * s1;
-        y = v0.y * s0 + v1.y * s1;
-        z = v0.z * s0 + v1.z * s1;
+    public final void set(final Vector3d v, double s, final Vector3d w, double t){
+        x = v.x * s + w.x * t;
+        y = v.y * s + w.y * t;
+        z = v.z * s + w.z * t;
     }
 
     public final void set(final Vector3d v0, final Vector3d v1, double s1, final Vector3d v2, double s2){
@@ -432,65 +259,14 @@ public void sub(final Vector3d vektor){
         z = v0.z * s0 + v1.z * s1 + v2.z * s2;
     }
 
-    /**
-     * Setzt den Vektor auf bestimmte Werte.
-     * @param vektor der Vektor auf den die Werte gesetzt werden sollen
-     */
-    public final void setDiff(final Vector3d v0, final Vector3d v1){
-        x = v0.x - v1.x;
-        y = v0.y - v1.y;
-        z = v0.z - v1.z;
-    }    
-    
-    /**
-     * Setzt den Vektor auf bestimmte Werte.
-     * @param vektor der Vektor auf den die Werte gesetzt werden sollen
-     */
-    public final void setAdd(final Vector3d v0, final Vector3d v1){
-        x = v0.x + v1.x;
-        y = v0.y + v1.y;
-        z = v0.z + v1.z;
-    }
+    public final void setDiff(final Vector3d v, final Vector3d w){x = v.x - w.x;y = v.y - w.y;z = v.z - w.z;}
+    public final void setAdd (final Vector3d v, final Vector3d w){x = v.x + w.x;y = v.y + w.y;z = v.z + w.z;}
+	public final void setAdd (final Vector3d v, final double x, final double y, final double z) {this.x = v.x + x;this.y = v.y + y;this.z = v.z + z;}
 
-    /**
-     * Addiert zum Vektor bestimmte Werte.
-     * @param vektor der Vektor der addiert werden soll
-     */
-    public final void add(final Vector2d vektor){
-        x += vektor.x;
-        y += vektor.y;
-    }
-    
-    /**
-     * Addiert zum Vektor bestimmte Werte.
-     * @param vektor der Vektor der addiert werden soll
-     */
-    public final void add(final Vector3f vektor){
-        x += vektor.x;
-        y += vektor.y;
-        z += vektor.z;
-    }
-    
-    /**
-     * Addiert zum Vektor bestimmte Werte.
-     * @param vektor der Vektor der addiert werden soll
-     */
-    public final void add(final Vector3d vektor){
-        x += vektor.x;
-        y += vektor.y;
-        z += vektor.z;
-    }
-    
-    /**
-     * Addiert zum Vektor bestimmte Werte.
-     * @param vektor der Vektor der addiert werden soll
-     * @param scalar der Skalar mit dem der vektor vorher multipliziert wird
-     */
-    public final void add(final Vector3d vektor, double scalar){
-        x += vektor.x * scalar;
-        y += vektor.y * scalar;
-        z += vektor.z * scalar;
-    }
+    public final void add(final Vector2d v){x += v.x;y += v.y;}
+    public final void add(final Vector3f v){x += v.x;y += v.y;z += v.z;}
+    public final void add(final Vector3d v){x += v.x;y += v.y;z += v.z;}
+    public final void add(final Vector3d v, double s){x += v.x * s;y += v.y * s;z += v.z * s;}
     
     /**
      * Addiert zum Vektor bestimmte Werte.
@@ -503,22 +279,12 @@ public void sub(final Vector3d vektor){
         z += vektor.z * scalar + vector2.x * scalar2;
     }
 
-    /**
-     * Addiert zum Vektor bestimmte Werte.
-     * @param x x-Wert der Addiert wird
-     * @param y y-Wert der Addiert wird
-     * @param z z-Wert der Addiert wird
-     */
-    public final void add(final double x, final double y, final double z){
-        this.x += x;
-        this.y += y;
-        this.z += z;
-    }
-    
-    public final void add(final double x, final double y){
-        this.x += x;
-        this.y += y;
-    }
+    public final void add(final double x, final double y, final double z){this.x += x;this.y += y;this.z += z;}
+    public final void add(final double x, final double y){this.x += x;this.y += y;}
+	public final void add(float[] data, int index) {x += data[index];y += data[index + 1];z += data[index + 2];}
+	public final void add(float[] data, int index, float s) {x += data[index] * s;y += data[index + 1] * s;z += data[index + 2] * s;}
+	@Override
+	public final void add(double[] data, int index) {x += data[index];y += data[index + 1];z += data[index + 2];}
 
     public final void cross(Vector3d v0, Vector3d v1)
     {
@@ -527,57 +293,38 @@ public void sub(final Vector3d vektor){
     	z = v0.x * v1.y - v0.y * v0.x;
     }
 
-	public final void reflect(Vector3d other) {
-		add(other, -2 * dot(other)/other.dot());
-	}
+	public final void reflect(Vector3d v) {add(v, -2 * dot(v)/v.dot());}
 	
-	public final void invert(Vector3d other)
-	{
-		x = -other.x;
-		y = -other.y;
-		z = -other.z;
-	}
+	public final void invert(Vector3d v){x = -v.x;y = -v.y;z = -v.z;}
+	public final void invert()			{x = -x;y = -y;z = -z;}
 	
-	public final void invert()
+   	public final double distanceQ(Vector3d v)
 	{
-		x = -x;
-		y = -y;
-		z = -z;
-	}
-	
-   	public final double distanceQ(Vector3d other)
-	{
-		double xDiff = x - other.x;
-		double yDiff = y - other.y;
-		double zDiff = z - other.z;
+		double xDiff = x - v.x;
+		double yDiff = y - v.y;
+		double zDiff = z - v.z;
 		return xDiff * xDiff + yDiff * yDiff + zDiff * zDiff;
 	}
    	
-	public double distance(Vector3d v) {
-		return Math.sqrt(distanceQ(v));
-	}
-
-	public double distance(float[] data, int i) {
-		return Math.sqrt(distanceQ(data, i));
-	}
+	public double distance(Vector3d v) {return Math.sqrt(distanceQ(v));}
+	public double distance(float[] data, int i) {return Math.sqrt(distanceQ(data, i));}
 	
-	public final double distanceQ(Vector3d other, double scale)
+	public final double distanceQ(Vector3d v, double s)
 	{
-		double xDiff = x - other.x * scale;
-		double yDiff = y - other.y * scale;
-		double zDiff = z - other.z * scale;
+		double xDiff = x - v.x * s;
+		double yDiff = y - v.y * s;
+		double zDiff = z - v.z * s;
 		return xDiff * xDiff + yDiff * yDiff + zDiff * zDiff;
 	}
 	
 	public final double distanceQ(final double scale, final double x, final double y, final double z)
-	{
+	{//TODO: order of arguments is contraintuitive
 		double xDiff = scale * this.x - x;
 		double yDiff = scale * this.y - y;
 		double zDiff = scale * this.z - z;
 		return xDiff * xDiff + yDiff * yDiff + zDiff * zDiff;
 	}
 	
-
 	public final double distanceQ(float[] data, int index) {
 		double xDiff = x - data[index];
 		double yDiff = y - data[index + 1];
@@ -593,81 +340,14 @@ public void sub(final Vector3d vektor){
 	}
 	
     @Override
-	public final String toString()
-    {
-    	return toString(new StringBuilder()).toString();    	
-    }
-    
-    public final StringBuilder toString(StringBuilder strB)
-    {
-    	return strB.append('(').append(x).append(',').append(y).append(',').append(z).append(')');
-    }
+	public final String toString(){return toString(new StringBuilder()).toString();}
+    public final StringBuilder toString(StringBuilder strB){return strB.append('(').append(x).append(',').append(y).append(',').append(z).append(')');}
 
 	@Override
-	public int size() {
-		return 3;
-	}
-
-	public void add(float[] data, int index) {
-		x += data[index];
-		y += data[index + 1];
-		z += data[index + 2];
-	}
-	
-
-	public void add(float[] data, int index, float scalar) {
-		x += data[index] 	 * scalar;
-		y += data[index + 1] * scalar;
-		z += data[index + 2] * scalar;
-	}
-
-	@Override
-	public void add(double[] data, int index) {
-		x += data[index];
-		y += data[index + 1];
-		z += data[index + 2];
-	}
-
-	public final double dot(double[] data, int i) {
-		return data[i] * x + data[i + 1] * y + data[i + 2] * z;
-	}
-
-	public final void setAdd(final Vector3d vec, final double x, final double y, final double z) {
-		this.x = vec.x + x;
-		this.y = vec.y + y;
-		this.z = vec.z + z;
-	}
-
-	public final double dot(Vector3d v0, Vector3d v1) {
-		return x * (v0.x - v1.x) + y * (v0.y - v1.y) + z * (v0.z - v1.z);
-	}
-
-	public final double dot(float[] data, int i) {
-		return data[i] * x + data[i + 1] * y + data[i + 2] * z;
-	}
+	public int size() {return 3;}
 
 	public double acosDistance(Vector3d position, Vector3d midpoint) {
 		double diffx = position.x - midpoint.x, diffy = position.y - midpoint.y, diffz = position.z = midpoint.z;
 		return Math.acos(dot(diffx, diffy, diffz)/Math.sqrt((diffx * diffx + diffy * diffy + diffz * diffz)*dot()));
 	}
-
-	public void sqrt() {
-		x = Math.sqrt(x);
-		y = Math.sqrt(y);
-		z = Math.sqrt(z);
-	}
-
-	public void divide(Vector3d vec) {
-		x /= vec.x;
-		y /= vec.y;
-		z /= vec.z;
-	}
-
-	public void multiply(Vector3d vec) {
-		x *= vec.x;
-		y *= vec.y;
-		z *= vec.z;
-	}
-
-
 }
