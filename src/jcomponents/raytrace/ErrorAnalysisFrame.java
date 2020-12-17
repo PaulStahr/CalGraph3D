@@ -317,7 +317,7 @@ public class ErrorAnalysisFrame extends JFrame implements SceneChangeListener, A
 					arrowWindows[j - 1].positions[i*2 + 1] = (float)(tmpEndpoint.y);
 				}
 				
-				data[i][j] = absoluteDistances ? tmpEndpoint.getLength() : tmpEndpoint.toString();
+				data[i][j] = absoluteDistances ? tmpEndpoint.norm() : tmpEndpoint.toString();
 				switch(j)
 				{
 					case  1:current.midpoint.x = (double)originalValue;break;

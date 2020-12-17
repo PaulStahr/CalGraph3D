@@ -58,14 +58,14 @@ public class RayGenerator extends AbstractRayGenerator{
 						Geometry.getOrthorgonalVector(direction, v0);
 						//v0.setLength(directionLength);
 						v1.cross(direction, v0);
-						v1.setLength(surf.maxRadiusGeometric);
+						v1.setNorm(surf.maxRadiusGeometric);
 					}
 					else
 					{
 						v0.set(direction);
 						v0.rotateRadiansZ(Math.PI * 0.5);
 					}
-					v0.setLength(surf.maxRadiusGeometric);
+					v0.setNorm(surf.maxRadiusGeometric);
 					break;
 				case HYPERBOLIC:
 					break;
@@ -87,14 +87,14 @@ public class RayGenerator extends AbstractRayGenerator{
 					{
 						Geometry.getOrthorgonalVector(direction, v0);
 						v1.cross(direction, v0);
-						v1.setLength(surf.directionLength);
+						v1.setNorm(surf.directionLength);
 					}
 					else
 					{
 						v0.set(direction);
 						v0.rotateRadiansZ(Math.PI * 0.5);
 					}
-					v0.setLength(surf.directionLength);
+					v0.setNorm(surf.directionLength);
 			case CUSTOM:
 				break;
 			case CYLINDER:
@@ -229,6 +229,7 @@ public class RayGenerator extends AbstractRayGenerator{
 		if (diffuse != 0)
 		{
 			direction.normalize();
+			/*Use Householder transformation H=I-2/(v^t*v)*v*v^t with v=dir-e_3 mirror the distribution from the x-y-plane to the v-orthorgonal plane*/
 			if (threeDimensional || source instanceof MeshObject)
 			{	
 				double w = rand() * diffuse * diffuse;

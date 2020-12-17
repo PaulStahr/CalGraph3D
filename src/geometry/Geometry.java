@@ -994,9 +994,9 @@ public class Geometry {
     {
 		Geometry.getOrthorgonalVector(in, n0);
 		double length = Math.sqrt(in.dot());
-		n0.setLength(length);
+		n0.setNorm(length);
 		n1.cross(in, n0);
-		n1.setLength(length);
+		n1.setNorm(length);
     }
     
     public static double[] getVarianceOnSphere(float[] position, float[] direction, byte[] accepted, Vector3d linePosition, Vector3d lineDirection, double evaluation_points[], double[] result) 

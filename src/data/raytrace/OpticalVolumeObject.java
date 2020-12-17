@@ -650,7 +650,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 				}
 				v0.multiply(width * spacing.x);
 				v1.multiply(height * spacing.y);
-				v2.setLength(depth * spacing.z);
+				v2.setNorm(depth * spacing.z);
 				unitVolumeToGlobal.setCols(v0, v1, v2, midpoint);
 				applyMatrix();
 				inBuf.close();
@@ -935,7 +935,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 					globalToCudaLattice.rdot(direction, i, tmp);
 					//tmp.setLength(0x3FFF);
 					tmp.multiply(spacing);
-					tmp.setLength(0.5);
+					tmp.setNorm(0.5);
 					Buffers.putRev(startDirection, tmp, writeIndex);
 					globalToCudaLattice.rdotAffine(position, i, tmp);
 					startPosition.put(writeIndex,     clip((int)tmp.z, 0x10000, maxZ));
@@ -1006,7 +1006,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			for (int i = fromIndex, writeIndex = 0; i < toIndex; i += 3, writeIndex += 3)
 			{
 				globalToCudaLattice.rdot(direction, i, tmp);
-				tmp.setLength(0.5);
+				tmp.setNorm(0.5);
 				Buffers.putRev(startDirection, tmp, writeIndex);
 				globalToCudaLattice.rdotAffine(position, i, tmp);
 				startPosition.put(writeIndex, 	  clip((int)tmp.z, 0x10000, maxZ));
@@ -1049,7 +1049,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			{
 				tmp.set(direction, i);
 				globalToCudaLattice.rdot(tmp);
-				tmp.setLength(0x3FFF);
+				tmp.setNorm(0x3FFF);
 				Buffers.putRev(startDirection, tmp, writeIndex);
 				globalToCudaLattice.rdotAffine(position, i, tmp);
 				startPosition.put(writeIndex, 	  clip((int)tmp.z, 0x10000, maxZ));

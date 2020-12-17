@@ -2134,7 +2134,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 				vec.set(direction);
 				vec.rotateRadiansZ(Math.PI * 0.5);
 				double rmax = l.maxRadiusGeometric * scale;
-				vec.setLength(rmax);
+				vec.setNorm(rmax);
 				
 				if (l.minRadiusGeometric == 0)
 				{
@@ -2153,7 +2153,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 			{
 				vec.set(direction);
 				vec.rotateRadiansZ(Math.PI * 0.5);
-				vec.setLength(l.maxRadiusGeometric * scale / 16);
+				vec.setNorm(l.maxRadiusGeometric * scale / 16);
 				x += direction.x * scale;
 				y += direction.y * scale;
 				double mult = scale;
@@ -2171,7 +2171,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 			{
 				vec.set(direction);
 				vec.rotateRadiansZ(Math.PI * 0.5);
-				vec.setLength(l.maxRadiusGeometric * scale / 16);
+				vec.setNorm(l.maxRadiusGeometric * scale / 16);
 				x += direction.x * scale;
 				y += direction.y * scale;
 				double mult = 0.5 * scale * l.radiusGeometricQ * l.invDirectionLengthQ/256;
@@ -2207,7 +2207,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 			{
 				vec.set(direction);
 				vec.rotateRadiansZ(Math.PI * 0.5);
-				vec.setLength(scale * l.directionLength);
+				vec.setNorm(scale * l.directionLength);
 				x += direction.x * scale;
 				y += direction.y * scale;
 				double tmp0 = (1 + l.conicConstant);

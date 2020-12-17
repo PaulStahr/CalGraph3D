@@ -1507,7 +1507,7 @@ public class RaytraceScene {
 				successor = c < 0 ? obj.successor : obj.predessor;
 				if (obj.diffuse != 0)
 				{
-					double dirnorm = direction.getLength() * obj.diffuse;
+					double dirnorm = direction.norm() * obj.diffuse;
 					direction.x += (Math.random() - 0.5) * dirnorm;
 					direction.y += (Math.random() - 0.5) * dirnorm;
 					direction.z += (Math.random() - 0.5) * dirnorm;
