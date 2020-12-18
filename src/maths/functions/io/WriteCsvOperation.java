@@ -66,7 +66,7 @@ public class WriteCsvOperation extends FunctionOperation {
 							if (op.size() != 0)
 							{
 								op.get(0).toString(strB);
-								for (int j = 0; j < op.size(); ++j)
+								for (int j = 1; j < op.size(); ++j)
 								{
 									op.get(j).toString(strB.append(csepChar));
 								}
@@ -93,9 +93,9 @@ public class WriteCsvOperation extends FunctionOperation {
 				return new ExceptionOperation(e.getMessage());
 			}
 		}
-		Operation erg = OperationCalculate.standardCalculations(a,b);
-		if (erg != null)
-			return erg;
+		Operation res = OperationCalculate.standardCalculations(a,b);
+		if (res != null)
+			return res;
 		return new WriteCsvOperation(a, b);		
 	}
 	
