@@ -27,14 +27,14 @@ public class VolumePipeline implements Runnable {
 	private Volume cachedSteps[] = Volume.EMPTY_VOLUME_ARRAY;
 	private final ArrayList<WeakReference<Runnable> > updateListener = new ArrayList<>();
 	public final ArrayList<CalculationStep> steps = new ArrayList<>();
-	private boolean calculating;
+	private volatile boolean calculating;
 	public OpticalVolumeObject ovo;
 	public final RaytraceScene scene;
 	public boolean calcuteAtCreation;
 	private boolean autoUpdate;
 	public final VolumePipelineTimedUpdater updater;
 	private final VolumeRunnable runnable = new VolumeRunnable();
-	private int begin = 0;
+	private volatile int begin = 0;
 	public SortedIntegerArrayList vIds[] = SortedIntegerArrayList.EMPTY_SORTED_INTEGER_ARRAY_LIST_ARRAY;
 	
 	private class VolumePipelineTimedUpdater implements TimedUpdateHandler{
@@ -50,6 +50,7 @@ public class VolumePipeline implements Runnable {
 		
 		@Override
 		public synchronized void update() {
+			scene.rayUpdateHandler.update();
 			if (scene.vs.modCount() != modCount){
 				modCount = scene.vs.modCount();
 				observer.updateChanges();
@@ -133,7 +134,7 @@ public class VolumePipeline implements Runnable {
 	
 	public boolean isCalculating(){return calculating;}
 	
-	public int getCurrentCalculatingStep(){return begin;}
+	public int getCurrentCalculatingStep(){return begin - 1;}
 	
 	public void updateState(){ListTools.run(updateListener);}
 	
@@ -178,7 +179,7 @@ public class VolumePipeline implements Runnable {
 			}
 		}
     }
-	public synchronized void pipe()
+	public synchronized void pipe()//TODO is this necessary?
 	{
 		updateState();
 		if (cachedSteps.length != steps.size())
@@ -194,7 +195,7 @@ public class VolumePipeline implements Runnable {
 		}
 		try
 		{
-			for (;true; )
+			while (true)
 			{
 				int current;
 				synchronized(this)
@@ -278,20 +279,28 @@ public class VolumePipeline implements Runnable {
 		return autoUpdate;
 	}
 
-	public void blockOnCulculation() {
+	public void blockOnCalculation() {
 		updater.update();
-		logger.debug("blocking");
 		synchronized(this)
 		{
 			if (calculating)
 			{
+				logger.debug("block");
 				try {
 					wait();
 				} catch (InterruptedException e) {
 					logger.error("Unexpected Interrupt", e);
 				}
+				logger.debug("unblock");
+			}
+			else
+			{
+				logger.debug("skipblock");
+			}
+			if (calculating)
+			{
+				throw new RuntimeException("Thread shoud only be woken at calculation-finish");
 			}
 		}
-		logger.debug("unblocking");
 	}
 }

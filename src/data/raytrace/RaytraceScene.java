@@ -6,6 +6,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import data.DataHandler;
 import data.raytrace.GuiOpticalSurfaceObject.OpticalSurfaceObjectChangeListener;
 import data.raytrace.GuiOpticalVolumeObject.OpticalVolumeObjectChangeListener;
@@ -23,6 +26,7 @@ import maths.variable.Variable;
 import maths.variable.VariableStack;
 import maths.variable.VariableStack.VariableObserver.PendendList;
 import util.ArrayUtil;
+import util.JFrameUtils;
 import util.ListTools;
 import util.TimedUpdateHandler;
 
@@ -36,7 +40,7 @@ public class RaytraceScene {
 	public static final byte OBJECT_REMOVE= 6;
 	public static final byte VERIFY_REFRACTION_INDICES = 7;
 	public static final byte ENVIRONMENT_MAPPING = 8;
-
+	private static final Logger logger = LoggerFactory.getLogger(RaytraceScene.class);
 	private final ArrayList<VolumePipeline> volumePipelines = new ArrayList<VolumePipeline>();
 	public final ArrayList<GuiOpticalSurfaceObject> surfaceObjectList = new ArrayList<GuiOpticalSurfaceObject>();
 	public final ArrayList<GuiOpticalVolumeObject> volumeObjectList = new ArrayList<GuiOpticalVolumeObject>();
@@ -99,8 +103,12 @@ public class RaytraceScene {
 		
 		@Override
 		public final synchronized void update() {
-			int newModCount = vs.modCount();
-			if (newModCount != modCount){
+			for(int i = 0; i < 1000; ++i)
+			{
+				int newModCount = vs.modCount();
+				if (newModCount == modCount){
+					return;
+				}
 				modCount = newModCount;
 				variableObserver.updateChanges();
 				globalVariableObserver.updateChanges();
@@ -109,6 +117,7 @@ public class RaytraceScene {
 				update(volumeObjectList);
 				update(meshObjectList);
 			}
+			JFrameUtils.logErrorAndShow("Variables keep updating", new StackOverflowError(), logger);
 		}	
 		
 		@Override
@@ -208,7 +217,6 @@ public class RaytraceScene {
 			ior1 = surf.ior1.doubleValue();
 			surf.textureObject = getActiveTexture(surf.textureObjectStr);
 		}
-		
 		if (current.successorArray != null || verifyRefractionIndices)
 		{
 			if (current.successorArray != null)
@@ -233,6 +241,11 @@ public class RaytraceScene {
 				current.meshSuccessor = new MeshObject[tmpMeshArrayList.size()];
 			}
 			current.meshSuccessor = tmpMeshArrayList.toArray(current.meshSuccessor);
+			
+			if (current.successor == activeObjects || current.successor.length != current.surfaceSuccessor.length + current.meshSuccessor.length + current.volumeSuccessor.length)
+			{
+				current.successor = new OpticalObject[current.surfaceSuccessor.length + current.meshSuccessor.length + current.volumeSuccessor.length];
+			}
 			current.successor = concatenate(current.surfaceSuccessor, current.meshSuccessor, current.volumeSuccessor, current.successor);
 			tmpMeshArrayList.clear();
 			tmpSurfaceArrayList.clear();
@@ -267,6 +280,10 @@ public class RaytraceScene {
 				current.meshPredessor = new MeshObject[tmpMeshArrayList.size()];
 			}
 			current.meshPredessor = tmpMeshArrayList.toArray(current.meshPredessor);
+			if (current.predessor == activeObjects || current.predessor.length != current.surfacePredessor.length + current.meshPredessor.length + current.volumePredessor.length)
+			{
+				current.predessor = new OpticalObject[current.surfacePredessor.length + current.meshPredessor.length + current.volumePredessor.length];
+			}
 			current.predessor = concatenate(current.surfacePredessor, current.meshPredessor, current.volumePredessor, current.predessor);
 			tmpMeshArrayList.clear();
 			tmpSurfaceArrayList.clear();
@@ -595,45 +612,14 @@ public class RaytraceScene {
 	public String author = "";
 	public double epsilon = 0.001;
 	
-	public void addObjectChangeListener(OpticalSurfaceObjectChangeListener ooc)
-	{
-		surfaceChangeListenerList.add(ooc);
-	}
-	
-	public void addObjectChangeListener(OpticalVolumeObjectChangeListener ooc)
-	{
-		volumeObjectChangeListenerList.add(ooc);
-	}
-	
-	public void addObjectChangeListener(TextureObjectChangeListener toc)
-	{
-		textureObjectChangeListenerList.add(toc);
-	}
-	
-	public void addObjectChangeListener(MeshObjectChangeListener toc)
-	{
-		meshObjectChangeListenerList.add(toc);
-	}
-	
-	public void removeObjectChangeListener(OpticalSurfaceObjectChangeListener ooc)
-	{
-		surfaceChangeListenerList.remove(ooc);
-	}
-	
-	public void removeObjectChangeListener(TextureObjectChangeListener ooc)
-	{
-		textureObjectChangeListenerList.remove(ooc);
-	}
-	
-	public void removeObjectChangeListener(OpticalVolumeObjectChangeListener ooc)
-	{
-		volumeObjectChangeListenerList.remove(ooc);
-	}
-	
-	public void removeObjectChangeListener(MeshObjectChangeListener ooc)
-	{
-		meshObjectChangeListenerList.remove(ooc);
-	}
+	public void addObjectChangeListener(OpticalSurfaceObjectChangeListener ooc)		{surfaceChangeListenerList.add(ooc);}
+	public void addObjectChangeListener(OpticalVolumeObjectChangeListener ooc)		{volumeObjectChangeListenerList.add(ooc);}
+	public void addObjectChangeListener(TextureObjectChangeListener toc)			{textureObjectChangeListenerList.add(toc);}
+	public void addObjectChangeListener(MeshObjectChangeListener toc)				{meshObjectChangeListenerList.add(toc);}
+	public void removeObjectChangeListener(OpticalSurfaceObjectChangeListener ooc)	{surfaceChangeListenerList.remove(ooc);}
+	public void removeObjectChangeListener(TextureObjectChangeListener ooc)			{textureObjectChangeListenerList.remove(ooc);}
+	public void removeObjectChangeListener(OpticalVolumeObjectChangeListener ooc)	{volumeObjectChangeListenerList.remove(ooc);}
+	public void removeObjectChangeListener(MeshObjectChangeListener ooc)			{meshObjectChangeListenerList.remove(ooc);}
 	
 	public void add(GuiOpticalSurfaceObject goo)
 	{
@@ -651,9 +637,6 @@ public class RaytraceScene {
 	
 	public void remove(GuiOpticalSurfaceObject goo)
 	{
-		/*try {
-			goo.setValue(SURFACE_COLUMN_TYPE.DELETE, "delete");
-		} catch (OperationParseException e) {}*/
 		surfaceObjectList.remove(goo);
 		goo.removeChangeListener(osoc);
 		valueChanged(OBJECT_REMOVE, goo);
@@ -661,9 +644,6 @@ public class RaytraceScene {
 	
 	public void remove(GuiOpticalVolumeObject gov)
 	{
-		/*try {
-			gov.setValue(VOLUME_COLUMN_TYPE.DELETE, "delete");
-		} catch (OperationParseException e) {}*/
 		volumeObjectList.remove(gov);
 		gov.removeChangeListener(ovoc);
 		gov.removeDataChangeListener(dcl);
@@ -672,9 +652,6 @@ public class RaytraceScene {
 	
 	public void remove(GuiTextureObject gov)
 	{
-		/*try {
-			gov.setValue(TEXTURE_COLUMN_TYPE.DELETE, "delete");
-		} catch (OperationParseException e) {}*/
 		textureObjectList.remove(gov);
 		gov.removeChangeListener(toc);
 		valueChanged(OBJECT_REMOVE, gov);
@@ -851,18 +828,20 @@ public class RaytraceScene {
 				++count;
 			}
 		}
-		if (res == null || res.length != count)
-		{
-			res = new MeshObject[count];
-		}
-		count = 0;
-		for (int i = 0; i < meshObjectList.size(); ++i)
-		{
-			if (meshObjectList.get(i).active && (meshObjectList.get(i).materialType != MaterialType.EMISSION))
+		do {
+			if (res == null || res.length != count)
 			{
-				res[count++] = meshObjectList.get(i);
+				res = new MeshObject[count];
 			}
-		}
+			count = 0;
+			for (int i = 0; i < meshObjectList.size(); ++i)
+			{
+				if (meshObjectList.get(i).active && (meshObjectList.get(i).materialType != MaterialType.EMISSION))
+				{
+					res[count++] = meshObjectList.get(i);
+				}
+			}
+		}while(res.length != count);
 		return res;
 	}
 	
@@ -876,18 +855,20 @@ public class RaytraceScene {
 				++count;
 			}
 		}
-		if (res == null || res.length != count)
-		{
-			res = new GuiOpticalSurfaceObject[count];
-		}
-		count = 0;
-		for (int i = 0; i < surfaceObjectList.size(); ++i)
-		{
-			if (surfaceObjectList.get(i).active && (surfaceObjectList.get(i).materialType != MaterialType.EMISSION))
+		do {
+			if (res == null || res.length != count)
 			{
-				res[count++] = surfaceObjectList.get(i);
+				res = new GuiOpticalSurfaceObject[count];
 			}
-		}
+			count = 0;
+			for (int i = 0; i < surfaceObjectList.size(); ++i)
+			{
+				if (surfaceObjectList.get(i).active && (surfaceObjectList.get(i).materialType != MaterialType.EMISSION))
+				{
+					res[count++] = surfaceObjectList.get(i);
+				}
+			}
+		}while(res.length != count);
 		return res;
 	}
 
@@ -901,18 +882,21 @@ public class RaytraceScene {
 				++count;
 			}
 		}
-		if (res == null || res.length != count)
+		do
 		{
-			res = new GuiOpticalSurfaceObject[count];
-		}
-		count = 0;
-		for (int i = 0; i < surfaceObjectList.size(); ++i)
-		{
-			if (surfaceObjectList.get(i).active && (surfaceObjectList.get(i).materialType == MaterialType.EMISSION))
+			if (res == null || res.length != count)
 			{
-				res[count++] = surfaceObjectList.get(i);
+				res = new GuiOpticalSurfaceObject[count];
 			}
-		}
+			count = 0;
+			for (int i = 0; i < surfaceObjectList.size(); ++i)
+			{
+				if (surfaceObjectList.get(i).active && (surfaceObjectList.get(i).materialType == MaterialType.EMISSION))
+				{
+					res[count++] = surfaceObjectList.get(i);
+				}
+			}
+		}while(res.length != count);
 		return res;
 	}
 
@@ -1015,8 +999,7 @@ public class RaytraceScene {
 	
 	private boolean accept(Object res, Object forceEndpoint)
 	{
-		return (!(res instanceof OpticalSurfaceObject) || ((OpticalSurfaceObject)res).materialType != MaterialType.DELETION) && (forceEndpoint == res || (forceEndpoint == this && res == null) || forceEndpoint == null);
-			
+		return (!(res instanceof OpticalSurfaceObject) || ((OpticalSurfaceObject)res).materialType != MaterialType.DELETION) && (forceEndpoint == res || (forceEndpoint == this && res == null) || forceEndpoint == null);		
 	}
 
 	public static final byte UNACCEPTED_DELETE = 0, UNACCEPTED_RECALCULATE = 1, UNACCEPTED_MARK = 2;
@@ -1228,7 +1211,7 @@ public class RaytraceScene {
 					currentRay.nearest.object = lastObject[outIndex];
 				}
 				final int oldNumBounces = currentRay.numBounces;
-				OpticalObject res = calculateRay(currentRay, maxBounces, trajectory, trajectoryBeginIndex, successorSurfaces, successorVolumes,  successorMeshes, successor, sceneEndpointColor, outIndex);
+				OpticalObject res = calculateRay(currentRay, maxBounces, trajectory, trajectoryBeginIndex, successor, sceneEndpointColor, outIndex);
 				if (lastObject != null)
 				{
 					lastObject[outIndex] = res;
@@ -1244,7 +1227,7 @@ public class RaytraceScene {
 					position.write(endpoints, outIndex * 3);
 					direction.write(enddirs, outIndex * 3);
 				}
-				else if (accept(res, forceStartpoint))
+				else if (accept(res, forceEndpoint))
 				{
 					if (currentRay.readColorFront)
 					{
@@ -1265,8 +1248,8 @@ public class RaytraceScene {
 							position.set(endpoints, outIndex * 3 + 3);
 							direction.set(enddirs, outIndex * 3 + 3);
 						}
-						res = calculateRay(currentRay, maxBounces, trajectory, trajectoryBeginIndex + trajectoryStep, successorSurfaces, successorVolumes, successorMeshes, successor, sceneEndpointColor, outIndex);
-						if (accept(res, forceEndpoint))
+						res = calculateRay(currentRay, maxBounces, trajectory, trajectoryBeginIndex + trajectoryStep, successor, sceneEndpointColor, outIndex);
+						if (accept(res, forceStartpoint))
 						{
 							accepted[j] = STATUS_ACCEPTED;
 							position.write(endpoints, outIndex * 3 + 3);
@@ -1329,7 +1312,7 @@ public class RaytraceScene {
 						if (path != null)
 						{
 							int numInnerSteps = current.numInnerTrajectoryPoints;
-							for (int l = 0; l < numInnerSteps && bounces[j] < maxBounces; ++l)
+							for (int l = 0; l < numInnerSteps && bounces[j] < maxBounces; ++l)//TODO make loop nicer
 							{
 								ArrayUtil.arraycopy(path, (j * current.maxSteps + l * endIteration[j] / numInnerSteps) * 3, trajectory, outBeginIndex + (j - beginRay) * (bidir ? 2 : 1) * trajectoryStep + bounces[j] * 3, 3);
 								++bounces[j];
@@ -1385,25 +1368,10 @@ public class RaytraceScene {
 			int bounces,
 			double trajectory[],
 			int trajectoryWriteIndex,
-			OpticalSurfaceObject surfaceSuccessor[],
-			OpticalVolumeObject volumeSuccessor[],
-			MeshObject meshSuccessor[],
 			OpticalObject successor[],
 			float color[],
 			int colorWriteIndex)
 	{
-		/*if (surfaceSuccessor == null)
-		{
-			surfaceSuccessor = activeSurfaces;
-		}
-		if (volumeSuccessor == null)
-		{
-			volumeSuccessor = activeVolumes;
-		}
-		if (meshSuccessor == null)
-		{
-			meshSuccessor = activeMeshes;
-		}*/
 		if (successor == null)
 		{
 			successor = activeObjects;
@@ -1609,7 +1577,7 @@ public class RaytraceScene {
 		for (int i = 0; i < volumePipelines.size(); ++i)
 		{
 			VolumePipeline vp = volumePipelines.get(i);
-			vp.blockOnCulculation();
+			vp.blockOnCalculation();
 		}
 	}
 
@@ -1624,4 +1592,6 @@ public class RaytraceScene {
 	public void add(data.raytrace.CameraViewRunnable cameraViewRunnable) {
 		cameraViewRunnables.add(new WeakReference<CameraViewRunnable>(cameraViewRunnable));
 	}
+
+	public void setId(String id) {this.id = id;}
 }

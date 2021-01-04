@@ -28,6 +28,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -63,6 +64,7 @@ import maths.variable.Variable;
 import maths.variable.VariableStack;
 import util.ArrayUtil;
 import util.Buffers;
+import util.JFrameUtils;
 import util.StringUtils;
 import util.data.DoubleArrayList;
 import util.data.IntegerArrayList;
@@ -79,7 +81,11 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		try
 		{
 			boolean cuda = true;
-			if (new File("/usr/local/cuda-8.0/lib64/libcudart.so").exists())
+			if (new File("/usr/lib/x86_64-linux-gnu/libcudart.so").exists())
+			{
+				System.load("/usr/lib/x86_64-linux-gnu/libcudart.so");
+			}
+			else if (new File("/usr/local/cuda-8.0/lib64/libcudart.so").exists())
 			{
 				System.load("/usr/local/cuda-8.0/lib64/libcudart.so");
 			}
@@ -93,29 +99,26 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			}
 			else
 			{
-				logger.error("No cuda found");
+				JFrameUtils.logErrorAndShow("No cuda found", new FileNotFoundException(), logger);
 				cuda = false;
 			}
 			
-			if (cuda)
+			if (new File ("/usr/lib/cuda_raytrace_java.so").exists())
 			{
-				if (new File ("/usr/lib/cuda_raytrace_java.so").exists())
-				{
-					System.load("/usr/lib/cuda_raytrace_java.so");
-				}
-				else if (new File ("/media/paul/Data1/Caesar/Raytracer/cuda_raytrace_java.so").exists())
-				{
-					System.load("/media/paul/Data1/Caesar/Raytracer/cuda_raytrace_java.so");
-				}
-				else
-				{
-					DataHandler.loadLib("cuda_raytrace_java.so");
-				}
-				native_raytrace = true;
+				System.load("/usr/lib/cuda_raytrace_java.so");
 			}
+			else if (new File ("/media/paul/Data1/Caesar/Raytracer/cuda_raytrace_java.so").exists())
+			{
+				System.load("/media/paul/Data1/Caesar/Raytracer/cuda_raytrace_java.so");
+			}
+			else
+			{
+				DataHandler.loadLib("cuda_raytrace_java.so");
+			}
+			native_raytrace = true;
 		}catch(UnsatisfiedLinkError | IOException | NullPointerException e)
 		{
-			logger.error("Can't load cuda-raytracer", e);
+			JFrameUtils.logErrorAndShow("Can't load cuda-raytracer", e, logger);
 		}
 	}
 	
@@ -351,22 +354,10 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		final int heightp = height + 1;
 		final int widthp = width + 1;
 		SortedIntegerArrayList ial = new SortedIntegerArrayList();
-		if (operationIOR != null)
-		{
-			OperationCalculate.getVariables(operationIOR, ial);
-		}
-		if (operationTranslucency != null)
-		{
-			OperationCalculate.getVariables(operationTranslucency, ial);
-		}
-		if (givenValueOperation != null)
-		{
-			OperationCalculate.getVariables(givenValueOperation, ial);
-		}
-		if (isGivenOperation != null)
-		{
-			OperationCalculate.getVariables(isGivenOperation, ial);
-		}
+		if (operationIOR != null)			{OperationCalculate.getVariables(operationIOR, ial);}
+		if (operationTranslucency != null)	{OperationCalculate.getVariables(operationTranslucency, ial);}
+		if (givenValueOperation != null)	{OperationCalculate.getVariables(givenValueOperation, ial);}
+		if (isGivenOperation != null)		{OperationCalculate.getVariables(isGivenOperation, ial);}
 		ArrayList<OpticalSurfaceObject> tmpList = new ArrayList<>();
 		for (int i = 0; i < oso.length; ++i)
 		{
@@ -491,7 +482,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			Variable maxEqVar = new Variable("eqmax");
 			maxEqVar.setValue(maxEq);
 			vs.addLocal(maxEqVar);
-			System.out.println(new StringBuilder().append('(').append(minEq).append(',').append(maxEq).append(')'));
+			logger.debug(new StringBuilder().append('(').append(minEq).append(',').append(maxEq).append(')').toString());
 		}
 		double min = Double.POSITIVE_INFINITY, max = Double.NEGATIVE_INFINITY;
 		
@@ -544,8 +535,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 				}
 			}
 		}
-		System.out.println();
-		System.out.println(new StringBuilder().append('(').append(min/0x10000).append(',').append(max/0x10000).append(')'));
+		logger.debug(new StringBuilder().append('(').append(min/0x10000).append(',').append(max/0x10000).append(')').toString());
 		vol.modified();
 	}
 	

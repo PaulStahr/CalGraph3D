@@ -405,6 +405,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 			{
 				int rowBegin = current == null ? 0 : list.indexOf(current);
 				int rowEnd = current == null ? list.size() : (rowBegin + 1);
+				if (rowBegin <0){throw new Exception("Error, object " + current + " couldn't be found");}
 				for (int j = colBegin; j < colEnd; ++j)
 				{
 					SCENE_OBJECT_COLUMN_TYPE soc = types.getVisibleCol(j);
@@ -1041,7 +1042,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 								rayObject.direction.invert(startdir);
 							}
 							rayObject.position.set(startpos);
-							scene.calculateRay(rayObject, maxBounces, null, 0, null, null, null, null, null, 0);
+							scene.calculateRay(rayObject, maxBounces, null, 0, null, null, 0);
 						}
 					}
 				}
@@ -1311,6 +1312,8 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 	private class ScenePanel extends JPanel implements ActionListener, ItemListener, DocumentListener
 	{
 		private static final long serialVersionUID = -5262653872299747841L;
+		private final JLabel labelName = new JLabel("Name");
+		private final JTextField textFieldName = new JTextField();
 		private final JLabel labelVerifyRefractionIndices = new JLabel("Verify refraction Indices");
 	    private final JCheckBox checkBoxVerifyRefractionIndices = new JCheckBox();
 	    private final JLabel labelEnvironment = new JLabel("Read Environment");
@@ -1338,9 +1341,13 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 			forceEndpoint.addItemListener(this);
 			comboBoxRenderToTexture.addItemListener(this);
 			comboBoxTextureMapping.addItemListener(this);
+			if (scene != null) {textFieldName.setText(scene.getId());}//TODO create a custom listener
+			textFieldName.getDocument().addDocumentListener(this);
 			textFieldEnvironment.getDocument().addDocumentListener(this);
 			comboBoxWritableEnvironment.addItemListener(this);
 			cameraStartingObjects.getDocument().addDocumentListener(this);
+			add(labelName);
+			add(textFieldName);
 			add(labelEnvironment);
 			add(textFieldEnvironment);
 			add(labelWritableEnvironment);
@@ -1419,6 +1426,10 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 					} catch (OperationParseException e) {
 						logger.error("Can't parse expression", e);
 					}
+				}
+				else if (doc == textFieldName.getDocument())
+				{
+					scene.setId(textFieldName.getText());
 				}
 			}
 		}

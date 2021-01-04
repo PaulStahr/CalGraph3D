@@ -50,7 +50,7 @@ import util.TimedUpdateHandler;
 * @author  Paul Stahr
 * @version 04.02.2012
 */
-public class VariablePanel extends InterfacePanel implements TimedUpdateHandler, KeyListener, MouseListener
+public class VariablePanel extends InterfacePanel implements TimedUpdateHandler, KeyListener, MouseListener, Runnable
 {
     /**
      * Ein Panel 
@@ -104,14 +104,25 @@ public class VariablePanel extends InterfacePanel implements TimedUpdateHandler,
         	}
         	
         }
-        if (changeHigh){
+        this.changeHigh = changeHigh;
+        JFrameUtils.runByDispatcher(this);
+        
+    }
+	
+	boolean changeHigh = true;
+	
+	@Override
+	public void run()
+	{
+		if (changeHigh){
+        	changeHigh = false;
             final int height = variableList.getPreferredSize().height+10;
-            content.setPreferredSize(new Dimension(315, height > 200 ? 200 : height < 50 ? 50 : height));
+            content.setPreferredSize(new Dimension(315, height > 300 ? 300 : height < 50 ? 50 : height));
         	content.revalidate();
         }
         for (int i=0;i<model.dataListener.size();i++)
         	model.dataListener.get(i).contentsChanged(null);
-     }
+	}
 	
 	@Override
 	public void keyReleased(KeyEvent e)

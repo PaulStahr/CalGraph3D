@@ -172,6 +172,10 @@ public class RaytraceCommandLine {
 					if (split.size() == 3)
 					{
 						RaytraceScene scene = RaytraceScene.getScene(split.get(1));
+						if (scene == null)
+						{
+							throw new NullPointerException("Scene " + split.get(1) + " not found");
+						}
 						vs = scene.vs;
 					}
 					try {
@@ -184,7 +188,7 @@ public class RaytraceCommandLine {
 				}
 				case "load":
 				{
-					RaySimulationGui gui = new RaySimulationGui(new RaytraceScene(split.get(1)));
+					final RaySimulationGui gui = new RaySimulationGui(new RaytraceScene(split.get(1)));
 					FileInputStream fis = new FileInputStream(split.get(2));
 					try {
 						gui.clear();
@@ -196,7 +200,12 @@ public class RaytraceCommandLine {
 					{
 						fis.close();
 					}
-					gui.setVisible(true);
+					JFrameUtils.runByDispatcherAndWait(new Runnable() {
+						@Override
+						public void run() {
+							gui.setVisible(true);
+						}
+					});
 					break;
 				}
 				case "save":
@@ -436,7 +445,7 @@ public class RaytraceCommandLine {
 								switch(split.get(3))
 								{
 									case "recalculate":	pipe.run();break;
-									case "wait":		pipe.blockOnCulculation();break;
+									case "wait":		pipe.blockOnCalculation();break;
 								}
 							}
 						}
@@ -531,7 +540,7 @@ public class RaytraceCommandLine {
 					final NearestPointCalculator npc = new NearestPointCalculator(3);
 					final Vector3d vec = new Vector3d();
 
-					double result = Calculate.binarySearch(Double.parseDouble(split.get(5)), Double.parseDouble(split.get(6)), 0, 0.001, new DoubleFunctionDouble() {
+					double result = Calculate.binarySearch(Double.parseDouble(split.get(5)), Double.parseDouble(split.get(6)), 0, 0.0001, new DoubleFunctionDouble() {
 						@Override
 						public double apply(double value) {
 							v.setValue(value);

@@ -304,7 +304,7 @@ public class JFrameUtils{
 		
 	}
 	
-	public static void logErrorAndShow(String error, Exception ex, Logger logger) {
+	public static void logErrorAndShow(String error, Throwable ex, Logger logger) {
 		if (ex == null)
 		{
 			logger.error(error);

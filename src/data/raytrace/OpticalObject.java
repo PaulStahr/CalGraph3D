@@ -325,16 +325,10 @@ public abstract class OpticalObject {
 		}
 	}
 	
-	public final String getId()
-	{
-		return id;
-	}
+	public final String getId(){return id;}
 
 	@Override
-	public String toString()
-	{
-		return id;
-	}
+	public String toString(){return id;}
 	
 	
 	public final void setValues(Object o[], VariableAmount va, ParseUtil parser)
