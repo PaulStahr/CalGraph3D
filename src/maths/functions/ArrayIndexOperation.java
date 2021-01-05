@@ -25,10 +25,11 @@ package maths.functions;
 import java.util.List;
 
 import maths.Operation;
-import maths.variable.VariableAmount;
 import maths.algorithm.OperationCalculate;
 import maths.data.CharacterOperation;
+import maths.data.MapOperation;
 import maths.exception.ArrayIndexOutOfBoundsExceptionOperation;
+import maths.variable.VariableAmount;
 
 /** 
 * @author  Paul Stahr
@@ -54,6 +55,9 @@ public final class ArrayIndexOperation extends Operation
 	        if (a.isString())
 	            return index >= a.stringValue().length() ? new ArrayIndexOutOfBoundsExceptionOperation(index) : CharacterOperation.getInstance(a.stringValue().charAt((int)index));
     	}
+    	if (a instanceof MapOperation && b.isPrimitive()) {
+    		return ((MapOperation)a).get(b);
+    	}
         return new ArrayIndexOperation(a,b);
     }
     
@@ -74,7 +78,10 @@ public final class ArrayIndexOperation extends Operation
                 return index >= array.size() ? new ArrayIndexOutOfBoundsExceptionOperation(index) : array.get((int)index);
             if (array.isString())
                 return index >= array.stringValue().length() ? new ArrayIndexOutOfBoundsExceptionOperation(index) : CharacterOperation.getInstance(array.stringValue().charAt((int)index));
-        }else{
+        }else if (array instanceof MapOperation && b.isPrimitive()){
+        	return ((MapOperation)array).get(b);
+        }else
+        {
         	array = array.calculate(object, control);
         }
 		Operation erg = OperationCalculate.standardCalculations(array, b);
@@ -84,9 +91,7 @@ public final class ArrayIndexOperation extends Operation
     }
 
 	@Override
-	public final int size() {
-		return 2;
-	}
+	public final int size() {return 2;}
 
 	
 	@Override
@@ -98,16 +103,11 @@ public final class ArrayIndexOperation extends Operation
 		}
 	}
     
-    
 	@Override
 	public final StringBuilder toString (Print type, StringBuilder stringBuilder){
-    	return index.toString(type, array.toString(type, stringBuilder).append('[')).append(']');
+		return index.toString(type, array.toString(type, stringBuilder).append('[')).append(']');
     }
-	
 
 	@Override
-	public Operation getInstance(List<Operation> subclasses) {
-		return new ArrayIndexOperation(subclasses.get(0), subclasses.get(1));
-	}
-
+	public Operation getInstance(List<Operation> subclasses) {return new ArrayIndexOperation(subclasses.get(0), subclasses.get(1));}
 }

@@ -30,11 +30,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import maths.Operation;
-import maths.OperationCompiler;
 import maths.Operation.CalculationController;
+import maths.OperationCompiler;
 import maths.algorithm.OperationCalculate;
 import maths.data.ArrayOperation;
 import maths.data.BooleanOperation;
+import maths.data.MapOperation;
 import maths.data.RealDoubleOperation;
 import maths.data.RealLongOperation;
 import maths.data.StringId;
@@ -161,10 +162,12 @@ public final class Variable implements Comparable<Variable>{
     public final String stringValue(){
         return value == null ? null : value.toString();
     }
-
+    
     public final StringBuilder stringValue(StringBuilder strBuilder){
         return value.toString(strBuilder);
     }
+
+    public final String getName(){return nameObject.string;}
 
     public final void setValue(boolean value){
         this.value = BooleanOperation.get(value);
@@ -222,27 +225,62 @@ public final class Variable implements Comparable<Variable>{
     	return true;
     }
     
+
+	public boolean set(Operation index, Operation o) {
+		if (value instanceof ArrayOperation && o.isIntegral())
+		{
+			value = ((ArrayOperation)value).set((int)index.longValue(), o);
+			valueChanged();
+			return true;
+		}
+		if (value instanceof MapOperation && o.isPrimitive())
+		{
+			value = ((MapOperation)value).set(index, o);
+			valueChanged();
+			return true;
+		}
+		return false;
+	}
+    
     public final Operation set(Operation indexes[], VariableAmount vars, Operation o, CalculationController control){
     	Operation sub = value;
     	for (int i=0;true;i++){
-    		if (!(sub.isArray()))
-    			return new ExceptionOperation("Not an Array");
-    		Operation calced = indexes[i].calculate(vars, control);
-    		if (!(calced.isRealFloatingNumber())){
-    			if (calced instanceof ExceptionOperation)
-    				return calced;
-    			return null;
+    		if (sub.isArray())
+    		{
+	    		Operation calced = indexes[i].calculate(vars, control);
+	    		if (!calced.isRealFloatingNumber()){
+	    			return calced instanceof ExceptionOperation ? calced : null;
+	    		}
+	    		final long value = calced.longValue();
+				if (value < 0 || value > sub.size())
+					return new ArrayIndexOutOfBoundsExceptionOperation(value);
+				if (i == indexes.length-1){
+					((ArrayOperation)sub).set((int)value, o);
+					valueChanged();
+					return o;
+				}else{
+					sub = sub.get((int)value);
+				}
     		}
-    		final long value = calced.longValue();
-			if (value < 0 || value > sub.size())
-				return new ArrayIndexOutOfBoundsExceptionOperation(value);
-			if (i == indexes.length-1){
-				((ArrayOperation)sub).set((int)value, o);
-				valueChanged();
-				return o;
-			}else{
-				sub = sub.get((int)value);
+    		else if (sub instanceof MapOperation)
+			{
+	    		Operation calced = indexes[i].calculate(vars, control);
+	    		if (!calced.isPrimitive())
+    			{
+	    			return calced instanceof ExceptionOperation ? calced : null;	    			
+    			}
+	    		if (i == indexes.length-1){
+					((MapOperation)sub).set(calced, o);
+					valueChanged();
+					return o;
+				}else{
+					sub = ((MapOperation)sub).get(calced);
+				}
 			}
+    		else
+    		{
+    			return new ExceptionOperation("Not an Array");
+    		}
     	}
     }
     

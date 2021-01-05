@@ -50,65 +50,13 @@ public final class CharacterOperation extends Operation
     	return line[c&0xFF] == null ? line[c&0xFF] = new CharacterOperation(c) : line[c&0xFF];
     }
 
-    private CharacterOperation (final char c){
-       	value = c;
-    }
+    private CharacterOperation (final char c){value = c;}
 
 	@Override
 	public int getTypeBitmask(){
 		return BITMASK_INT_REAL | BITMASK_RATIONAL_REAL | BITMASK_FLOAT_REAL | BITMASK_INT_COMPLEX | BITMASK_RATIONAL_COMPLEX | BITMASK_FLOAT_COMPLEX | BITMASK_CHARACTER;
 	}
 
-    
-	@Override
-	public final boolean isRealFloatingNumber(){
-		return true;
-	}
-	
-	@Override
-	public final boolean isRealIntegerNumber(){
-		return true;
-	}
-	
-	@Override
-	public final boolean isComplexFloatingNumber(){
-		return true;
-	}
-	
-	@Override
-	public final boolean isComplexIntegerNumber(){
-		return true;
-	}
-	
-	@Override
-	public final boolean isCharacter(){
-		return true;
-	}
-	
-	@Override
-	public final double doubleValue(){
-        return value;
-    }
-    
-
-    
-	@Override
-	public final long longValue(){
-        return value;
-    }
-    
-    
-	@Override
-	public final double doubleValueImag(){
-        return 0;
-    }
-    
-	@Override
-	public final long longValueImag(){
-        return 0;
-    }
-
-    
 	@Override
 	public final CharacterOperation calculate (VariableAmount object, CalculationController control){
         return this;
@@ -126,50 +74,17 @@ public final class CharacterOperation extends Operation
 			stringBuilder.append(value);
     	return stringBuilder.append('\'');
     }
-    
-	/*@Override
-	public final String toString(){
-		if (value == '\n')
-			return "'\\n'";
-    	return String.valueOf(new char[]{'\'',value,'\''});
-	}*/
-	
-	@Override
-	public final int size() {
-		return 0;
-	}
 
-	
 	@Override
 	public final Operation get(int index) {
 		throw new ArrayIndexOutOfBoundsException(index);
 	}
 
-    public final boolean isConstant (){
-        return true;
-    }
-
-	
-	@Override
-	public Operation getNegative() {
-		return new RealLongOperation(-value);
-	}
-	
 	@Override
 	public Operation getInvers(){
 		if(value == 1)
 			return this;
 		return RealRationalOperation.getInvers(value);
-	}
-	
-	@Override
-	public boolean isZero() {
-		return value == 0;
-	}
-	
-	@Override
-	public boolean isNaN() {
-		return false;
 	}
 	
 	@Override
@@ -181,25 +96,24 @@ public final class CharacterOperation extends Operation
 	}
 	
     
-	@Override
-	public final boolean isPrimitive(){
-        return true;
-    }
-	
-	@Override
-	public final boolean isPositive(){
-		return value != 0;
-	}
-
-	@Override
-	public final boolean isNegative(){
-		return false;
-	}
-    
-	@Override
-	public final boolean isIntegral(){
-		return true;
-	}
+	@Override public final int size() 			{return 0;}
+    public final boolean isConstant ()			{return true;}
+	@Override public final boolean isRealFloatingNumber(){return true;}
+	@Override public final boolean isRealIntegerNumber(){return true;}
+	@Override public final boolean isComplexFloatingNumber(){return true;}
+	@Override public final boolean isComplexIntegerNumber(){return true;}
+	@Override public final boolean isCharacter(){return true;}
+	@Override public final double doubleValue()	{return value;}
+	@Override public final long longValue()		{return value;}
+	@Override public final double doubleValueImag(){return 0;}
+	@Override public final long longValueImag(){return 0;}
+   	@Override public final Operation getNegative() {return new RealLongOperation(-value);}
+	@Override public final boolean isZero() 	{return value == 0;}
+	@Override public final boolean isNaN() 		{return false;}
+	@Override public final boolean isPrimitive(){return true;}
+	@Override public final boolean isPositive()	{return value != 0;}
+	@Override public final boolean isNegative()	{return false;}
+	@Override public final boolean isIntegral()	{return true;}
 
 	@Override
 	public final Operation getInstance(List<Operation> subclasses) {

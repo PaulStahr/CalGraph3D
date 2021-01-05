@@ -113,7 +113,7 @@ public final class SetOperation extends LinkingOperation
         	StringId.StringIdObject ops[] = new StringId.StringIdObject[b.size()];
         	for (int i=0;i<ops.length;i++){
          		if (!(b.get(i) instanceof UserVariableOperation))
-        			return new ExceptionOperation("Nur Variablen erlaubt");
+        			return new ExceptionOperation("Only variables allowed");
         		ops[i] = ((UserVariableOperation)b.get(i)).nameObject;
         	}
         	object.replaceAddLocal(new Variable(nameObject, a, ops));

@@ -75,20 +75,9 @@ public final class StringOperation extends Operation implements CharSequence
     	return new StringOperation(strBuilder.toString());    	
     }
     
-    @Override
-	public int getTypeBitmask(){
-		return BITMASK_STRING;
-	}
-
-	@Override
-	public final boolean isString(){
-		return true;
-	}
-	    
-	@Override
-	public StringOperation calculate (VariableAmount object, CalculationController control){
-        return this;
-    }
+    @Override public int getTypeBitmask(){return BITMASK_STRING;}
+	@Override public final boolean isString(){return true;}
+	@Override public StringOperation calculate (VariableAmount object, CalculationController control){return this;}
     
 	@Override
 	public final StringBuilder toString(Print type, StringBuilder stringBuilder){
@@ -106,24 +95,10 @@ public final class StringOperation extends Operation implements CharSequence
     }
     
     
-	@Override
-	public final String stringValue(){
-    	return value;
-    }
+	@Override public final String stringValue(){return value;}
+	@Override public final int size() {return 0;}
+	@Override public final Operation get(int index) {throw new ArrayIndexOutOfBoundsException(index);}
 
-	
-	@Override
-	public final int size() {
-		return 0;
-	}
-
-	
-	@Override
-	public final Operation get(int index) {
-		throw new ArrayIndexOutOfBoundsException(index);
-	}
-    
-    
 	@Override
 	public final boolean equals(Object obj){
 		if (!(obj instanceof Operation))
@@ -133,28 +108,10 @@ public final class StringOperation extends Operation implements CharSequence
     }
     
     
-	@Override
-	public boolean isPrimitive(){
-        return true;
-    }
-
-	@Override
-	public final char charAt(int index) {
-		return value.charAt(index);
-	}
-
-	@Override
-	public final int length() {
-		return value.length();
-	}
-
-	@Override
-	public final CharSequence subSequence(int beginIndex, int endIndex) {
-		return new StringOperation(value.substring(beginIndex, endIndex));
-	}
-
-	@Override
-	public Operation getInstance(List<Operation> subclasses) {
-		return this;
-	}
+	@Override public boolean isPrimitive(){return true;}
+	@Override public final char charAt(int index) {return value.charAt(index);}
+	@Override public final int length() {return value.length();}
+	@Override public final CharSequence subSequence(int beginIndex, int endIndex) {return value.substring(beginIndex, endIndex);}
+	@Override public Operation getInstance(List<Operation> subclasses) {return this;}
+	@Override public int hashCode() {return value.hashCode();}
 }
