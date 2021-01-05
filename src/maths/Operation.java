@@ -53,131 +53,35 @@ public abstract class Operation
 	}
 //		return BITMASK_INT_REAL | BITMASK_RATIONAL_REAL | BITMASK_FLOAT_REAL | BITMASK_INT_COMPLEX | BITMASK_RATIONAL_COMPLEX | BITMASK_FLOAT_COMPLEX | BITMASK_BOOLEAN | BITMASK_CHARACTER | BITMASK_STRING;
 
-	public boolean isRealFloatingNumber(){
-		return false;
-	}
+	public boolean isRealFloatingNumber()	{return false;}
+	public boolean isRealIntegerNumber()	{return false;}
+	public boolean isRealRationalNumber()	{return false;}
+	public boolean isComplexFloatingNumber(){return false;}
+	public boolean isComplexRationalNumber(){return false;}
+	public boolean isComplexIntegerNumber()	{return false;}
+	public boolean isString()		{return false;}
+	public boolean isArray()		{return false;}
+	public boolean isBoolean()		{return false;}
+	public boolean isCharacter()	{return false;}
+    public boolean isZero()			{return false;}
+    public boolean isNaN()			{return false;}
+    public boolean isIntegral()		{return false;}
+    public boolean isPositive()		{throw new RuntimeException("Not a number");}
+	public boolean isNegative() 	{throw new RuntimeException("Not a number");}
+	public Operation getNegative()	{throw new RuntimeException("Not a number");}
+	public Operation getInvers()	{throw new RuntimeException("Not a number");}
 	
-	public boolean isRealIntegerNumber(){
-		return false;
-	}
-	
-	public boolean isRealRationalNumber(){
-		return false;
-	}
-	
-	public boolean isComplexFloatingNumber(){
-		return false;
-	}
-	
-	public boolean isComplexRationalNumber() {
-		return false;
-	}
-	
-	public boolean isComplexIntegerNumber(){
-		return false;
-	}
-	
-	public boolean isString(){
-		return false;
-	}
-	
-	public boolean isArray(){
-		return false;
-	}
-	
-	public boolean isBoolean(){
-		return false;
-	}
-	
-	public boolean isCharacter(){
-		return false;
-	}
-	
-    public boolean isZero(){
-    	return false;
-    }
+    public double doubleValue()		{return Double.NaN;}
+    public double doubleValueImag()	{return Double.NaN;}
     
-    public boolean isNaN(){
-    	return false;
-    }
-    
-    public boolean isIntegral(){
-    	return false;
-    }
-        
-    public boolean isPositive(){
-		throw new RuntimeException("Not a number");
-    }
-    
-	public boolean isNegative() {
-		throw new RuntimeException("Not a number");
-	}
-    
-	public Operation getNegative(){
-		throw new RuntimeException("Not a number");
-	}
-	
-	public Operation getInvers(){
-		throw new RuntimeException("Not a number");
-	}
-	
-    /**
-     * Gibt den double Wert der Operation zur\u00FCck
-     */
-    public double doubleValue(){
-        return Double.NaN;
-    }
-
-    /**
-     * Gibt den imaginären double-Wert der Operation zurück
-     */
-    public double doubleValueImag(){
-    	return Double.NaN;
-    }
-    
-    public long longNumeratorValue(){
-        throw new RuntimeException("This is not a long");
-    }
-
-    public long longDenumeratorValue(){
-        throw new RuntimeException("This is not a long");
-    }
-    
-    public long longNumeratorValueImag(){
-        throw new RuntimeException("This is not a long");
-    }
-
-    public long longDenumeratorValueImag(){
-        throw new RuntimeException("This is not a long");
-    }
-    
-
-
-    /**
-     * Gibt den long Wert der Operation zur\u00FCck
-     */
-    public long longValue(){
-        throw new RuntimeException(getClass().getName() + " is not a long");
-    }
-    
-
-    /**
-     * Gibt den imaginären long Wert der Operation zur\u00FCck
-     */
-    public long longValueImag(){
-        throw new RuntimeException("This is not a long");
-    }
-
-    /**
-     * Gibt den boolean Wert der Operation zur\u00FCck
-     */
-    public boolean booleanValue(){
-        throw new RuntimeException(getClass() + " is not a boolean");
-    }
-
-    public String stringValue(){
-        throw new RuntimeException("This is not a String");
-    }
+    public long longNumeratorValue()		{throw new RuntimeException(getClass() + " has no numerator (Full operation: " +toString()+ ")");}
+    public long longDenumeratorValue()		{throw new RuntimeException(getClass() + " has no denumerator (Full operation: " +toString()+ ")");}
+    public long longNumeratorValueImag()	{throw new RuntimeException(getClass() + " has no numerator (Full operation: " +toString()+ ")");}
+    public long longDenumeratorValueImag()	{throw new RuntimeException(getClass() + " has no denumerator (Full operation: " +toString()+ ")");}
+    public long longValue()					{throw new RuntimeException(getClass() + " can't be interpreted as long (Full operation: " +toString()+ ")");}
+    public long longValueImag()				{throw new RuntimeException(getClass() + " can't be interpreted as imagenary long (Full operation: " +toString()+ ")");}
+    public boolean booleanValue()			{throw new RuntimeException(getClass() + " can't be interpreted as boolean (Full operation: " +toString()+ ")");}
+    public String stringValue()				{throw new RuntimeException(getClass() + " can't be interpreted as string (Full operation: " +toString()+ ")");}
     
     public abstract Operation getInstance(List<Operation> subclasses);
     
