@@ -144,4 +144,11 @@ public class ListTools {
 			}
 		}
 	}
+
+	public static final <T> void add(T[] object, List<T> list) {
+		for (int i = 0; i < object.length; ++i)
+		{
+			list.add(object[i]);
+		}
+	}
 }

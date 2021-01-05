@@ -5,6 +5,7 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,8 +22,12 @@ import data.raytrace.raygen.AbstractRayGenerator;
 import geometry.Vector2d;
 import geometry.Vector3d;
 import maths.Controller;
+import maths.Operation;
+import maths.data.MapOperation;
+import maths.data.StringOperation;
 import maths.exception.OperationParseException;
 import maths.variable.Variable;
+import maths.variable.VariableListener;
 import maths.variable.VariableStack;
 import maths.variable.VariableStack.VariableObserver.PendendList;
 import util.ArrayUtil;
@@ -78,7 +83,8 @@ public class RaytraceScene {
 	public static final ArrayList<WeakReference<RaytraceScene> > openedInstances = new ArrayList<>(); 
 	private String id;
    	public final CameraViewRunnable cameraViewRunnable = new CameraViewRunnable(this);
-	
+	private Variable sceneVariable;
+   	
 	private int updateCount = 0;
 	private int lastSceneUpdate = 0;
 	private Object forceEndpointObject;
@@ -126,10 +132,7 @@ public class RaytraceScene {
 		}
 	};
 
-	private static final void cleanUp()
-	{
-		ListTools.clean(openedInstances);
-	}
+	private static final void cleanUp(){ListTools.clean(openedInstances);}
 	
 	public static RaytraceScene getScene(String string) {
 		for (int i = 0; i < openedInstances.size(); ++i)
@@ -145,26 +148,15 @@ public class RaytraceScene {
 	
 	public RaytraceScene(String id)
 	{
-		this.id = id;
+		setId(id);
 		DataHandler.timedUpdater.add(rayUpdateHandler);
 		cleanUp();
 		openedInstances.add(new WeakReference<RaytraceScene>(this));
 	}
 	
-	public static interface SceneChangeListener
-	{
-		public void valueChanged(byte ct, Object o);
-	}
-	
-	public void add(SceneChangeListener scl)
-	{
-		sceneChangeListener.add(scl);
-	}
-	
-	public void remove(SceneChangeListener scl)
-	{
-		sceneChangeListener.remove(scl);
-	}
+	public static interface SceneChangeListener{public void valueChanged(byte ct, Object o);}
+	public void add(SceneChangeListener scl){sceneChangeListener.add(scl);}
+	public void remove(SceneChangeListener scl){sceneChangeListener.remove(scl);}
 	
 	public void valueChanged(byte sct, Object o)
 	{
@@ -396,84 +388,61 @@ public class RaytraceScene {
 	
 	private GuiTextureObject getActiveTexture(String id) {
 		int index = getIndex(id, activeTextures);
-		if (index != -1)
-		{
-			return activeTextures[index];
-		}
-		return null;
+		return index == -1 ? null : activeTextures[index];
 	}
 
-	private GuiTextureObject[] getActiveTextures(GuiTextureObject[] textures) {
-		return getActive(textureObjectList, textures);
-	}
+	private GuiTextureObject[] getActiveTextures(GuiTextureObject[] textures) {return getActive(textureObjectList, textures);}
 
 	private Object getForceEndpointObject(Object o)
 	{
-		if (o instanceof OpticalObject)
-		{
-			return o;
-		}
+		if (o instanceof OpticalObject)	{return o;}
 		if (o instanceof String)
 		{
 			String str = (String)o;
-			if (str.equals("No"))
-			{
-				return null;
-			}
-			if (str.equals("Env"))
-			{
-				return this;
-			}
+			if (str.equals("No")){return null;}
+			if (str.equals("Env")){return this;}
 			return getOpticalObject(str);
 		}
-		if (o == this)
-		{
-			return o;
-		}
-		if (o == null)
-		{
-			return null;
-		}
+		if (o == this){return o;}
+		if (o == null){return null;}
 		throw new IllegalArgumentException();
 	}
 	
 	private String getForceEndpointStr(Object o)
 	{
-		if (o instanceof OpticalObject)
-		{
-			return ((OpticalObject)o).id;
-		}
-		if (o == null)
-		{
-			return "No";
-		}
-		if (o == this)
-		{
-			return "Env";
-		}
+		if (o instanceof OpticalObject)	{return ((OpticalObject)o).id;}
+		if (o == null)	{return "No";}
+		if (o == this)	{return "Env";}
 		throw new IllegalArgumentException();
 	}
 	
-	public String getForceStartpointStr()
-	{
-		return getForceEndpointStr(forceStartpoint);
-	}
-	
-	public String getForceEndpointStr()
-	{
-		return getForceEndpointStr(forceEndpoint);
-	}
+	public String getForceStartpointStr(){return getForceEndpointStr(forceStartpoint);}
+	public String getForceEndpointStr(){return getForceEndpointStr(forceEndpoint);}
 	
 	public void setForceEndpoint(Object o)
 	{
 		forceEndpointObject = o;
 		valueChanged(FORCE_ENDPOINT, o);
+		synchronized (variableListener)
+		{
+			if (isUpdating || sceneVariable == null) return;
+			isUpdating = true;
+			sceneVariable.set(new StringOperation("forceend"), new StringOperation(getForceEndpointStr()));
+			isUpdating = false;
+		}
 	}
 		
 	public void setForceStartpoint(Object o)
 	{
 		forceStartpointObject = o;
 		valueChanged(FORCE_STARTPOINT, o);
+		synchronized (variableListener)
+		{
+			if (isUpdating || sceneVariable == null) return;
+			isUpdating = true;
+			sceneVariable.set(new StringOperation("forcestart"), new StringOperation(getForceStartpointStr()));
+			isUpdating = false;
+		}
 	}
 
 	private static int getIndex(String id, ArrayList<? extends OpticalObject> oo)
@@ -759,143 +728,76 @@ public class RaytraceScene {
 		return res;
 	}
 
-	public int getActiveSurfaceCount() 
+	public int getActiveSurfaceCount() {return activeSurfaces.length;}	
+	public GuiOpticalSurfaceObject getActiveSurface(int index){return activeSurfaces[index];}	
+	public int getActiveLightCount()	{return activeLights.length;}
+	public OpticalObject getActiveLight(int index){return activeLights[index];}
+	
+	private static int countObjects(final List<? extends SurfaceObject> list, final MaterialType material)
 	{
-		return activeSurfaces.length;
+		int count = 0;
+		for (int i = 0; i < list.size(); ++i)
+		{
+			if (list.get(i).active && (list.get(i).materialType == material))
+			{
+				++count;
+			}
+		}
+		return count;
 	}
 	
-	public GuiOpticalSurfaceObject getActiveSurface(int index)
+	private static int addObjects(final List<? extends SurfaceObject> list, final MaterialType material, OpticalObject res[], int begin)
 	{
-		return activeSurfaces[index];
-	}
-	
-	public int getActiveLightCount()
-	{
-		return activeLights.length;
-	}
-	
-	public OpticalObject getActiveLight(int index)
-	{
-		return activeLights[index];
+		for (int i = 0; i < list.size(); ++i)
+		{
+			if (list.get(i).active && (list.get(i).materialType == material))
+			{
+				res[begin++] = list.get(i);
+			}
+		}
+		return begin;
 	}
 	
 	private OpticalObject[] getActiveLightSources(OpticalObject res[])
 	{
-		int count = 0;
-		for (int i = 0; i < surfaceObjectList.size(); ++i)
-		{
-			if (surfaceObjectList.get(i).active && (surfaceObjectList.get(i).materialType == MaterialType.EMISSION))
-			{
-				++count;
-			}
-		}		
-		for (int i = 0; i < meshObjectList.size(); ++i)
-		{
-			if (meshObjectList.get(i).active && (meshObjectList.get(i).materialType == MaterialType.EMISSION))
-			{
-				++count;
-			}
-		}
-		if (res == null || res.length != count)
-		{
-			res = new OpticalObject[count];
-		}
-		count = 0;
-		for (int i = 0; i < surfaceObjectList.size(); ++i)
-		{
-			if (surfaceObjectList.get(i).active && (surfaceObjectList.get(i).materialType == MaterialType.EMISSION))
-			{
-				res[count++] = surfaceObjectList.get(i);
-			}
-		}
-		for (int i = 0; i < meshObjectList.size(); ++i)
-		{
-			if (meshObjectList.get(i).active && (meshObjectList.get(i).materialType == MaterialType.EMISSION))
-			{
-				res[count++] = meshObjectList.get(i);
-			}
-		}
+		int count = countObjects(surfaceObjectList, MaterialType.EMISSION) + countObjects(meshObjectList, MaterialType.EMISSION);
+		if (res == null || res.length != count){res = new OpticalObject[count];}
+		count = addObjects(surfaceObjectList, MaterialType.EMISSION, res, 0);
+		count = addObjects(meshObjectList, MaterialType.EMISSION, res, count);
+		if (count != res.length){throw new IndexOutOfBoundsException();}
 		return res;
 	}
 	
     private MeshObject[] getActiveMeshes(MeshObject res[])
 	{
-		int count = 0;
-		for (int i = 0; i < meshObjectList.size(); ++i)
-		{
-			if (meshObjectList.get(i).active && (meshObjectList.get(i).materialType != MaterialType.EMISSION))
-			{
-				++count;
-			}
-		}
+		int count = countObjects(meshObjectList, MaterialType.EMISSION);
 		do {
-			if (res == null || res.length != count)
-			{
-				res = new MeshObject[count];
-			}
-			count = 0;
-			for (int i = 0; i < meshObjectList.size(); ++i)
-			{
-				if (meshObjectList.get(i).active && (meshObjectList.get(i).materialType != MaterialType.EMISSION))
-				{
-					res[count++] = meshObjectList.get(i);
-				}
-			}
+			if (res == null || res.length != count){res = new MeshObject[count];}
+			count = addObjects(meshObjectList, MaterialType.EMISSION, res, count);
 		}while(res.length != count);
 		return res;
 	}
 	
     private GuiOpticalSurfaceObject[] getActiveSurfaces(GuiOpticalSurfaceObject res[])
 	{
-		int count = 0;
-		for (int i = 0; i < surfaceObjectList.size(); ++i)
-		{
-			if (surfaceObjectList.get(i).active && (surfaceObjectList.get(i).materialType != MaterialType.EMISSION))
-			{
-				++count;
-			}
-		}
+		int count = countObjects(surfaceObjectList, MaterialType.EMISSION);
 		do {
 			if (res == null || res.length != count)
 			{
 				res = new GuiOpticalSurfaceObject[count];
 			}
-			count = 0;
-			for (int i = 0; i < surfaceObjectList.size(); ++i)
-			{
-				if (surfaceObjectList.get(i).active && (surfaceObjectList.get(i).materialType != MaterialType.EMISSION))
-				{
-					res[count++] = surfaceObjectList.get(i);
-				}
-			}
+			count = addObjects(meshObjectList, MaterialType.EMISSION, res, 0);
 		}while(res.length != count);
 		return res;
 	}
 
     private GuiOpticalSurfaceObject[] getActiveEmissions(GuiOpticalSurfaceObject res[])
 	{
-		int count = 0;
-		for (int i = 0; i < surfaceObjectList.size(); ++i)
-		{
-			if (surfaceObjectList.get(i).active && (surfaceObjectList.get(i).materialType == MaterialType.EMISSION))
-			{
-				++count;
-			}
-		}
+		int count = countObjects(surfaceObjectList, MaterialType.EMISSION);
 		do
 		{
-			if (res == null || res.length != count)
-			{
-				res = new GuiOpticalSurfaceObject[count];
-			}
-			count = 0;
-			for (int i = 0; i < surfaceObjectList.size(); ++i)
-			{
-				if (surfaceObjectList.get(i).active && (surfaceObjectList.get(i).materialType == MaterialType.EMISSION))
-				{
-					res[count++] = surfaceObjectList.get(i);
-				}
-			}
+			if (res == null || res.length != count){res = new GuiOpticalSurfaceObject[count];}
+			count = addObjects(surfaceObjectList, MaterialType.EMISSION, res, 0);
 		}while(res.length != count);
 		return res;
 	}
@@ -1160,40 +1062,19 @@ public class RaytraceScene {
 				if (accepted[j] == STATUS_UNDEFINED)
 				{
 					gen.generate(j + genBegnIndex - beginRay, numRays, position, direction, coord, color);
-					if (startpoints != null)
-					{
-						position.write(startpoints, outIndex * 3);
-					}
-					if (startdirs != null)
-					{
-						direction.write(startdirs, outIndex * 3);
-					}
+					if (startpoints != null){position.write(startpoints, outIndex * 3);}
+					if (startdirs != null)	{direction.write(startdirs, outIndex * 3);}
 					successorSurfaces = gen.getSuccessorSurfaces();
 					successorVolumes = gen.getSuccessorVolumes();
 					successorMeshes = gen.getSuccessorMeshes();
 					successor = gen.getSuccessors();
-					if (successorSurfaces == null)
-					{
-						successorSurfaces = this.activeSurfaces;
-					}
-					if (successorVolumes == null)
-					{
-						successorVolumes = this.activeVolumes;
-					}
-					if (successorMeshes == null)
-					{
-						successorMeshes = this.activeMeshes;
-					}
-					if (successor == null)
-					{
-						successor = this.activeObjects;
-					}
+					if (successorSurfaces == null)	{successorSurfaces = this.activeSurfaces;}
+					if (successorVolumes == null)	{successorVolumes = this.activeVolumes;}
+					if (successorMeshes == null)	{successorMeshes = this.activeMeshes;}
+					if (successor == null)			{successor = this.activeObjects;}
 					startpx = position.x; startpy = position.y; startpz = position.z;
 					startdx = position.x; startdy = position.y; startdz = position.z;
-					if (currentRay.readColorGen)
-					{
-						writeColor(sceneEndpointColor, outIndex * 4, color);
-					}	
+					if (currentRay.readColorGen)	{writeColor(sceneEndpointColor, outIndex * 4, color);}	
 				}
 				else
 				{
@@ -1336,21 +1217,12 @@ public class RaytraceScene {
 			OpticalObject volumeSuccessor[],
 			OpticalObject meshSuccessor[])
 	{
-		for (int l = 0; l < surfaceSuccessor.length; ++l)
-		{
-			surfaceSuccessor[l].getIntersection(position, direction, nearest, epsilon, nearest.distance);
-		}
-		for (int l = 0; l < volumeSuccessor.length; ++l)
-		{
-			volumeSuccessor[l].getIntersection(position, direction, nearest, epsilon, nearest.distance);
-		}
-		for (int l = 0; l < meshSuccessor.length; ++l)
-		{
-			meshSuccessor[l].getIntersection(position, direction, nearest, epsilon, nearest.distance);
-		}
+		for (int l = 0; l < surfaceSuccessor.length; ++l)	{surfaceSuccessor[l].getIntersection(position, direction, nearest, epsilon, nearest.distance);}
+		for (int l = 0; l < volumeSuccessor.length; ++l)	{volumeSuccessor[l].getIntersection(position, direction, nearest, epsilon, nearest.distance);}
+		for (int l = 0; l < meshSuccessor.length; ++l)		{meshSuccessor[l].getIntersection(position, direction, nearest, epsilon, nearest.distance);}
 	}
 	
-	public static final void getNextIntersection(
+	/*public static final void getNextIntersection(
 			Vector3d position,
 			Vector3d direction,
 			Intersection nearest,
@@ -1361,7 +1233,7 @@ public class RaytraceScene {
 		{
 			successor[l].getIntersection(position, direction, nearest, epsilon, nearest.distance);
 		}
-	}
+	}*/
 	
 	public final OpticalObject calculateRay(
 			RaySimulationObject ray,
@@ -1520,58 +1392,18 @@ public class RaytraceScene {
 		valueChanged(VERIFY_REFRACTION_INDICES, selected);
 	}
 
-	public boolean isVerifyRefractionIndexActivated() {
-		return verifyRefractionIndices;
-	}
-
-	public OpticalSurfaceObject[] copyActiveSurfaces() {
-		return activeSurfaces.clone();
-	}
-
-	public OpticalObject[] cloneActiveLights() {
-		return activeLights.clone();
-	}
-	
-	public void getActiveLights(List<OpticalObject> list)
-	{
-		for (int i = 0; i < activeLights.length; ++i)
-		{
-			list.add(activeLights[i]);
-		}
-	}
-
-	public OpticalObject[] getActiveSurfaces() {
-		return activeSurfaces.clone();
-	}
-
-	public OpticalObject[] getActiveVolumes() {
-		return activeVolumes.clone();
-	}
-
-	public OpticalObject[] getActiveMeshes() {
-		return activeMeshes.clone();
-	}
-
-	public void setTextureMapping(TextureMapping selectedItem) {
-		environment_mapping = selectedItem;
-	}
-
-	public final String getId() {
-		return id;
-	}
-
-	public int getSurfaceCount() {
-		return surfaceObjectList.size();
-	}
-	
-	public GuiOpticalSurfaceObject getSurfaceObject(int index)
-	{
-		return surfaceObjectList.get(index);
-	}
-
-	public void add(VolumePipeline pipeline) {
-		volumePipelines.add(pipeline);
-	}
+	public boolean isVerifyRefractionIndexActivated() {return verifyRefractionIndices;}
+	public OpticalSurfaceObject[] copyActiveSurfaces() {return activeSurfaces.clone();}
+	public OpticalObject[] cloneActiveLights() {return activeLights.clone();}
+	public void getActiveLights(List<OpticalObject> list){ListTools.add(activeLights, list);}
+	public OpticalObject[] getActiveSurfaces() {return activeSurfaces.clone();}
+	public OpticalObject[] getActiveVolumes() {return activeVolumes.clone();}
+	public OpticalObject[] getActiveMeshes() {return activeMeshes.clone();}
+	public void setTextureMapping(TextureMapping selectedItem) {environment_mapping = selectedItem;}
+	public final String getId() {return id;}
+	public int getSurfaceCount() {return surfaceObjectList.size();}
+	public GuiOpticalSurfaceObject getSurfaceObject(int index){return surfaceObjectList.get(index);}
+	public void add(VolumePipeline pipeline) {volumePipelines.add(pipeline);}
 
 	public void blockOnPipelineCalculations() {
 		for (int i = 0; i < volumePipelines.size(); ++i)
@@ -1581,17 +1413,50 @@ public class RaytraceScene {
 		}
 	}
 
-	public int volumePipelineCount() {
-		return volumePipelines.size();
-	}
+	public int volumePipelineCount() {return volumePipelines.size();}
+	public VolumePipeline getVolumePipeline(int i) {return volumePipelines.get(i);}
+	public void add(data.raytrace.CameraViewRunnable cameraViewRunnable) {cameraViewRunnables.add(new WeakReference<CameraViewRunnable>(cameraViewRunnable));}
+	public volatile boolean isUpdating = false;
 
-	public VolumePipeline getVolumePipeline(int i) {
-		return volumePipelines.get(i);
+	private final VariableListener variableListener = new VariableListener() {
+		@Override
+		public synchronized void variableChanged() {
+			if (isUpdating) return;
+			isUpdating = true;
+			Operation value = sceneVariable.getValue();
+			if (value instanceof MapOperation)
+			{
+				for (Entry<Operation, Operation> entry : ((MapOperation)value).entrySet())
+				{
+					Operation key = entry.getKey();
+					if (key.isString())
+					{
+						switch(key.stringValue())
+						{
+							case "focrceend": setForceEndpoint(entry.getValue().stringValue());	break;
+							case "forcestart":setForceStartpoint(entry.getValue().stringValue());break;
+						}
+					}
+				}
+			}
+			isUpdating = false;
+		}
+	};
+	
+	public void setId(String id) {
+		this.id = id;
+		if (sceneVariable != null)
+		{
+			if (sceneVariable.getName().equals(id)) {return;}
+			vs.del(sceneVariable);
+		}
+		if (id != null)
+		{
+			sceneVariable = new Variable(id, new MapOperation());
+			sceneVariable.set(new StringOperation("forceend"), new StringOperation(getForceEndpointStr()));
+			sceneVariable.set(new StringOperation("forcestart"), new StringOperation(getForceStartpointStr()));
+			sceneVariable.addVariableListener(variableListener);
+			vs.add(sceneVariable);
+		}
 	}
-
-	public void add(data.raytrace.CameraViewRunnable cameraViewRunnable) {
-		cameraViewRunnables.add(new WeakReference<CameraViewRunnable>(cameraViewRunnable));
-	}
-
-	public void setId(String id) {this.id = id;}
 }
