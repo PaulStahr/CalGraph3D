@@ -666,6 +666,10 @@ public class RaytraceCommandLine {
 					RaytraceScene scene = RaytraceScene.getScene(split.get(1));
 					fc.lightSource = scene.getActiveEmissionObject(split.get(2));
 					fc.destination = scene.getActiveSurfaceObject(split.get(3));
+					if (fc.destination == null)
+					{
+						throw new NullPointerException("Surface " + split.get(3) + " doesn't exist or is inactive");
+					}
 					fc.raycount = Integer.parseInt(split.get(4));
 					fc.width = 512;
 					fc.height = 512;

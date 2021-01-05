@@ -445,7 +445,6 @@ public class Geometry {
 				}
 			}
 		}
-		System.out.println("meshsize: " + vertexPositions.size() / 3 + " " + faceIndices.size() / 3 + " cutpoint " + mid);
 	}
 
 	public static final void parse(String str, Vectorf vec) throws ParseException

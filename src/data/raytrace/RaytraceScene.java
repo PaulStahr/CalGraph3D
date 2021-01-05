@@ -138,7 +138,7 @@ public class RaytraceScene {
 		for (int i = 0; i < openedInstances.size(); ++i)
 		{
 			RaytraceScene scene = openedInstances.get(i).get(); 
-			if (scene.id.equals(string))
+			if (scene != null && scene.id.equals(string))
 			{
 				return scene;
 			}
@@ -462,7 +462,7 @@ public class RaytraceScene {
 	
 	private static int getIndex(String id, OpticalObject oo[])
 	{
-		if (id != null)
+		if (id != null && id.length() != 0)
 		{
 			for (int i = 0; i < oo.length; ++i)
 			{
@@ -493,7 +493,6 @@ public class RaytraceScene {
 		int index = getIndex(id, activeVolumes);
 		return index == -1 ? null : activeVolumes[index];
 	}
-	
 	
 	public MeshObject getActiveMeshObject(String id)
 	{
@@ -733,12 +732,12 @@ public class RaytraceScene {
 	public int getActiveLightCount()	{return activeLights.length;}
 	public OpticalObject getActiveLight(int index){return activeLights[index];}
 	
-	private static int countObjects(final List<? extends SurfaceObject> list, final MaterialType material)
+	private static int countObjects(final List<? extends OpticalObject> list, final MaterialType material, boolean equal)
 	{
 		int count = 0;
 		for (int i = 0; i < list.size(); ++i)
 		{
-			if (list.get(i).active && (list.get(i).materialType == material))
+			if (list.get(i).active && ((list.get(i).materialType == material) == equal))
 			{
 				++count;
 			}
@@ -746,11 +745,11 @@ public class RaytraceScene {
 		return count;
 	}
 	
-	private static int addObjects(final List<? extends SurfaceObject> list, final MaterialType material, OpticalObject res[], int begin)
+	private static int addObjects(final List<? extends OpticalObject> list, final MaterialType material, boolean equal, OpticalObject res[], int begin)
 	{
 		for (int i = 0; i < list.size(); ++i)
 		{
-			if (list.get(i).active && (list.get(i).materialType == material))
+			if (list.get(i).active && ((list.get(i).materialType == material) == equal))
 			{
 				res[begin++] = list.get(i);
 			}
@@ -760,70 +759,53 @@ public class RaytraceScene {
 	
 	private OpticalObject[] getActiveLightSources(OpticalObject res[])
 	{
-		int count = countObjects(surfaceObjectList, MaterialType.EMISSION) + countObjects(meshObjectList, MaterialType.EMISSION);
+		int count = countObjects(surfaceObjectList, MaterialType.EMISSION, true) + countObjects(meshObjectList, MaterialType.EMISSION, true);
 		if (res == null || res.length != count){res = new OpticalObject[count];}
-		count = addObjects(surfaceObjectList, MaterialType.EMISSION, res, 0);
-		count = addObjects(meshObjectList, MaterialType.EMISSION, res, count);
+		count = addObjects(surfaceObjectList, MaterialType.EMISSION, true, res, 0);
+		count = addObjects(meshObjectList, MaterialType.EMISSION, true, res, count);
 		if (count != res.length){throw new IndexOutOfBoundsException();}
 		return res;
 	}
 	
+    private GuiOpticalSurfaceObject[] getActiveEmissions(GuiOpticalSurfaceObject res[])
+	{
+		int count = countObjects(surfaceObjectList, MaterialType.EMISSION, true);
+		do
+		{
+			if (res == null || res.length != count){res = new GuiOpticalSurfaceObject[count];}
+			count = addObjects(surfaceObjectList, MaterialType.EMISSION, true, res, 0);
+		}while(res.length != count);
+		return res;
+	}
+
     private MeshObject[] getActiveMeshes(MeshObject res[])
 	{
-		int count = countObjects(meshObjectList, MaterialType.EMISSION);
+		int count = countObjects(meshObjectList, MaterialType.EMISSION, false);
 		do {
 			if (res == null || res.length != count){res = new MeshObject[count];}
-			count = addObjects(meshObjectList, MaterialType.EMISSION, res, count);
+			count = addObjects(meshObjectList, MaterialType.EMISSION, false, res, count);
 		}while(res.length != count);
 		return res;
 	}
 	
     private GuiOpticalSurfaceObject[] getActiveSurfaces(GuiOpticalSurfaceObject res[])
 	{
-		int count = countObjects(surfaceObjectList, MaterialType.EMISSION);
+		int count = countObjects(surfaceObjectList, MaterialType.EMISSION, false);
 		do {
-			if (res == null || res.length != count)
-			{
-				res = new GuiOpticalSurfaceObject[count];
-			}
-			count = addObjects(meshObjectList, MaterialType.EMISSION, res, 0);
-		}while(res.length != count);
-		return res;
-	}
-
-    private GuiOpticalSurfaceObject[] getActiveEmissions(GuiOpticalSurfaceObject res[])
-	{
-		int count = countObjects(surfaceObjectList, MaterialType.EMISSION);
-		do
-		{
 			if (res == null || res.length != count){res = new GuiOpticalSurfaceObject[count];}
-			count = addObjects(surfaceObjectList, MaterialType.EMISSION, res, 0);
+			count = addObjects(surfaceObjectList, MaterialType.EMISSION, false, res, 0);
 		}while(res.length != count);
 		return res;
 	}
 
     public GuiOpticalVolumeObject[] getActiveVolumes(boolean lightSource, GuiOpticalVolumeObject res[])
 	{
-		int count = 0;
-		for (int i = 0; i < volumeObjectList.size(); ++i)
+		int count = countObjects(volumeObjectList, MaterialType.EMISSION, lightSource);
+		do
 		{
-			if (volumeObjectList.get(i).active && (lightSource == (volumeObjectList.get(i).materialType == MaterialType.EMISSION)))
-			{
-				++count;
-			}
-		}
-		if (res == null || res.length != count)
-		{
-			res = new GuiOpticalVolumeObject[count];
-		}
-		count = 0;
-		for (int i = 0; i < volumeObjectList.size(); ++i)
-		{
-			if (volumeObjectList.get(i).active && (lightSource == (volumeObjectList.get(i).materialType == MaterialType.EMISSION)))
-			{
-				res[count++] = volumeObjectList.get(i);
-			}
-		}
+			if (res == null || res.length != count){res = new GuiOpticalVolumeObject[count];}
+			count = addObjects(volumeObjectList, MaterialType.EMISSION, lightSource, res, 0);
+		}while(res.length != count);
 		return res;
 	}
    

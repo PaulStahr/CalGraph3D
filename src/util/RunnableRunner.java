@@ -115,11 +115,13 @@ public class RunnableRunner {
 		@SuppressWarnings("unchecked")
 		private E obj[] = (E[]) new Object[maxThreads];
 		
+		@Override
 		public int size()
 		{
 			return obj.length;
 		}
 		
+		@Override
 		public E get(int i)
 		{
 			return obj[i];
@@ -196,6 +198,7 @@ public class RunnableRunner {
 			this.prr = prr;
 		}
 		
+		@Override
 		public void run()
 		{
 			try
@@ -217,76 +220,61 @@ public class RunnableRunner {
 			}
 		}
 	}
-	
-	public final void runParallel(final ParallelRangeRunnable prr, String name, UncaughtExceptionHandler ueh, int from, final int to, final int maxBlockSize)
+	public final void runParallel(final ParallelRangeRunnable prr, String name, UncaughtExceptionHandler ueh, int from, final int to, final int maxBlockSize, boolean wait)
 	{
-		if (from == to)
-		{
-			return;
-		}
+		if (from == to){return;}
 		final int numBlocks = (to - from + maxBlockSize - 1) / maxBlockSize;
 		final AtomicInteger finished = new AtomicInteger(numBlocks);
 		for (int i = from; i < to; i += maxBlockSize)
 		{
 			run(new ParallelRunnableObject(name, ueh, i, Math.min(i + maxBlockSize, to), finished, prr), true);
 		}
-	}
-	
-	public final void runParallelAndWait(final ParallelRangeRunnable prr, String name, UncaughtExceptionHandler ueh, int from, final int to, final int maxBlockSize)
-	{
-		if (from == to)
+		if (wait)
 		{
-			return;
-		}
-		final int numBlocks = (to - from + maxBlockSize - 1) / maxBlockSize;
-		final AtomicInteger finished = new AtomicInteger(numBlocks);
-		for (int i = from; i < to; i += maxBlockSize)
-		{
-			run(new ParallelRunnableObject(name, ueh, i, Math.min(i + maxBlockSize, to), finished, prr), true);
-		}
-		while(finished.get() != 0)
-		{
-			if (Thread.currentThread() instanceof RunnerThread)
+			while(finished.get() != 0)
 			{
-				RunnableObject ro = null;
-				synchronized(toRun)
+				if (Thread.currentThread() instanceof RunnerThread)
 				{
-					ro = toRun.pollFirst();
-				}
-				if (ro != null)
-				{
-					ro.state = STATE_RUNNING;
-					try {
-						ro.run();
-					} catch (Exception e) {
-						if (ro.ueh == null)
-							logger.error("Error at executing " + ro.name, e);
-						else
-							ro.ueh.uncaughtException(Thread.currentThread(), e);
-					}
-					if (ro.rerun)
+					RunnableObject ro = null;
+					synchronized(toRun)
 					{
-						ro.state = STATE_WAITING;
-						ro.rerun = false;
-						synchronized(toRun)
+						ro = toRun.pollFirst();
+					}
+					if (ro != null)
+					{
+						ro.state = STATE_RUNNING;
+						try {
+							ro.run();
+						} catch (Exception e) {
+							if (ro.ueh == null)
+								logger.error("Error at executing " + ro.name, e);
+							else
+								ro.ueh.uncaughtException(Thread.currentThread(), e);
+						}
+						if (ro.rerun)
 						{
-							toRun.add(ro);
+							ro.state = STATE_WAITING;
+							ro.rerun = false;
+							synchronized(toRun)
+							{
+								toRun.add(ro);
+							}
+						}
+						else
+						{
+							ro.state = STATE_FINISHED;
 						}
 					}
-					else
-					{
-						ro.state = STATE_FINISHED;
-					}
 				}
-			}
-			else
-			{
-				synchronized(prr)
+				else
 				{
-					try {
-						prr.wait(1000);
-					} catch (InterruptedException e) {
-						logger.error("Error at waiting", e);
+					synchronized(prr)
+					{
+						try {
+							prr.wait(1000);
+						} catch (InterruptedException e) {
+							logger.error("Error at waiting", e);
+						}
 					}
 				}
 			}

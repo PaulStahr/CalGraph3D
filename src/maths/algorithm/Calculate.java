@@ -924,7 +924,7 @@ public abstract class Calculate
 			if (multithreaded)
 			{
 				final RunnableRunner.ThreadLocal<double[]> tmpdat = DataHandler.runnableRunner.new ThreadLocal<double[]>();
-				DataHandler.runnableRunner.runParallelAndWait(new RunnableRunner.ParallelRangeRunnable(){
+				DataHandler.runnableRunner.runParallel(new RunnableRunner.ParallelRangeRunnable(){
 					
 					@Override
 					public void run(int from, int to) {
@@ -953,7 +953,7 @@ public abstract class Calculate
 					
 					@Override
 					public void finished() {}
-				}, "Optimize", null, 0, randomEvaluations, 10);
+				}, "Optimize", null, 0, randomEvaluations, 10, true);
 			}
 			else
 			{

@@ -219,7 +219,7 @@ public class StackPositionProcessor {
 					numIterations = rangeEnd - rangeBegin;
 					final double avarage[] = new double[2 * (rangeEnd - rangeBegin)];
 					System.out.println(rangeBegin + '-' + rangeEnd);
-					DataHandler.runnableRunner.runParallelAndWait(new RunnableRunner.ParallelRangeRunnable() {
+					DataHandler.runnableRunner.runParallel(new RunnableRunner.ParallelRangeRunnable() {
 						@Override
 						public void run(int from, int to)
 						{
@@ -302,7 +302,7 @@ public class StackPositionProcessor {
 						
 						@Override
 						public void finished() {}
-					}, "StackPositionProcessor", null, rangeBegin, rangeEnd, 1000);
+					}, "StackPositionProcessor", null, rangeBegin, rangeEnd, 1000, true);
 					if (outputStr.length() != 0)
 					{
 						StringUtils.writeTapSeperated(avarage, new File(outputStr), 2);
@@ -395,7 +395,7 @@ public class StackPositionProcessor {
 								logger.error("Can't update Transformation", e);
 							}
 						}
-						DataHandler.runnableRunner.runParallelAndWait(new RunnableRunner.ParallelRangeRunnable() {
+						DataHandler.runnableRunner.runParallel(new RunnableRunner.ParallelRangeRunnable() {
 							@Override
 							public void run(int from, int to) {
 								if (!isRunning)
@@ -463,7 +463,7 @@ public class StackPositionProcessor {
 							
 							@Override
 							public void finished() {}
-						}, "StackPositionProcessor", null, 0, numRays, blocksize);
+						}, "StackPositionProcessor", null, 0, numRays, blocksize, true);
 						
 						strB.setLength(0);
 						DataHandler.runnableRunner.run(new Runnable() {
@@ -510,7 +510,7 @@ public class StackPositionProcessor {
 					Arrays.fill(midPos, Float.NaN);
 					Arrays.fill(midDir, Float.NaN);
 					Arrays.fill(textureCoords, Float.NaN);
-					DataHandler.runnableRunner.runParallelAndWait(new RunnableRunner.ParallelRangeRunnable() {
+					DataHandler.runnableRunner.runParallel(new RunnableRunner.ParallelRangeRunnable() {
 						@Override
 						public void run(int from, int to) {
 							if (!isRunning)
@@ -566,7 +566,7 @@ public class StackPositionProcessor {
 						
 						@Override
 						public void finished() {}
-					}, "StackPositionProcessor", null, 0, numRays, blocksize);
+					}, "StackPositionProcessor", null, 0, numRays, blocksize, true);
 					int numAcceptedRays = 0;
 					for (int read = 0; read < numRays; ++read)
 					{
@@ -592,7 +592,7 @@ public class StackPositionProcessor {
 						{
 							break;
 						}
-						DataHandler.runnableRunner.runParallelAndWait(new RunnableRunner.ParallelRangeRunnable() {
+						DataHandler.runnableRunner.runParallel(new RunnableRunner.ParallelRangeRunnable() {
 							@Override
 							public void run(int from, int to) {
 								if (!isRunning)
@@ -648,7 +648,7 @@ public class StackPositionProcessor {
 							
 							@Override
 							public void finished() {}
-						}, "StackPositionProcessor", null, 0, numAcceptedRays, blocksize);
+						}, "StackPositionProcessor", null, 0, numAcceptedRays, blocksize, true);
 						
 						
 					}

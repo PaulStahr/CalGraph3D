@@ -29,8 +29,6 @@ import geometry.Vector3d;
 import opengl.BufferUtils;
 
 public abstract class OpticalSurfaceObject extends SurfaceObject{
-
-
 	public static final OpticalSurfaceObject EMPTY_SURFACE_ARRAY[] = new OpticalSurfaceObject[0];
 	public double abbeNumber = 1;
 	public double conicConstant = 1;

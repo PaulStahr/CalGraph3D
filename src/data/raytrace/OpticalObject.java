@@ -27,6 +27,7 @@ import util.data.SortedIntegerArrayList;
 import util.data.UniqueObjects;
 
 public abstract class OpticalObject {
+	public MaterialType materialType = null;
 	public static final OpticalObject[] EMPTY_ARRAY = new OpticalObject[0];
 	private static int createdObjects = 0;
 	public final int iid = createdObjects++;

@@ -2880,7 +2880,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
     				prr.endpoints = endpoints;
     				prr.endpointColor = endpointColor;
        				gen.setSource(source);
-    				DataHandler.runnableRunner.runParallelAndWait(prr, "Raytrace", null, 0, source.numUntracedRays, 100000);
+    				DataHandler.runnableRunner.runParallel(prr, "Raytrace", null, 0, source.numUntracedRays, 100000, true);
     			}
     			for (int i = 0; i < scene.textureObjectList.size(); ++i)
     			{

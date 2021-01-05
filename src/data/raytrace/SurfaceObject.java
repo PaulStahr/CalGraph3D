@@ -3,14 +3,12 @@ package data.raytrace;
 import java.awt.Color;
 
 import data.raytrace.RaySimulation.AlphaCalculation;
-import data.raytrace.RaySimulation.MaterialType;
 import geometry.Vector2d;
 import geometry.Vector3d;
 import maths.Operation;
 import maths.data.RealLongOperation;
 
 public abstract class SurfaceObject extends OpticalObject{
-	public MaterialType materialType = MaterialType.ABSORBATION;
 	public double iorq = 1;
 	public double inviorq = 1;
 	public double diffuse = 0;

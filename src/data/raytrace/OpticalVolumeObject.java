@@ -46,7 +46,6 @@ import org.slf4j.LoggerFactory;
 
 import data.DataHandler;
 import data.Options;
-import data.raytrace.RaySimulation.MaterialType;
 import geometry.Geometry;
 import geometry.Matrix4d;
 import geometry.Vector3d;
@@ -71,7 +70,6 @@ import util.data.IntegerArrayList;
 import util.data.SortedIntegerArrayList;
 
 public abstract class OpticalVolumeObject extends OpticalObject{
-	public MaterialType materialType = null;
 	public static final OpticalVolumeObject EMPTY_VOLUME_ARRAY[] = new OpticalVolumeObject[0];
 	private static final Logger logger = LoggerFactory.getLogger(OpticalVolumeObject.class);
 	
@@ -80,8 +78,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 	{
 		try
 		{
-			boolean cuda = true;
-			if (new File("/usr/lib/x86_64-linux-gnu/libcudart.so").exists())
+				if (new File("/usr/lib/x86_64-linux-gnu/libcudart.so").exists())
 			{
 				System.load("/usr/lib/x86_64-linux-gnu/libcudart.so");
 			}
@@ -100,7 +97,6 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			else
 			{
 				JFrameUtils.logErrorAndShow("No cuda found", new FileNotFoundException(), logger);
-				cuda = false;
 			}
 			
 			if (new File ("/usr/lib/cuda_raytrace_java.so").exists())

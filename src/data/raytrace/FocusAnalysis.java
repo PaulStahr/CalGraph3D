@@ -65,14 +65,8 @@ public class FocusAnalysis {
 		destinationElevationVariance = new double[numElevations];
 		azimuths = new double[numElevations][];
 		startIndex = new int[numElevations + 1];
-		if (lightSource == null)
-		{
-			throw new NullPointerException("No light Source");
-		}
-		if (destination == null)
-		{
-			throw new NullPointerException("No Destination");
-		}
+		if (lightSource == null){throw new NullPointerException("No light Source");}
+		if (destination == null){throw new NullPointerException("No Destination");}
 		final double multElevation = lightSource.getMaxArcOpen() / numElevations;
 		for (int i = 0; i < numElevations; ++i)
 		{
@@ -240,14 +234,7 @@ public class FocusAnalysis {
 				}
 			}
 		};
-		if (wait)
-		{
-			DataHandler.runnableRunner.runParallelAndWait(prr, "Focus Heatmap", null, 0, numElevations, 10);
-		}
-		else
-		{
-			DataHandler.runnableRunner.runParallel(prr, "Focus Heatmap", null, 0, numElevations, 10);
-		}
+		DataHandler.runnableRunner.runParallel(prr, "Focus Heatmap", null, 0, numElevations, 10, wait);
 	}
 
 	public MeshObject createMeshObject() {
