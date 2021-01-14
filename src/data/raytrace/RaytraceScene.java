@@ -423,12 +423,11 @@ public class RaytraceScene {
 	{
 		forceEndpointObject = o;
 		valueChanged(FORCE_ENDPOINT, o);
+		if (Thread.holdsLock(variableListener)) {return;}
 		synchronized (variableListener)
 		{
-			if (isUpdating || sceneVariable == null) return;
-			isUpdating = true;
-			sceneVariable.set(new StringOperation("forceend"), new StringOperation(getForceEndpointStr()));
-			isUpdating = false;
+			if (sceneVariable == null) return;
+			sceneVariable.set(new StringOperation(FORCEEND), new StringOperation(getForceEndpointStr()));
 		}
 	}
 		
@@ -436,12 +435,11 @@ public class RaytraceScene {
 	{
 		forceStartpointObject = o;
 		valueChanged(FORCE_STARTPOINT, o);
+		if (Thread.holdsLock(variableListener)){return;}
 		synchronized (variableListener)
 		{
-			if (isUpdating || sceneVariable == null) return;
-			isUpdating = true;
-			sceneVariable.set(new StringOperation("forcestart"), new StringOperation(getForceStartpointStr()));
-			isUpdating = false;
+			if (sceneVariable == null) return;
+			sceneVariable.set(new StringOperation(FORCESTART), new StringOperation(getForceStartpointStr()));
 		}
 	}
 
@@ -689,6 +687,7 @@ public class RaytraceScene {
 		setRenderToTexture(null);
 		volumePipelines.clear();
 		vs.clear();
+		setId(this.id);
 	}
 	
 	public final OpticalObject getOpticalObject(String id)
@@ -1025,9 +1024,6 @@ public class RaytraceScene {
 		int trajectoryStep = 3 * (maxBounces + 2);
 		Arrays.fill(bounces, beginRay, endRay, 0);
 		Arrays.fill(accepted, beginRay, endRay, STATUS_UNDEFINED);
-		OpticalSurfaceObject successorSurfaces[] = gen.getSuccessorSurfaces();
-		OpticalVolumeObject successorVolumes[] = gen.getSuccessorVolumes();
-		MeshObject successorMeshes[] = gen.getSuccessorMeshes();
 		OpticalObject successor[] = null;
 		OpticalObject source = gen.getSource();
 		Arrays.fill(lastObject, outBeginIndex, outBeginIndex + (endRay - beginRay) * (bidir ? 2 : 1), source);
@@ -1046,13 +1042,7 @@ public class RaytraceScene {
 					gen.generate(j + genBegnIndex - beginRay, numRays, position, direction, coord, color);
 					if (startpoints != null){position.write(startpoints, outIndex * 3);}
 					if (startdirs != null)	{direction.write(startdirs, outIndex * 3);}
-					successorSurfaces = gen.getSuccessorSurfaces();
-					successorVolumes = gen.getSuccessorVolumes();
-					successorMeshes = gen.getSuccessorMeshes();
 					successor = gen.getSuccessors();
-					if (successorSurfaces == null)	{successorSurfaces = this.activeSurfaces;}
-					if (successorVolumes == null)	{successorVolumes = this.activeVolumes;}
-					if (successorMeshes == null)	{successorMeshes = this.activeMeshes;}
 					if (successor == null)			{successor = this.activeObjects;}
 					startpx = position.x; startpy = position.y; startpz = position.z;
 					startdx = position.x; startdy = position.y; startdz = position.z;
@@ -1067,9 +1057,6 @@ public class RaytraceScene {
 				currentRay.numBounces = bounces[j];
 				if (lastObject[outIndex] != null)
 				{
-					successorSurfaces = lastObject[outIndex].surfaceSuccessor;
-					successorVolumes = lastObject[outIndex].volumeSuccessor;
-					successorMeshes = lastObject[outIndex].meshSuccessor;
 					successor = lastObject[outIndex].successor;
 					currentRay.nearest.object = lastObject[outIndex];
 				}
@@ -1203,20 +1190,7 @@ public class RaytraceScene {
 		for (int l = 0; l < volumeSuccessor.length; ++l)	{volumeSuccessor[l].getIntersection(position, direction, nearest, epsilon, nearest.distance);}
 		for (int l = 0; l < meshSuccessor.length; ++l)		{meshSuccessor[l].getIntersection(position, direction, nearest, epsilon, nearest.distance);}
 	}
-	
-	/*public static final void getNextIntersection(
-			Vector3d position,
-			Vector3d direction,
-			Intersection nearest,
-			double epsilon,
-			OpticalObject successor[])
-	{
-		for (int l = 0; l < successor.length; ++l)
-		{
-			successor[l].getIntersection(position, direction, nearest, epsilon, nearest.distance);
-		}
-	}*/
-	
+
 	public final OpticalObject calculateRay(
 			RaySimulationObject ray,
 			int bounces,
@@ -1329,10 +1303,7 @@ public class RaytraceScene {
 				successor = c < 0 ? obj.successor : obj.predessor;
 				if (obj.diffuse != 0)
 				{
-					double dirnorm = direction.norm() * obj.diffuse;
-					direction.x += (Math.random() - 0.5) * dirnorm;
-					direction.y += (Math.random() - 0.5) * dirnorm;
-					direction.z += (Math.random() - 0.5) * dirnorm;
+					direction.add(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5, direction.norm() * obj.diffuse);
 				}
 				if (trajectory != null){position.write(trajectory, b + trajectoryWriteIndex);}
 			}
@@ -1398,30 +1369,32 @@ public class RaytraceScene {
 	public int volumePipelineCount() {return volumePipelines.size();}
 	public VolumePipeline getVolumePipeline(int i) {return volumePipelines.get(i);}
 	public void add(data.raytrace.CameraViewRunnable cameraViewRunnable) {cameraViewRunnables.add(new WeakReference<CameraViewRunnable>(cameraViewRunnable));}
-	public volatile boolean isUpdating = false;
+	
+	private static final String FORCEEND = "forceend", FORCESTART = "forcestart";
 
 	private final VariableListener variableListener = new VariableListener() {
 		@Override
-		public synchronized void variableChanged() {
-			if (isUpdating) return;
-			isUpdating = true;
-			Operation value = sceneVariable.getValue();
-			if (value instanceof MapOperation)
+		public void variableChanged() {
+			if (Thread.holdsLock(variableListener)) {return;}
+			synchronized(variableListener)
 			{
-				for (Entry<Operation, Operation> entry : ((MapOperation)value).entrySet())
+				Operation value = sceneVariable.getValue();
+				if (value instanceof MapOperation)
 				{
-					Operation key = entry.getKey();
-					if (key.isString())
+					for (Entry<Operation, Operation> entry : ((MapOperation)value).entrySet())
 					{
-						switch(key.stringValue())
+						Operation key = entry.getKey();
+						if (key.isString())
 						{
-							case "focrceend": setForceEndpoint(entry.getValue().stringValue());	break;
-							case "forcestart":setForceStartpoint(entry.getValue().stringValue());break;
+							switch(key.stringValue())
+							{
+								case FORCEEND: setForceEndpoint(entry.getValue().stringValue());	break;
+								case FORCESTART:setForceStartpoint(entry.getValue().stringValue());break;
+							}
 						}
 					}
 				}
 			}
-			isUpdating = false;
 		}
 	};
 	
@@ -1435,8 +1408,8 @@ public class RaytraceScene {
 		if (id != null)
 		{
 			sceneVariable = new Variable(id, new MapOperation());
-			sceneVariable.set(new StringOperation("forceend"), new StringOperation(getForceEndpointStr()));
-			sceneVariable.set(new StringOperation("forcestart"), new StringOperation(getForceStartpointStr()));
+			sceneVariable.set(new StringOperation(FORCEEND), new StringOperation(getForceEndpointStr()));
+			sceneVariable.set(new StringOperation(FORCESTART), new StringOperation(getForceStartpointStr()));
 			sceneVariable.addVariableListener(variableListener);
 			vs.add(sceneVariable);
 		}

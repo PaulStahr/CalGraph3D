@@ -279,6 +279,7 @@ public final class Vector3d implements Vectord
         z += vektor.z * scalar + vector2.x * scalar2;
     }
 
+    public final void add(final double x, final double y, final double z, final double s){this.x += x * s;this.y += y * s;this.z += z * s;}
     public final void add(final double x, final double y, final double z){this.x += x;this.y += y;this.z += z;}
     public final void add(final double x, final double y){this.x += x;this.y += y;}
 	public final void add(float[] data, int index) {x += data[index];y += data[index + 1];z += data[index + 2];}
