@@ -89,7 +89,7 @@ public class RaytraceCommandLine {
 	private void exec_impl(
 			String command,
 			ExecEnv env,
-			BufferedWriter out,
+			final BufferedWriter out,
 			List<String> variables
 	) throws IOException
 	{
@@ -555,9 +555,13 @@ public class RaytraceCommandLine {
 							}
 							npc.calculate();
 							npc.get(vec);
+							try {
+								out.write(value + "->" + destination.evaluate_inner_outer(vec) + "\t" + vec + "\t" + npc.getCount() + "\n");
+								out.flush();
+							} catch (IOException e) {
+								logger.error("Can't write output", e);
+							}
 							npc.reset();
-							System.out.println();
-							System.out.println(value + "->" + destination.evaluate_inner_outer(vec) + "\t" + vec);
 							return destination.evaluate_inner_outer(vec);
 						}
 					});

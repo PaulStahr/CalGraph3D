@@ -15,8 +15,8 @@ import geometry.Vector2d;
 import geometry.Vector3d;
 import jcomponents.raytrace.RaySimulationData;
 import maths.exception.OperationParseException;
-import util.RunnableRunner;
-import util.RunnableRunner.ParallelRangeRunnable;
+import util.ThreadPool;
+import util.ThreadPool.ParallelRangeRunnable;
 import util.data.DoubleArrayList;
 
 public class FocusAnalysis {
@@ -85,7 +85,7 @@ public class FocusAnalysis {
 		pixelVariance = new float[width * height];
 		pixelCount = new int[width * height];
 		vertices = new double[startIndex[numElevations] * 3];
-		ParallelRangeRunnable prr = new RunnableRunner.ParallelRangeRunnable() {
+		ParallelRangeRunnable prr = new ThreadPool.ParallelRangeRunnable() {
 			
 
 			@Override

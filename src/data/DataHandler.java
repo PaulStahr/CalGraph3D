@@ -71,7 +71,7 @@ import maths.variable.VariableStack;
 import util.BufferedZipReader;
 import util.IOUtil;
 import util.JFrameUtils;
-import util.RunnableRunner;
+import util.ThreadPool;
 import util.SaveLineCreator;
 import util.StringUtils;
 import util.TimedUpdater;
@@ -90,7 +90,7 @@ public abstract class DataHandler
 	public static final VariableStack globalVariables = new VariableStack(10);
     public static final UIManager.LookAndFeelInfo lookAndFeelInfo[] = UIManager.getInstalledLookAndFeels();
 	private static final Logger logger = LoggerFactory.getLogger(DataHandler.class);
-    public static final RunnableRunner runnableRunner = new RunnableRunner(5000);
+    public static final ThreadPool runnableRunner = new ThreadPool(5000);
     public static final TimedUpdater timedUpdater = new TimedUpdater(10);
     private static final String resourceFolder = "/resources/";
     private static final ArrayList<WeakReference<JFrame> > updateUIList = new ArrayList<WeakReference<JFrame>>();

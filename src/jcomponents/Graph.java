@@ -77,7 +77,7 @@ import scene.object.SceneObjectVektor;
 import util.ArrayTools;
 import util.JFrameUtils;
 import util.OperationGeometry;
-import util.RunnableRunner;
+import util.ThreadPool;
 import util.SaveLineCreator;
 import util.StringUtils;
 import util.data.SortedIntegerArrayList;
@@ -193,7 +193,7 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
 	private DoubleLine line0, line1;
     private WeakReference<GraphWindow> window = null;
     
-    private final RunnableRunner.RunnableObject runnable = new RunnableRunner.RunnableObject("Graph", null){
+    private final ThreadPool.RunnableObject runnable = new ThreadPool.RunnableObject("Graph", null){
         @Override
 		public void run(){
     		try{
@@ -231,7 +231,7 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
     }
     
     public boolean isRunning(){
-    	return runnable.getState() == RunnableRunner.STATE_RUNNING;
+    	return runnable.getState() == ThreadPool.STATE_RUNNING;
     }
     
     public final GraphWindow getWindow(){

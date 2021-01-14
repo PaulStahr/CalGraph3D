@@ -33,9 +33,9 @@ public final class RunTree{
 
 	private final ArrayList<RunTreeItem> itemList = new ArrayList<RunTreeItem>();
 	private int treeState = STATE_BUILDING;
-	private final RunnableRunner runnableRunner;
+	private final ThreadPool runnableRunner;
 	
-	public RunTree(RunnableRunner runnableRunner){
+	public RunTree(ThreadPool runnableRunner){
 		this.runnableRunner = runnableRunner;
 	}
 		

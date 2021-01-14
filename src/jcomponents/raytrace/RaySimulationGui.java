@@ -172,8 +172,8 @@ import scene.object.SceneObjectLine;
 import scene.object.SceneObjectMesh;
 import util.ArrayUtil;
 import util.JFrameUtils;
-import util.RunnableRunner;
-import util.RunnableRunner.ParallelRangeRunnable;
+import util.ThreadPool;
+import util.ThreadPool.ParallelRangeRunnable;
 import util.StringUtils;
 import util.TimedUpdateHandler;
 import util.data.UniqueObjects;
@@ -2805,9 +2805,9 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 	}*/
 
 	
-	private final RunnableRunner.RunnableObject untracedRayRunnable = new RunnableRunner.RunnableObject("UntracedRays", null){
+	private final ThreadPool.RunnableObject untracedRayRunnable = new ThreadPool.RunnableObject("UntracedRays", null){
 		private float enddirs[] = UniqueObjects.EMPTY_FLOAT_ARRAY;
-		private final RunnableRunner.ThreadLocal<RaySimulationObject> rso = DataHandler.runnableRunner.new ThreadLocal<RaySimulationObject>();
+		private final ThreadPool.ThreadLocal<RaySimulationObject> rso = DataHandler.runnableRunner.new ThreadLocal<RaySimulationObject>();
 		private final AtomicInteger startPointIndexCount = new AtomicInteger(0);
 		private final RayGenerator gen = new RayGenerator();
 		private byte accepted[] = UniqueObjects.EMPTY_BYTE_ARRAY;

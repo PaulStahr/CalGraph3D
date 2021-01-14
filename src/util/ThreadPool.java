@@ -30,51 +30,33 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RunnableRunner {
-	private static final Logger logger = LoggerFactory.getLogger(RunnableRunner.class);
+public class ThreadPool {
+	private static final Logger logger = LoggerFactory.getLogger(ThreadPool.class);
 	private final ArrayDeque<RunnableObject> toRun = new ArrayDeque<RunnableObject>();
 	private final int timeout;
 	private volatile int waiting, total;
 	private int freeIds[];
 	private int maxThreads;
 	
-	public RunnableRunner(int timeout, int maxThreads) {
+	public ThreadPool(int timeout, int maxThreads) {
 		this.timeout = timeout;
 		this.maxThreads = maxThreads;
 		freeIds = new int[maxThreads];
 		ArrayUtil.iota(freeIds);
 	}
 	
-	public RunnableRunner(int timeout) {
-		this(timeout, Runtime.getRuntime().availableProcessors());
-	}
+	public ThreadPool(int timeout) 	{this(timeout, Runtime.getRuntime().availableProcessors());}
+	public ThreadPool() 			{this(1000);}
 	
-	public RunnableRunner() {
-		this(1000);
-	}
+	public final void run(Runnable r, String name) {run(r,name,null);}
 	
-	public final void run(Runnable r, String name) {
-		run(r,name,null);
-	}
-	
-	public int getMaxThreads()
-	{
-		return maxThreads;
-	}
-	
-	public void setMaxThreads(int maxThreads)
-	{
-		this.maxThreads = maxThreads;
-	}
+	public int getMaxThreads(){return maxThreads;}
+	public void setMaxThreads(int maxThreads){this.maxThreads = maxThreads;}
 	
 	public static final int getCurrentId()
 	{
 		Thread current = Thread.currentThread();
-		if (current instanceof RunnerThread)
-		{
-			return ((RunnerThread)current).id;
-		}
-		return -1;
+		return current instanceof RunnerThread ? ((RunnerThread)current).id : -1;
 	}
 	
 	public final void run(RunnableObject ro, boolean multipleQue){
@@ -86,10 +68,7 @@ public class RunnableRunner {
 			}
 			if (ro.getState() == STATE_WAITING)
 			{
-				if (multipleQue)
-				{
-					ro.rerun = true;
-				}
+				ro.rerun |= multipleQue;
 				return;
 			}
 			toRun.add(ro);
@@ -132,11 +111,7 @@ public class RunnableRunner {
 		public final E get()
 		{
 			int id = getCurrentId();
-			if (id > obj.length)
-			{
-				return null;
-			}
-			return obj[id];
+			return id > obj.length ? null : obj[id];
 		}
 		
 		public final void set(E value)
@@ -170,10 +145,7 @@ public class RunnableRunner {
 			this.name = name;
 		}
 		
-		public final byte getState()
-		{
-			return state;
-		}
+		public final byte getState(){return state;}
 		
 		@Override
 		public void run()
@@ -332,10 +304,7 @@ public class RunnableRunner {
 						}
 					}
 				}
-				if (ro.name == null)
-					setName("RunnableRunner");
-				else
-					setName(ro.name);
+				setName(ro.name == null ? "ThreadPool" : ro.name);
 				ro.state = STATE_RUNNING;
 				try {
 					ro.run();

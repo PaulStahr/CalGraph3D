@@ -36,7 +36,7 @@ import util.ArrayUtil;
 import util.IOUtil;
 import util.ImageSaver;
 import util.JFrameUtils;
-import util.RunnableRunner;
+import util.ThreadPool;
 import util.StringUtils;
 import util.data.DoubleArrayList;
 
@@ -201,7 +201,7 @@ public class StackPositionProcessor {
 			}
 			OpticalObject source = gen.getSource();
 			final Matrix4d mat = gen.getSource() instanceof MeshObject ? ((MeshObject)source).meshToGlobal : null;
-			final RunnableRunner.ThreadLocal<SingleThreadLocal> stl = DataHandler.runnableRunner.new ThreadLocal<>();
+			final ThreadPool.ThreadLocal<SingleThreadLocal> stl = DataHandler.runnableRunner.new ThreadLocal<>();
 			
 			if (outputResolution == null)
 			{
@@ -219,7 +219,7 @@ public class StackPositionProcessor {
 					numIterations = rangeEnd - rangeBegin;
 					final double avarage[] = new double[2 * (rangeEnd - rangeBegin)];
 					System.out.println(rangeBegin + '-' + rangeEnd);
-					DataHandler.runnableRunner.runParallel(new RunnableRunner.ParallelRangeRunnable() {
+					DataHandler.runnableRunner.runParallel(new ThreadPool.ParallelRangeRunnable() {
 						@Override
 						public void run(int from, int to)
 						{
@@ -395,7 +395,7 @@ public class StackPositionProcessor {
 								logger.error("Can't update Transformation", e);
 							}
 						}
-						DataHandler.runnableRunner.runParallel(new RunnableRunner.ParallelRangeRunnable() {
+						DataHandler.runnableRunner.runParallel(new ThreadPool.ParallelRangeRunnable() {
 							@Override
 							public void run(int from, int to) {
 								if (!isRunning)
@@ -510,7 +510,7 @@ public class StackPositionProcessor {
 					Arrays.fill(midPos, Float.NaN);
 					Arrays.fill(midDir, Float.NaN);
 					Arrays.fill(textureCoords, Float.NaN);
-					DataHandler.runnableRunner.runParallel(new RunnableRunner.ParallelRangeRunnable() {
+					DataHandler.runnableRunner.runParallel(new ThreadPool.ParallelRangeRunnable() {
 						@Override
 						public void run(int from, int to) {
 							if (!isRunning)
@@ -592,7 +592,7 @@ public class StackPositionProcessor {
 						{
 							break;
 						}
-						DataHandler.runnableRunner.runParallel(new RunnableRunner.ParallelRangeRunnable() {
+						DataHandler.runnableRunner.runParallel(new ThreadPool.ParallelRangeRunnable() {
 							@Override
 							public void run(int from, int to) {
 								if (!isRunning)

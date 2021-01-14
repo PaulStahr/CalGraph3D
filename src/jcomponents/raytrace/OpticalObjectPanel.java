@@ -54,8 +54,9 @@ import data.raytrace.OpticalObject;
 import data.raytrace.OpticalObject.COLUMN_TYPES;
 import data.raytrace.OpticalObject.SCENE_OBJECT_COLUMN_TYPE;
 import data.raytrace.ParseUtil;
-import maths.variable.VariableAmount;
 import maths.exception.OperationParseException;
+import maths.variable.VariableAmount;
+import util.ArrayUtil;
 
 public class OpticalObjectPanel extends JPanel implements OpticalSurfaceObjectChangeListener, OpticalVolumeObjectChangeListener, MeshObjectChangeListener, ItemListener, DocumentListener{
 	/**
@@ -245,18 +246,6 @@ public class OpticalObjectPanel extends JPanel implements OpticalSurfaceObjectCh
 		}
 	}
 	
-	private int getIndex (Object comp)
-	{
-		for (int i = 0; i < componentTableSelection.length; ++i)
-		{
-			if (componentTableSelection[i] == comp)
-			{
-				return i;
-			}
-		}
-		return -1;
-	}
-	
 	@Override
 	public void itemStateChanged(ItemEvent e) {
 		if (!EventQueue.isDispatchThread())
@@ -266,7 +255,7 @@ public class OpticalObjectPanel extends JPanel implements OpticalSurfaceObjectCh
 		if (!isUpdating && guiOpticalObject != null)
 		{
 			Object source = e.getSource();
-			int index = getIndex(source);
+			int index = ArrayUtil.linearSearch(componentTableSelection, source);
 			SCENE_OBJECT_COLUMN_TYPE current = guiOpticalObject.getTypes().getCol(index);
 			ParseUtil parser = new ParseUtil();
 			
@@ -402,10 +391,6 @@ public class OpticalObjectPanel extends JPanel implements OpticalSurfaceObjectCh
 					{
 						guiOpticalObject.setValue(guiOpticalObject.getTypes().getCol(i), tf.getText(), OpticalObjectPanel.this.va, parser);
 						tf.setBackground(Color.WHITE);
-					} catch (OperationParseException e) {
-						tf.setBackground(Color.PINK);
-					} catch (NumberFormatException e) {
-						tf.setBackground(Color.PINK);
 					} catch (Exception e) {
 						tf.setBackground(Color.PINK);
 					}

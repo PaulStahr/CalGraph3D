@@ -18,7 +18,7 @@ import maths.variable.VariableStack;
 import maths.variable.VariableStack.VariableObserver.PendendList;
 import util.JFrameUtils;
 import util.ListTools;
-import util.RunnableRunner;
+import util.ThreadPool;
 import util.TimedUpdateHandler;
 import util.data.SortedIntegerArrayList;
 
@@ -85,7 +85,7 @@ public class VolumePipeline implements Runnable {
 		updater = new VolumePipelineTimedUpdater(scene);
 	}
 	
-	private final class VolumeRunnable extends RunnableRunner.RunnableObject {
+	private final class VolumeRunnable extends ThreadPool.RunnableObject {
 		public VolumeRunnable() {
 			super("VolumePipeline", null);
 		}

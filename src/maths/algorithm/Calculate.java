@@ -33,7 +33,7 @@ import maths.functions.atomic.MultiplicationOperation;
 import maths.functions.atomic.PowerOperation;
 import maths.functions.atomic.SubtractionOperation;
 import util.ArrayUtil;
-import util.RunnableRunner;
+import util.ThreadPool;
 import util.data.DoubleList;
 
 /**
@@ -923,8 +923,8 @@ public abstract class Calculate
 			}
 			if (multithreaded)
 			{
-				final RunnableRunner.ThreadLocal<double[]> tmpdat = DataHandler.runnableRunner.new ThreadLocal<double[]>();
-				DataHandler.runnableRunner.runParallel(new RunnableRunner.ParallelRangeRunnable(){
+				final ThreadPool.ThreadLocal<double[]> tmpdat = DataHandler.runnableRunner.new ThreadLocal<double[]>();
+				DataHandler.runnableRunner.runParallel(new ThreadPool.ParallelRangeRunnable(){
 					
 					@Override
 					public void run(int from, int to) {

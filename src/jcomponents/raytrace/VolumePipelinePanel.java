@@ -56,56 +56,57 @@ public class VolumePipelinePanel extends JPanel implements ActionListener, Scene
 		public void run() {
 			if (EventQueue.isDispatchThread())
 			{	
-				isUpdating = true;
-				JFrameUtils.compareAndSetEnabled(buttonCalculate, !pipeline.isCalculating());
-				int currentCalculatingStep = pipeline.getCurrentCalculatingStep();
-				for (int i = 0; i < pipeline.steps.size(); ++i)
+				synchronized(this)
 				{
-					Color col = i < currentCalculatingStep ? Color.GREEN : i == currentCalculatingStep ? Color.YELLOW : Color.RED;
-					CalculationStep step = pipeline.steps.get(i);
-					if (i < pipelinePanel.getComponentCount())
+					JFrameUtils.compareAndSetEnabled(buttonCalculate, !pipeline.isCalculating());
+					int currentCalculatingStep = pipeline.getCurrentCalculatingStep();
+					for (int i = 0; i < pipeline.steps.size(); ++i)
 					{
-						Component comp = pipelinePanel.getComponent(i);
-						if (comp instanceof CalculationPipelineStepPanel && step instanceof CalculationCalcuationStep)
+						Color col = i < currentCalculatingStep ? Color.GREEN : i == currentCalculatingStep ? Color.YELLOW : Color.RED;
+						CalculationStep step = pipeline.steps.get(i);
+						if (i < pipelinePanel.getComponentCount())
 						{
-							CalculationPipelineStepPanel spsp = (CalculationPipelineStepPanel)comp;
+							Component comp = pipelinePanel.getComponent(i);
+							if (comp instanceof CalculationPipelineStepPanel && step instanceof CalculationCalcuationStep)
+							{
+								CalculationPipelineStepPanel spsp = (CalculationPipelineStepPanel)comp;
+								CalculationCalcuationStep ccs = (CalculationCalcuationStep)step; 
+								spsp.set(ccs);
+								JFrameUtils.compareAndSetBackground(comp, col);
+								continue;
+							}
+							if (comp instanceof GeneratePipelineStepPanel && step instanceof GenerationCalculationStep)
+							{
+								GeneratePipelineStepPanel spsp = (GeneratePipelineStepPanel)comp;
+								GenerationCalculationStep ccs = (GenerationCalculationStep)step; 
+								spsp.set(ccs);
+								JFrameUtils.compareAndSetBackground(comp, col);
+								continue;
+							}
+						}
+						Component comp = null;
+						if (step instanceof CalculationCalcuationStep)
+						{
 							CalculationCalcuationStep ccs = (CalculationCalcuationStep)step; 
-							spsp.set(ccs);
-							JFrameUtils.compareAndSetBackground(comp, col);
-							continue;
+							comp = new CalculationPipelineStepPanel(ccs);
 						}
-						if (comp instanceof GeneratePipelineStepPanel && step instanceof GenerationCalculationStep)
+						if (step instanceof GenerationCalculationStep)
 						{
-							GeneratePipelineStepPanel spsp = (GeneratePipelineStepPanel)comp;
 							GenerationCalculationStep ccs = (GenerationCalculationStep)step; 
-							spsp.set(ccs);
-							JFrameUtils.compareAndSetBackground(comp, col);
-							continue;
+							comp = new GeneratePipelineStepPanel(ccs);
 						}
+						JFrameUtils.compareAndSetBackground(comp, col);
+						while (i < pipelinePanel.getComponentCount())
+						{
+							pipelinePanel.remove(i);
+						}
+						pipelinePanel.add(comp);
 					}
-					Component comp = null;
-					if (step instanceof CalculationCalcuationStep)
-					{
-						CalculationCalcuationStep ccs = (CalculationCalcuationStep)step; 
-						comp = new CalculationPipelineStepPanel(ccs);
-					}
-					if (step instanceof GenerationCalculationStep)
-					{
-						GenerationCalculationStep ccs = (GenerationCalculationStep)step; 
-						comp = new GeneratePipelineStepPanel(ccs);
-					}
-					JFrameUtils.compareAndSetBackground(comp, col);
-					while (i < pipelinePanel.getComponentCount())
-					{
-						pipelinePanel.remove(i);
-					}
-					pipelinePanel.add(comp);
+					pipelinePanel.revalidate();
+					JFrameUtils.compareAndSetSelectedItem(volumes,pipeline.ovo);
+					JFrameUtils.compareAndSetSelected(checkBoxAutoUpdate, pipeline.getAutoUpdate());
+					JFrameUtils.compareAndSetSelected(checkBoxRunAtStartup, pipeline.calcuteAtCreation);
 				}
-				pipelinePanel.revalidate();
-				JFrameUtils.compareAndSetSelectedItem(volumes,pipeline.ovo);
-				JFrameUtils.compareAndSetSelected(checkBoxAutoUpdate, pipeline.getAutoUpdate());
-				JFrameUtils.compareAndSetSelected(checkBoxRunAtStartup, pipeline.calcuteAtCreation);
-				isUpdating = false;
 			}
 			else
 			{
@@ -113,8 +114,6 @@ public class VolumePipelinePanel extends JPanel implements ActionListener, Scene
 			}
 		}
 	};
-
-	private boolean isUpdating;
 	
 	public OpticalVolumeObject getSelectedVolume()
     {
@@ -159,13 +158,12 @@ public class VolumePipelinePanel extends JPanel implements ActionListener, Scene
 	@Override
 	public void itemStateChanged(ItemEvent arg0) {
 		Object source = arg0.getSource();
-		if (!isUpdating)
+		if (Thread.holdsLock(this)) {return;}
+		synchronized(this)
 		{
-			isUpdating = true;
 			if (source == checkBoxAutoUpdate)			{pipeline.setAutoUpdate(checkBoxAutoUpdate.isSelected());}
 			else if (source == checkBoxRunAtStartup)	{pipeline.calcuteAtCreation = checkBoxRunAtStartup.isSelected();}
 			else if (source == volumes)					{pipeline.ovo = (OpticalVolumeObject)volumes.getSelectedItem();}
-			isUpdating = false;
 		}
 	}
 	
