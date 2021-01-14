@@ -195,7 +195,7 @@ public class ArrayTools {
 		{
 			if (data[read] != obj)
 			{
-				data[write] = data[read];
+				data[write++] = data[read];
 			}
 		}
 		Arrays.fill(data, write, size, null);

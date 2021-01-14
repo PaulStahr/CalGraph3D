@@ -44,6 +44,7 @@ import maths.exception.ArrayIndexOutOfBoundsExceptionOperation;
 import maths.exception.ExceptionOperation;
 import maths.exception.OperationParseException;
 import util.ArrayTools;
+import util.ArrayUtil;
 import util.data.SortedIntegerArrayList;
 import util.data.SortedIntegerArrayList.ReadOnlySortedIntegerArrayList;
 
@@ -138,10 +139,7 @@ public final class Variable implements Comparable<Variable>{
     
     public final void removeVariableListener(VariableListener vl)
     {
-    	if (vl == null)
-    	{
-    		throw new NullPointerException();
-    	}
+    	if (vl == null){throw new NullPointerException();}
     	variableListenerCount = ArrayTools.remove(variableListeners, variableListenerCount, vl);
     }
 
@@ -450,5 +448,9 @@ public final class Variable implements Comparable<Variable>{
 		if (erg != 0)
 			return erg;
 		return operands.length - o.operands.length;
+	}
+
+	public boolean hasVariableListener(VariableListener variableListener) {
+		return ArrayUtil.linearSearch(variableListeners, variableListener) >= 0;
 	}
 }

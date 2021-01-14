@@ -687,16 +687,13 @@ public class RaytraceScene {
 		setRenderToTexture(null);
 		volumePipelines.clear();
 		vs.clear();
-		setId(this.id);
+		if (sceneVariable != null){vs.add(sceneVariable);}
 	}
 	
 	public final OpticalObject getOpticalObject(String id)
 	{
 		OpticalObject obj = getSurfaceObject(id);
-		if (obj != null)
-		{
-			return obj;
-		}
+		if (obj != null){return obj;}
 		return getVolumeObject(id);	
 	}
 	
@@ -1402,7 +1399,10 @@ public class RaytraceScene {
 		this.id = id;
 		if (sceneVariable != null)
 		{
-			if (sceneVariable.getName().equals(id)) {return;}
+			if (sceneVariable.getName().equals(id)) {
+				if (vs.get(id)!= sceneVariable){vs.add(sceneVariable);}
+				return;
+			}
 			vs.del(sceneVariable);
 		}
 		if (id != null)
