@@ -185,9 +185,7 @@ public class IntegerArrayList extends AbstractList<Integer> implements IntegerLi
 		}
 
 		@Override
-		public int size() {
-			return length;
-		}
+		public int size() {return length;}
 		
 		@Override
 		public final void setElem(int index, int elem){throw new RuntimeException();}
@@ -219,17 +217,9 @@ public class IntegerArrayList extends AbstractList<Integer> implements IntegerLi
 
     @Override
     public boolean removeIf(Predicate<? super Integer> predicate) {
-        int write = 0;
-        int read;
-        for (read = 0; read < size(); ++read)
-        {
-            if (!predicate.test(data[read]))
-            {
-                data[write++] = data[read];
-            }
-        }
-        length = write;
-        return write != read;
+        int oldLength = length;
+        length = ArrayUtil.removeIf(data, 0, length, predicate);
+        return oldLength != length;
     }
 
     @Override

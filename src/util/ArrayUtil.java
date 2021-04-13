@@ -7,8 +7,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.function.Predicate;
 
-import javax.management.ObjectInstance;
-
 import util.data.DoubleList;
 import util.data.IntegerArrayList;
 import util.data.IntegerList;
@@ -540,10 +538,10 @@ public class ArrayUtil {
 		}
 	}
 
-	public static void sortWeak(ArrayList<ObjectInstance> tmp, Comparator<ObjectInstance> comparator) {
+	public static <E> void sortWeak(ArrayList<E> tmp, Comparator<E> comparator) {
 		for (int i = 0; i < tmp.size(); ++i)
 		{
-			ObjectInstance current_min = tmp.get(i);
+			E current_min = tmp.get(i);
 			int current_min_index = i;
 			for (int j = i + 1; j < tmp.size(); ++j)
 			{
@@ -574,14 +572,8 @@ public class ArrayUtil {
     }
 
 	public static void arraycopy(float[] source, int inputBegin, double[] dest, int outputBegin, int size) {
-		if (inputBegin + size > source.length)
-		{
-			throw new ArrayIndexOutOfBoundsException("Index " + size + inputBegin + " out of bounds for length " + source.length);
-		}
-		if (outputBegin + size > dest.length)
-		{
-			throw new ArrayIndexOutOfBoundsException("Index " + size + outputBegin + " out of bounds for length " + dest.length);
-		}
+		if (inputBegin + size > source.length) {throw new ArrayIndexOutOfBoundsException("Index " + size + inputBegin + " out of bounds for length " + source.length);}
+		if (outputBegin + size > dest.length)	{throw new ArrayIndexOutOfBoundsException("Index " + size + outputBegin + " out of bounds for length " + dest.length);}
 		for (size += inputBegin; inputBegin < size; ++inputBegin, ++outputBegin)
 		{
 			dest[outputBegin] = source[inputBegin];
@@ -624,12 +616,39 @@ public class ArrayUtil {
         ial.removeRange(write, ial.size());
     }
 
-    public static int removeIf(int[] data, int begin, int end, Predicate<Integer> pred) {
-        int result = begin;
-        for (;begin < end; ++begin)
+    public static final int removeIf(byte[] data, int begin, int end, Predicate<? super Byte> predicate) {
+        int write = 0;
+        for (; begin < end; ++begin)
         {
-            if (!pred.test(data[begin])){data[result ++] = data[begin];}
+            if (!predicate.test(data[begin]))
+            {
+                data[write++] = data[begin];
+            }
         }
-        return result;
+        return write;
+    }
+    
+    public static final int removeIf(int[] data, int begin, int end, Predicate<? super Integer> predicate) {
+        int write = 0;
+        for (; begin < end; ++begin)
+        {
+            if (!predicate.test(data[begin]))
+            {
+                data[write++] = data[begin];
+            }
+        }
+        return write;
+    }
+    
+    public static final int removeIf(double[] data, int begin, int end, Predicate<? super Double> predicate) {
+        int write = 0;
+        for (; begin < end; ++begin)
+        {
+            if (!predicate.test(data[begin]))
+            {
+                data[write++] = data[begin];
+            }
+        }
+        return write;
     }
 }
