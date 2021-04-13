@@ -295,10 +295,10 @@ public final class Vector3d implements Vectord
     }
 
 	public final void reflect(Vector3d v) {add(v, -2 * dot(v)/v.dot());}
-	
+
 	public final void invert(Vector3d v){x = -v.x;y = -v.y;z = -v.z;}
 	public final void invert()			{x = -x;y = -y;z = -z;}
-	
+
    	public final double distanceQ(Vector3d v)
 	{
 		double xDiff = x - v.x;
@@ -306,10 +306,10 @@ public final class Vector3d implements Vectord
 		double zDiff = z - v.z;
 		return xDiff * xDiff + yDiff * yDiff + zDiff * zDiff;
 	}
-   	
+
 	public double distance(Vector3d v) {return Math.sqrt(distanceQ(v));}
 	public double distance(float[] data, int i) {return Math.sqrt(distanceQ(data, i));}
-	
+
 	public final double distanceQ(Vector3d v, double s)
 	{
 		double xDiff = x - v.x * s;
@@ -317,7 +317,7 @@ public final class Vector3d implements Vectord
 		double zDiff = z - v.z * s;
 		return xDiff * xDiff + yDiff * yDiff + zDiff * zDiff;
 	}
-	
+
 	public final double distanceQ(final double scale, final double x, final double y, final double z)
 	{//TODO: order of arguments is contraintuitive
 		double xDiff = scale * this.x - x;
@@ -325,21 +325,29 @@ public final class Vector3d implements Vectord
 		double zDiff = scale * this.z - z;
 		return xDiff * xDiff + yDiff * yDiff + zDiff * zDiff;
 	}
-	
+
+	public final double distanceQ(final double x, final double y, final double z)
+    {
+        double xDiff = this.x - x;
+        double yDiff = this.y - y;
+        double zDiff = this.z - z;
+        return xDiff * xDiff + yDiff * yDiff + zDiff * zDiff;
+    }
+
 	public final double distanceQ(float[] data, int index) {
 		double xDiff = x - data[index];
 		double yDiff = y - data[index + 1];
 		double zDiff = z - data[index + 2];
 		return xDiff * xDiff + yDiff * yDiff + zDiff * zDiff;
 	}
-	
+
 	public final double distanceQ(double[] data, int index) {
 		double xDiff = x - data[index];
 		double yDiff = y - data[index + 1];
 		double zDiff = z - data[index + 2];
 		return xDiff * xDiff + yDiff * yDiff + zDiff * zDiff;
 	}
-	
+
     @Override
 	public final String toString(){return toString(new StringBuilder()).toString();}
     public final StringBuilder toString(StringBuilder strB){return strB.append('(').append(x).append(',').append(y).append(',').append(z).append(')');}

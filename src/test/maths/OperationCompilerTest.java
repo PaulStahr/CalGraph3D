@@ -1,6 +1,6 @@
 package test.maths;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
@@ -18,21 +18,10 @@ public class OperationCompilerTest {
 
     private void testCompileToStringInverse(String str) {
         try {
-            testCompileToStringInverse(OperationCompiler.compile(str));
+            Operation op = OperationCompiler.compile(str);
+            assertEquals(OperationCompiler.compile(op.toString()), op);
         } catch (OperationParseException e) {
             throw new AssertionError(str, e);
-        }
-    }
-    
-    private void testCompileToStringInverse(Operation op) {
-        Operation cpop = null;
-        try {
-            cpop = OperationCompiler.compile(op.toString());
-            assertTrue(cpop.equals(op));
-        }catch(AssertionError e){
-            throw new AssertionError(cpop.toString());
-        } catch (OperationParseException e) {
-            throw new AssertionError(op.toString(), e);
         }
     }   
 }

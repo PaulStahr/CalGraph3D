@@ -101,6 +101,7 @@ public final class Vector2d implements Vectord{
     	return strB.append('(').append(x).append(',').append(y).append(')');
     }
     
+    @Override
     public final int size()
     {
     	return 2;
@@ -116,7 +117,8 @@ public final class Vector2d implements Vectord{
 		data[i + 1] = y;
 	}
 	
-	public final double dot()
+	@Override
+    public final double dot()
 	{
 		return x * x + y * y;
 	}
@@ -136,4 +138,10 @@ public final class Vector2d implements Vectord{
 		data[i] = (float)x;
 		data[i + 1] = (float)y;
 	}
+
+    public final double distanceQ(Vector2d v)
+    {
+        double xDiff = x - v.x, yDiff = y - v.y;
+        return xDiff * xDiff + yDiff * yDiff;
+    }
 }

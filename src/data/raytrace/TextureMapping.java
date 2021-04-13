@@ -53,11 +53,30 @@ public enum TextureMapping
 	},	SPHERICAL("Spherical") {
 		@Override
 		public double mapCartToTex(double x, double y, double z, Vector2d out) {
-			out.x = (Math.atan2(y, x) + Math.PI) * INV_TWO_PI;
+		    out.x = Math.atan2(-y, -x) * INV_TWO_PI + 0.5;
 		    out.y = Math.atan2(Math.sqrt(x * x + y * y), z) * INV_PI;
 		    return Double.NaN;
 		}
-		
+
+        @Override
+        public double mapTexToCart(double x, double y, Vector3d out)
+        {
+            x *= Calculate.TWO_PI;
+            y *= Math.PI;
+            out.x = Math.sin(y) * Math.cos(x);
+            out.y = Math.sin(y) * Math.sin(x);
+            out.z = Math.cos(y);
+            return 1/out.z;
+        }
+
+        @Override
+        public double mapTexToCart(double x, double y)
+        {
+            y *= Math.PI;
+            double z = Math.cos(y);
+            return 1/z;
+        }
+
 		@Override
 		public void densityCompensation(WritableRaster r) {
 			int pixelValue[] = new int[4];
@@ -74,25 +93,6 @@ public enum TextureMapping
 			}
 		}
 		
-		@Override
-		public double mapTexToCart(double x, double y, Vector3d out)
-		{
-			x *= Calculate.TWO_PI;
-			y *= Math.PI;
-			out.x = Math.sin(y) * Math.cos(x);
-			out.y = Math.sin(y) * Math.sin(x);
-			out.z = Math.cos(y);
-			return 1/out.z;
-		}
-
-		@Override
-		public double mapTexToCart(double x, double y)
-		{
-			y *= Math.PI;
-			double z = Math.cos(y);
-			return 1/z;
-		}
-
 		@Override
 		public void mapSphericalToCart(double azimuth, double elevation, Vector3d out)
 		{
@@ -124,12 +124,35 @@ public enum TextureMapping
 		@Override
 		public double mapCartToTex(double x, double y, double z, Vector2d out) {
 			double len = Math.sqrt(x * x + y * y);
+			if (len == 0 && z != 0) {out.set(0.5,0.5); return 1;}
 			len = Math.atan2(len, z)/ (len * TWO_PI);
 			out.x = x * len + 0.5;
 			out.y = y * len + 0.5;
 			return Math.sin(len) / len;
 		}
 		
+        @Override
+        public double mapTexToCart(double x, double y, Vector3d out) {
+            x -= 0.5;
+            y -= 0.5;
+            double rad = Math.sqrt(x * x + y * y);
+            out.z = Math.cos(rad * Calculate.TWO_PI);
+            double sin = Math.sin(rad * Calculate.TWO_PI);
+            double det = rad == 0 ? Math.PI : sin / rad;
+            out.x = x * det;
+            out.y = y * det;
+            return 1 / sin; //TODO det or 1 / sin
+        }
+
+        @Override
+        public double mapTexToCart(double x, double y) {
+            x = x - 0.5;
+            y = y - 0.5;
+            double rad = Math.sqrt(x * x + y * y);
+            double sin = Math.sin(rad * Calculate.TWO_PI);
+            return 1 / sin; //TODO det or 1 / sin
+        }
+        
 		@Override
 		public void densityCompensation(WritableRaster r) {
 			int pixelValue[] = new int[4];
@@ -155,28 +178,6 @@ public enum TextureMapping
 			}
 		}
 
-		@Override
-		public double mapTexToCart(double x, double y, Vector3d out) {
-			x = x - 0.5;
-			y = y - 0.5;
-			double rad = Math.sqrt(x * x + y * y);
-			out.z = Math.cos(rad * Calculate.TWO_PI);
-			double sin = Math.sin(rad * Calculate.TWO_PI);
-			double det = rad == 0 ? Math.PI : sin / rad;
-			out.x = x * det;
-			out.y = y * det;
-			return 1 / sin; //TODO det or 1 / sin
-		}
-
-		@Override
-		public double mapTexToCart(double x, double y) {
-			x = x - 0.5;
-			y = y - 0.5;
-			double rad = Math.sqrt(x * x + y * y);
-			double sin = Math.sin(rad * Calculate.TWO_PI);
-			return 1 / sin; //TODO det or 1 / sin
-		}
-		
 		@Override
 		public double mapTexToSpherical(double x, double y, Vector2d out)
 		{

@@ -937,7 +937,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 				{
 					Buffers.getRev(startDirection, tmp, readIndex);
               	tmp.multiply(spacingInf);
-                    double factor = (0.5*0x1000)/tmp.norm();
+                    double factor = (0.1*0x10000)/tmp.norm();
                     double x = tmp.x, y = tmp.y, z = tmp.z;
 					cudaLatticeToGlobal.rdot(tmp, direction, i);
              		Buffers.getRev(startPosition, tmp, readIndex);
@@ -987,7 +987,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			{
 				Buffers.getRev(startDirection, tmp, readIndex);
                 tmp.multiply(spacingInf);
-                double factor = (0.5*0x1000)/tmp.norm();
+                double factor = (0.1*0x10000)/tmp.norm();
                 double x = tmp.x, y = tmp.y, z = tmp.z;
 				cudaLatticeToGlobal.rdot(tmp, direction, i);
 				Buffers.getRev(startPosition, tmp, readIndex);
