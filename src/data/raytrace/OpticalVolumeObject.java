@@ -752,10 +752,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 	
 	public int[] getMeshFaces(int faces[])
 	{
-		if (faces == null || faces.length != faceIndices.size())
-		{
-			faces = new int[faceIndices.size()];
-		}
+		if (faces == null || faces.length != faceIndices.size()){faces = new int[faceIndices.size()];}
 		faceIndices.write(faces, 0);
 		return faces;
 	}
@@ -772,11 +769,8 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		public void run() {
 			Options.OptionTreeNode raytrace = Options.getNode("raytrace");
 			raytraceLoglevel = Options.getInteger(raytrace, "loglevel");
-			raytraceLoglevel = -10;
 			raytraceWriteInstance = Options.getBoolean(raytrace, "writeinstance");
-			raytraceWriteInstance = true;
 		}
-
 	};
 	
 	static {
@@ -925,11 +919,9 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 					globalToCudaLattice.rdot(direction, i, tmp);
 					tmp.multiply(spacing);
 					tmp.setNorm(0.5);
-					System.out.println("indir " + tmp);
 					Buffers.putRev(startDirection, tmp, writeIndex);
 					globalToCudaLattice.rdotAffine(position, i, tmp);
-                    System.out.println("inpos " + tmp);
-					startPosition.put(writeIndex,     clip((int)tmp.z, 0x10000, maxZ));
+        			startPosition.put(writeIndex,     clip((int)tmp.z, 0x10000, maxZ));
 					startPosition.put(writeIndex + 1, clip((int)tmp.y, 0x10000, maxY));
 					startPosition.put(writeIndex + 2, clip((int)tmp.x, 0x10000, maxX));
 					writeIndex += 3;
@@ -944,14 +936,11 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 				if (object[j] == this)
 				{
 					Buffers.getRev(startDirection, tmp, readIndex);
-                    System.out.println("outdirl " + tmp);
-					tmp.multiply(spacingInf);
+              	tmp.multiply(spacingInf);
                     double factor = (0.5*0x1000)/tmp.norm();
                     double x = tmp.x, y = tmp.y, z = tmp.z;
 					cudaLatticeToGlobal.rdot(tmp, direction, i);
-                    System.out.println("outdirg " + tmp);
-					Buffers.getRev(startPosition, tmp, readIndex);
-					System.out.println("outpos " + tmp);
+             		Buffers.getRev(startPosition, tmp, readIndex);
 					tmp.add(x, y, z, -factor);
 					cudaLatticeToGlobal.rdotAffine(tmp, position, i);
 					if (iteration != null){iteration[j] = endIteration.get(readIndex / 3);}
@@ -966,10 +955,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 					readIndex += 3;
 				}
 			}
-		}catch(Throwable e)
-		{
-			logger.error("Error in volume tracing", e);
-		}
+		}catch(Throwable e){logger.error("Error in volume tracing", e);}
 	}
 
 	public void calculateRays(float position[], float direction[], int iteration[], int fromIndex, int toIndex)
@@ -1005,15 +991,11 @@ public abstract class OpticalVolumeObject extends OpticalObject{
                 double x = tmp.x, y = tmp.y, z = tmp.z;
 				cudaLatticeToGlobal.rdot(tmp, direction, i);
 				Buffers.getRev(startPosition, tmp, readIndex);
-                System.out.println("outpos " + tmp);
                 tmp.add(x, y, z, -factor);
 				cudaLatticeToGlobal.rdotAffine(tmp);
 				tmp.write(position, i);
 			}
-		}catch(Throwable e)
-		{
-			logger.error("Error in volume tracing", e);
-		}
+		}catch(Throwable e){logger.error("Error in volume tracing", e);}
 	}
 	
 	/*public void calculateRays2(float position[], float direction[], int iteration[], int fromIndex, int toIndex)
@@ -1090,7 +1072,6 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			}
 		}
 		intersection.position.set(position, direction, lowerBound);
-		//System.out.println(position + ' ' + direction + '*' + lowerBound + '=' + intersection.position);
 		if (mindir != -1)
 		{
 			intersection.normal.set(unitVolumeToGlobalRows[mindir]);

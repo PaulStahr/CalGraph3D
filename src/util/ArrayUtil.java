@@ -3,8 +3,13 @@ package util;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Comparator;
+
+import javax.management.ObjectInstance;
 
 import util.data.DoubleList;
+import util.data.IntegerArrayList;
 import util.data.IntegerList;
 
 public class ArrayUtil {
@@ -142,7 +147,7 @@ public class ArrayUtil {
 		return min;
 	}
 
-	public static final int argMin(int data[], int begin, int end)
+	public static final int minIndex(int data[], int begin, int end)
 	{
 		int min = Integer.MAX_VALUE;
 		int index = -1;
@@ -159,7 +164,7 @@ public class ArrayUtil {
 	
 	public void increaseMin(int array[], int begin, int end)
 	{
-		int idx = argMin(array, begin, end);
+		int idx = minIndex(array, begin, end);
 		++array[idx];
 	}
 	
@@ -172,10 +177,9 @@ public class ArrayUtil {
          	data[id1] = tmp;
         }
 	}
-	
-	public static final int linearSearch(Object data[], Object value)
-	{
-		for (int i = 0; i < data.length; ++i)
+
+	public static int reverseLinearSearch(Object data[], int begin, int end, Object value) {
+		for (int i = end - 1; i >= begin; --i)
 		{
 			if (data[i] == value)
 			{
@@ -185,10 +189,70 @@ public class ArrayUtil {
 		return -1;
 	}
 
+	public static final int linearSearch(Object data[], Object value)
+	{
+		return linearSearch(data, 0, data.length, value);
+	}
+	
+	public static final int linearSearch(Object data[], int begin, int end, Object value)
+	{
+		for (int i = begin; i < end; ++i)
+		{
+			if (data[i] == value)
+			{
+				return i;
+			}
+		}
+		return -1;
+	}
+	
+	public static final int linearSearch(int data[], int begin, int end, int value)
+	{
+		for (; begin < end; ++begin)
+		{
+			if (data[begin] == value)
+			{
+				return begin;
+			}
+		}
+		return -1;
+	}
+	
+	public static final int linearSearch(byte data[], int begin, int end, byte value)
+	{
+		for (; begin < end; ++begin)
+		{
+			if (data[begin] == value)
+			{
+				return begin;
+			}
+		}
+		return -1;
+	}
+	
+	public static final int firstEqualIndex(Object data[], Object value)
+	{
+		return firstEqualIndex(data, 0, data.length, value);
+	}
+
+    
+    public static int firstEqualIndex(Object data[], int begin, int end, Object key)
+    {
+        for (; begin < end; ++begin)
+        {
+            if (data[begin].equals(key))
+            {
+                return begin;
+            }
+        }
+        return -1;
+    }
+	
 	public static final float[] setToLength(float[] data, int length) {return data.length == length ? data : new float[length];}
 
 	public static float[]	ensureLength(float[] data, int size) 	{return data.length >= size ? data : new float[size];}
-	public static byte[] 	ensureLength(byte[] data, int size) 	{return data.length >= size ? data : new byte[size];}
+    public static byte[]    ensureLength(byte[] data, int size)     {return data.length >= size ? data : new byte[size];}
+    public static long[]    ensureLength(long[] data, int size)     {return data.length >= size ? data : new long[size];}
 
 	public static int max(int[] imageColorArray, int begin, int end) {
 		int max = Integer.MIN_VALUE;
@@ -288,7 +352,7 @@ public class ArrayUtil {
 		for (; iBegin < iEnd; ++iBegin, ++oBegin)
 		{
 			out[oBegin] += mult * in[iBegin];
-		}	
+		}
 	}
 
 	public static void multAdd(double[] in, int iBegin, int iEnd, double[] out, int oBegin, double mult) {
@@ -309,20 +373,7 @@ public class ArrayUtil {
 		}
 		return res;
 	}
-	
-	public static int firstEqualIndex(Object data[], int begin, int end, Object key)
-	{
-		for (; begin < end; ++begin)
-		{
-			if (data[begin].equals(key))
-			{
-				return begin;
-			}
-		}
-		return end;
-	}
 
-	
 	public static int firstUnsameIndex(Object data[], int begin, int end, Object key)
 	{
 		for (; begin < end; ++begin)
@@ -370,7 +421,7 @@ public class ArrayUtil {
 			outBuf.writeFloat(data[i]);
 		}
 	}
-	
+
 	public static void write(IntegerList ial, int begin, int end, DataOutputStream outBuf) throws IOException {
 		for (int i = begin; i < end; ++i)
 		{
@@ -481,6 +532,46 @@ public class ArrayUtil {
 		}
 	}
 
+	public static void setLementsAt(byte[] output, int[] inputIndices, byte[] inputValues) {
+		for (int i = 0; i < inputIndices.length; ++i)
+		{
+			output[inputIndices[i]] = inputValues[i];
+		}
+	}
+
+	public static void sortWeak(ArrayList<ObjectInstance> tmp, Comparator<ObjectInstance> comparator) {
+		for (int i = 0; i < tmp.size(); ++i)
+		{
+			ObjectInstance current_min = tmp.get(i);
+			int current_min_index = i;
+			for (int j = i + 1; j < tmp.size(); ++j)
+			{
+				if (comparator.compare(tmp.get(j), current_min) > 0)
+				{
+					current_min = tmp.get(j);
+					current_min_index = j;
+				}
+			}
+			tmp.set(current_min_index, tmp.get(i));
+			tmp.set(i, current_min);
+		}
+	}
+
+	public static void iota(Integer[] data) {
+		for (int i = 0; i < data.length; ++i){data[i] = i;}
+	}
+
+    public static double qdist(DoubleList l0, int begin0, DoubleList l1, int begin1, int size) {
+        double result = 0;
+        while (size != 0)
+        {
+            double diff = l0.getD(begin0++) - l1.getD(begin1++);
+            result += diff * diff;
+            --size;
+        }
+        return result;
+    }
+
 	public static void arraycopy(float[] source, int inputBegin, double[] dest, int outputBegin, int size) {
 		if (inputBegin + size > source.length)
 		{
@@ -494,18 +585,6 @@ public class ArrayUtil {
 		{
 			dest[outputBegin] = source[inputBegin];
 		}
-	}
-
-	public static final int linearSearch(int data[], int begin, int end, int value)
-	{
-		for (int i = begin; i < end; ++i)
-		{
-			if (data[i] == value)
-			{
-				return i;
-			}
-		}
-		return -1;
 	}
 
 	public static int linearSearch(double[] data, int begin, int end, double value) {
@@ -527,5 +606,20 @@ public class ArrayUtil {
             result += diff * diff;
         }
         return result;
+    }
+
+    public static void unifySorted(IntegerArrayList ial) {
+        if (ial.isEmpty()) {return;}
+        int current = ial.getI(0);
+        int write = 0;
+        for (int read = 1; read < ial.size(); ++read)
+        {
+            if (current != ial.getI(read)){
+                ial.set(write++, current);
+                current = ial.getI(read);
+            }
+        }
+        ial.set(write, current);
+        ial.removeRange(write, ial.size());
     }
 }
