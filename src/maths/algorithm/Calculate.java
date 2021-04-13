@@ -22,6 +22,7 @@
 package maths.algorithm;
 
 import java.util.Arrays;
+import java.util.Random;
 
 import data.DataHandler;
 import maths.Operation;
@@ -113,6 +114,18 @@ public abstract class Calculate
     	if (index >= 0)
     		return true;
     	return false;
+    }
+
+    private static int getPoissonRandom(double mean) {
+        Random r = new Random();
+        double L = Math.exp(-mean);
+        int k = 0;
+        double p = 1.0;
+        do {
+            p = p * r.nextDouble();
+            k++;
+        } while (p > L);
+        return k - 1;
     }
 
     public static final boolean isPrime(long number){

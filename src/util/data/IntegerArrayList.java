@@ -25,6 +25,7 @@ import java.nio.IntBuffer;
 import java.util.AbstractList;
 import java.util.Arrays;
 
+import util.ArrayUtil;
 import util.Buffers;
 
 public class IntegerArrayList extends AbstractList<Integer> implements IntegerList{
@@ -61,6 +62,7 @@ public class IntegerArrayList extends AbstractList<Integer> implements IntegerLi
 		return old;
 	}
 	
+	@Override
 	public void setElem(int index, int value)
 	{
 		data[index] = value;
@@ -97,6 +99,7 @@ public class IntegerArrayList extends AbstractList<Integer> implements IntegerLi
 		return data[index];
 	}
 	
+	@Override
 	public int getI(int index){
 		if (index >= length)
 			throw new ArrayIndexOutOfBoundsException(index);
@@ -121,12 +124,7 @@ public class IntegerArrayList extends AbstractList<Integer> implements IntegerLi
 	}
 	
 	public int indexOf(int value){
-		for (int i=0;i<length;++i){
-			if (data[i] == value){
-				return i;
-			}
-		}
-		return -1;
+		return ArrayUtil.linearSearch(data, 0, length, value);
 	}
 
 	public int[] toArrayI() {
@@ -156,6 +154,7 @@ public class IntegerArrayList extends AbstractList<Integer> implements IntegerLi
 			return data[index];
 		}
 		
+		@Override
 		public int getI(int index){
 			if (index >= length)
 				throw new ArrayIndexOutOfBoundsException(index);
@@ -186,12 +185,7 @@ public class IntegerArrayList extends AbstractList<Integer> implements IntegerLi
 		}
 		
 		public int indexOf(int value){
-			for (int i=0;i<length;++i){
-				if (data[i] == value){
-					return i;
-				}
-			}
-			return -1;
+			return ArrayUtil.linearSearch(data, 0, length, value);
 		}
 
 		public int[] toArrayI() {

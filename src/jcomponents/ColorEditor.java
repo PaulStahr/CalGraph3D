@@ -22,10 +22,10 @@ public class ColorEditor extends AbstractCellEditor implements TableCellEditor, 
 		//button.setActionCommand(EDIT);
 		button.addActionListener(this);
 		button.setBorderPainted(false);
-		
 	}
 		
-	public void actionPerformed(ActionEvent e) {
+	@Override
+    public void actionPerformed(ActionEvent e) {
 		JColorChooser colorChooser = new JColorChooser();
 		Object source = e.getSource();
 		if (source == button) {
@@ -33,19 +33,17 @@ public class ColorEditor extends AbstractCellEditor implements TableCellEditor, 
 			colorChooser.setColor(currentColor);
 			JDialog dialog = JColorChooser.createDialog(button,"Pick a Color",true,colorChooser,this,null);
 			dialog.setVisible(true);
-			
 			fireEditingStopped();
-		
 		} else {
 			currentColor = colorChooser.getColor();
 		}
 	}
 		
-	public Object getCellEditorValue() {
-		return currentColor;
-	}
+	@Override
+    public Object getCellEditorValue() {return currentColor;}
 	
-	public Component getTableCellEditorComponent(JTable table, Object value,boolean isSelected,int row,int column) {
+	@Override
+    public Component getTableCellEditorComponent(JTable table, Object value,boolean isSelected,int row,int column) {
 		currentColor = (Color)value;
 		return button;
 	}

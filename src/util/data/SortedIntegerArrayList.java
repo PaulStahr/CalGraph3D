@@ -67,7 +67,6 @@ public class SortedIntegerArrayList extends AbstractList<Integer> implements Sor
 		if (length == data.length){
 			data = Arrays.copyOf(data, Math.max(data.length + 1, data.length * 2));
 		}
-		//System.out.println("Add " + value + ' ' + Arrays.toString(data) + ' ' +(-1 -index) + ' ' + (-index) + ' ' + (length + index + 1));
 		System.arraycopy(data, - 1 - index, data, -index, length + index + 1);
 		data[-1-index] = value;
 		++length;
@@ -264,5 +263,4 @@ public class SortedIntegerArrayList extends AbstractList<Integer> implements Sor
 			throw new RuntimeException();
 		}
 	}
-
 }

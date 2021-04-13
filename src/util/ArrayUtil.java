@@ -185,21 +185,10 @@ public class ArrayUtil {
 		return -1;
 	}
 
-	public static final float[] setToLength(float[] vertices, int length) {
-		if (vertices.length == length)
-		{
-			return vertices;
-		}
-		return new float[length];
-	}
+	public static final float[] setToLength(float[] data, int length) {return data.length == length ? data : new float[length];}
 
-	public static final float[] ensureLength(float[] vertices, int length) {
-		if (vertices.length >= length)
-		{
-			return vertices;
-		}
-		return new float[length];
-	}
+	public static float[]	ensureLength(float[] data, int size) 	{return data.length >= size ? data : new float[size];}
+	public static byte[] 	ensureLength(byte[] data, int size) 	{return data.length >= size ? data : new byte[size];}
 
 	public static int max(int[] imageColorArray, int begin, int end) {
 		int max = Integer.MIN_VALUE;
@@ -284,6 +273,15 @@ public class ArrayUtil {
 		float mult = to / max;
 		mult(imageColorArray, begin, end, mult);
 		return mult;
+	}
+
+	public static float normQ(float data[], int begin, int end, float init)
+	{
+	    for (; begin < end; ++begin)
+	    {
+	        init += data[begin] * data[begin];
+	    }
+	    return init;
 	}
 
 	public static void multAdd(float[] in, int iBegin, int iEnd, int[] out, int oBegin, int mult) {
@@ -497,4 +495,37 @@ public class ArrayUtil {
 			dest[outputBegin] = source[inputBegin];
 		}
 	}
+
+	public static final int linearSearch(int data[], int begin, int end, int value)
+	{
+		for (int i = begin; i < end; ++i)
+		{
+			if (data[i] == value)
+			{
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	public static int linearSearch(double[] data, int begin, int end, double value) {
+		for (int i = begin; i < end; ++i)
+		{
+			if (data[i] == value)
+			{
+				return i;
+			}
+		}
+		return -1;
+	}
+
+    public static double distanceQ(float[] data0, int begin0, float[] data1, int begin1, int size) {
+        double result = 0;
+        for (size += begin0; begin0 < size; ++begin0, ++begin1)
+        {
+            double diff = data0[begin0] - data1[begin1];
+            result += diff * diff;
+        }
+        return result;
+    }
 }

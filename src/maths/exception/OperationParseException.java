@@ -27,14 +27,14 @@ public class OperationParseException extends Exception{
 	public final String errorCalculation;
 	
 	public OperationParseException(String errorCalculation){
+	    super("Can't interpret String \"" + errorCalculation + '\"');
 		this.errorCalculation=errorCalculation;
 	}
 	
 	public OperationParseException(CharSequence errorCalculation){
 		this.errorCalculation=errorCalculation.toString();
 	}
-	
-	
+
 	@Override
 	public String toString(){
 		return "maths.OperationParseException:Can't interpret String \"" + errorCalculation + '\"';

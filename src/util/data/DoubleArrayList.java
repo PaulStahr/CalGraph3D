@@ -25,6 +25,7 @@ import java.nio.DoubleBuffer;
 import java.util.AbstractList;
 import java.util.Arrays;
 
+import util.ArrayUtil;
 import util.Buffers;
 
 public class DoubleArrayList extends AbstractList<Double> implements DoubleList{
@@ -155,12 +156,7 @@ public class DoubleArrayList extends AbstractList<Double> implements DoubleList{
 	}
 	
 	public int indexOf(double value){
-		for (int i=0;i<length;++i){
-			if (data[i] == value){
-				return i;
-			}
-		}
-		return -1;
+		return ArrayUtil.linearSearch(data, 0, length, value);
 	}
 
 	public double[] toArrayD() {
