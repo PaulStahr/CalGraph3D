@@ -552,7 +552,7 @@ public class VariableStack implements VariableAmount, Iterable<Variable>, Variab
 
 			public final boolean hasMatch(SortedIntegerList il)
 			{
-				return il.hasMatch(dependentVariablesId, dependentVariablesLength);
+				return il.hasMatch(dependentVariablesId, 0, dependentVariablesLength);
 			}
 			
 			@Override

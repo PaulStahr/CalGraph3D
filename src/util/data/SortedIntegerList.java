@@ -1,7 +1,9 @@
 package util.data;
 
-public interface SortedIntegerList extends IntegerList {
+public interface SortedIntegerList extends IntegerList{
+    boolean hasMatch(int[] data, int begin, int end);
 
-	boolean hasMatch(int[] dependentVariablesId, int dependentVariablesLength);
+    boolean contains(int e1);
 
+    boolean add(int e0);
 }

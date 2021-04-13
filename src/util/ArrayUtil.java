@@ -5,6 +5,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.function.Predicate;
 
 import javax.management.ObjectInstance;
 
@@ -621,5 +622,14 @@ public class ArrayUtil {
         }
         ial.set(write, current);
         ial.removeRange(write, ial.size());
+    }
+
+    public static int removeIf(int[] data, int begin, int end, Predicate<Integer> pred) {
+        int result = begin;
+        for (;begin < end; ++begin)
+        {
+            if (!pred.test(data[begin])){data[result ++] = data[begin];}
+        }
+        return result;
     }
 }

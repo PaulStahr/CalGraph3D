@@ -252,7 +252,7 @@ public abstract class Buffers
      * @param data[] Inhalt des Buffers
      */
     public static final ByteBuffer createByteBuffer(byte data[]){
-        return fillByteBuffer(createByteBuffer(data.length), data);
+        return fillByteBuffer(createByteBuffer(data.length), data, data.length);
     }
     
     /**
@@ -288,8 +288,8 @@ public abstract class Buffers
      * @param buf der ByteBuffer der gef\u00FCllt werden soll
      * @param data[] die Daten mit denen der ByteBuffer gef\u00FCllt werden soll
      */
-    public static final ByteBuffer fillByteBuffer(ByteBuffer buf, byte data[]){
-        for (int i=0;i<data.length;i++)
+    public static final ByteBuffer fillByteBuffer(ByteBuffer buf, byte data[], int length){
+        for (int i=0;i<length;i++)
             buf.put(i,data[i]);        
         return buf;
     }

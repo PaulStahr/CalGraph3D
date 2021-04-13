@@ -29,111 +29,80 @@ public class SortedIntegerArrayList extends AbstractList<Integer> implements Sor
     public static final ReadOnlySortedIntegerArrayList EMPTY_LIST = new SortedIntegerArrayList().readOnly();
 	private int data[];
 	private int length;
-	
-	public SortedIntegerArrayList(){
-		data = UniqueObjects.EMPTY_INT_ARRAY;
-	}
-	
-	public SortedIntegerArrayList(int initialElements){
-		data = new int[initialElements];
-	}
-	
+
+	public SortedIntegerArrayList(){data = UniqueObjects.EMPTY_INT_ARRAY;}
+
+	public SortedIntegerArrayList(int initialElements){data = new int[initialElements];}
+
 	public int pop(){
 		int last = data[length - 1];
 		--length;
 		return last;
 	}
-	
+
 	@Override
-	public Integer set(int index, Integer value){
-		throw new UnsupportedOperationException();
-	}
-	
-	public int set(int index, int value){
-		throw new UnsupportedOperationException();
-	}
-	
+	public Integer set(int index, Integer value){throw new UnsupportedOperationException();}
+
+	public int set(int index, int value){throw new UnsupportedOperationException();}
+
 	@Override
-	public boolean add(Integer value){
-		return add((int)value);
-	}
-	
-	public boolean add(int value){
-		int index = indexOf(value);
-		if (index >= 0)
-		{
-			return false;
-		}
-		if (length == data.length){
-			data = Arrays.copyOf(data, Math.max(data.length + 1, data.length * 2));
-		}
+	public boolean add(Integer value){return add((int)value);}
+
+	@Override
+    public boolean add(int value){
+		final int index = indexOf(value);
+		if (index >= 0){return false;}
+		if (length == data.length){data = Arrays.copyOf(data, Math.max(data.length + 1, data.length * 2));}
 		System.arraycopy(data, - 1 - index, data, -index, length + index + 1);
 		data[-1-index] = value;
 		++length;
 		return true;
 	}
-	
+
 	@Override
 	public Integer get(int index) {
-		if (index >= length)
-			throw new ArrayIndexOutOfBoundsException(index);
+		if (index >= length) {throw new ArrayIndexOutOfBoundsException(index);}
 		return data[index];
 	}
-	
+
 	@Override
 	public int getI(int index){
-		if (index >= length)
-			throw new ArrayIndexOutOfBoundsException(index);
+		if (index >= length) {throw new ArrayIndexOutOfBoundsException(index);}
 		return data[index];
 	}
 
 	@Override
-	public int size() {
-		return length;
-	}
+	public int size() {return length;}
 
-	public boolean contains(Integer value){
-		return indexOf((int)value) >= 0;
-	}
-	
-	public boolean contains(int value){
-		return indexOf(value) >= 0;
-	}
-	
-	public int indexOf(Integer value){
-		return indexOf((int)value);
-	}
-	
-	public int indexOf(int value){
-		return Arrays.binarySearch(data, 0, length, value);
-	}
+	public boolean contains(Integer value){return indexOf((int)value) >= 0;}
 
-	public int[] toArrayI() {
-		return Arrays.copyOf(data, length);
-	}
-	
-
-	public void removeObject(int id) {
-		int index = Arrays.binarySearch(data, 0, length, id);
-		if (index >= 0)
-		{
-			System.arraycopy(data, index + 1, data, index, length - index - 1);
-			--length;
-		}
-	}
-	
 	@Override
-	public void clear(){
-		length = 0;
+    public boolean contains(int value){return indexOf(value) >= 0;}
+
+	public int indexOf(Integer value){return indexOf((int)value);}
+
+	public int indexOf(int value){return Arrays.binarySearch(data, 0, length, value);}
+
+	public int[] toArrayI() {return Arrays.copyOf(data, length);}
+
+	public boolean removeObject(int id) {
+		int index = Arrays.binarySearch(data, 0, length, id);
+		if (index < 0){return false;}
+		System.arraycopy(data, index + 1, data, index, length - index - 1);
+		--length;
+		return true;
 	}
-	
-	public final int countMatches(int data[], int length)
+
+	@Override
+	public void clear(){length = 0;}
+
+	public final int countMatches(int data[], int begin, int end)
 	{
-		if (length == 0 || this.length == 0)
+		if (end == begin || this.length == 0)
 		{
 			return 0;
 		}
-		int i = 0, j = 0, matches = 0;
+		int i = 0, j = begin, matches = 0;
 		while (true)
 		{
 			if (this.data[i] < data[j])
@@ -145,7 +114,7 @@ public class SortedIntegerArrayList extends AbstractList<Integer> implements Sor
 			}
 			else if (this.data[i] > data[j])
 			{
-				if (++j == length)
+				if (++j == end)
 				{
 					return matches;
 				}
@@ -153,27 +122,24 @@ public class SortedIntegerArrayList extends AbstractList<Integer> implements Sor
 			else
 			{
 				++matches;
-				if (++i == this.length || ++j == length)
+				if (++i == this.length || ++j == end)
 				{
 					return matches;
 				}
 			}
 		}
 	}
-	
-	public final int countMatches(SortedIntegerArrayList other)
-	{
-		return countMatches(other.data, other.length);
-	}
-	
+
+	public final int countMatches(SortedIntegerArrayList other){return countMatches(other.data, 0, other.length);}
+
 	@Override
-	public final boolean hasMatch(int data[], int length)
+	public final boolean hasMatch(int data[], int begin, int end)
 	{
-		if (length == 0 || this.length == 0)
+		if (end == begin || this.length == 0)
 		{
 			return false;
 		}
-		int i = 0, j = 0;
+		int i = 0, j = begin;
 		while (true)
 		{
 			if (this.data[i] < data[j])
@@ -185,7 +151,7 @@ public class SortedIntegerArrayList extends AbstractList<Integer> implements Sor
 			}
 			else if (this.data[i] > data[j])
 			{
-				if (++j == length)
+				if (++j == end)
 				{
 					return false;
 				}
@@ -197,70 +163,59 @@ public class SortedIntegerArrayList extends AbstractList<Integer> implements Sor
 		}
 	}
 
-	public final boolean hasMatch(SortedIntegerArrayList other)
-	{
-		return hasMatch(other.data, other.length);
-	}
+	public final boolean hasMatch(SortedIntegerArrayList other){return hasMatch(other.data, 0, other.length);}
 
-	public ReadOnlySortedIntegerArrayList readOnly() {
-		return new ReadOnlySortedIntegerArrayList();
-	}
-	
+	public ReadOnlySortedIntegerArrayList readOnly() {return new ReadOnlySortedIntegerArrayList();}
 
 	@Override
-	public void setElem(int index, int value) {
-		throw new RuntimeException();
-	}
-	
-	public class ReadOnlySortedIntegerArrayList extends AbstractList<Integer> implements SortedIntegerList
+	public void setElem(int index, int value) {throw new UnsupportedOperationException();}
+
+    @Override
+    public Integer remove(int index) {
+        Integer elem = data[index];
+        System.arraycopy(data, index + 1, data, index, length - index - 1);
+        --length;
+        return elem;
+    }
+
+	@Override
+    public boolean remove(Object o) {return o instanceof Integer && removeObject((int)o);}
+
+    public class ReadOnlySortedIntegerArrayList extends AbstractList<Integer> implements SortedIntegerList
 	{
 		@Override
 		public Integer get(int index) {
-			if (index >= length)
-				throw new ArrayIndexOutOfBoundsException(index);
+			if (index >= length) {throw new ArrayIndexOutOfBoundsException(index);}
 			return data[index];
 		}
-		
+
 		@Override
 		public int getI(int index){
-			if (index >= length)
-				throw new ArrayIndexOutOfBoundsException(index);
+			if (index >= length) {throw new ArrayIndexOutOfBoundsException(index);}
 			return data[index];
 		}
 
 		@Override
-		public int size() {
-			return length;
-		}
+		public int size() {return length;}
 
-		public boolean contains(Integer value){
-			return indexOf((int)value) >= 0;
-		}
-		
-		public boolean contains(int value){
-			return indexOf(value) >= 0;
-		}
-		
-		public int indexOf(Integer value){
-			return indexOf((int)value);
-		}
-		
-		public int indexOf(int value){
-			return Arrays.binarySearch(data, 0, length, value);
-		}
-
-		public int[] toArrayI() {
-			return Arrays.copyOf(data, length);
-		}
+		public boolean contains(Integer value){return indexOf((int)value) >= 0;}
 
 		@Override
-		public boolean hasMatch(int[] data, int length) {
-			return SortedIntegerArrayList.this.hasMatch(data, length);
-		}
+        public boolean contains(int value){return indexOf(value) >= 0;}
+
+		public int indexOf(Integer value){return indexOf((int)value);}
+
+		public int indexOf(int value){return Arrays.binarySearch(data, 0, length, value);}
+
+		public int[] toArrayI() {return Arrays.copyOf(data, length);}
 
 		@Override
-		public void setElem(int index, int value) {
-			throw new RuntimeException();
-		}
+		public boolean hasMatch(int[] data, int begin, int end) {return SortedIntegerArrayList.this.hasMatch(data, 0, length);}
+
+		@Override
+		public void setElem(int index, int value) {throw new UnsupportedOperationException();}
+
+        @Override
+        public boolean add(int e0) {throw new UnsupportedOperationException();}
 	}
 }
