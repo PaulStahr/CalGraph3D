@@ -26,40 +26,22 @@ public class ParseUtil {
 	
 	public static final String parseString(Object o)
 	{
-		if (o == null || o.equals(""))
-		{
-			return null;
-		}
-		if (o instanceof String)
-		{
-			return (String)o;
-		}
+		if (o == null || o.equals(""))    {return null;}
+		if (o instanceof String)          {return (String)o;}
 		throw new IllegalArgumentException("Class:" + o.getClass());
 	}
 	
 	public static final boolean parseBoolean(Object o)
 	{
-		if (o instanceof String)
-		{
-			return Boolean.parseBoolean((String)o);
-		}
-		if (o instanceof Boolean)
-		{
-			return (boolean)o;
-		}	
+		if (o instanceof String)          {return Boolean.parseBoolean((String)o);}
+		if (o instanceof Boolean)         {return (boolean)o;}	
 		throw new IllegalArgumentException("Class:" + o.getClass());
 	}
 	
 	public static final int parseInteger(Object o)
 	{
-		if (o instanceof String)
-		{
-			return Integer.valueOf((String)o);
-		}
-		if (o instanceof Integer)
-		{
-			return (int)o;
-		}
+		if (o instanceof String)          {return Integer.valueOf((String)o);}
+		if (o instanceof Integer)         {return (int)o;}
 		throw new IllegalArgumentException("Class:" + o.getClass());
 	}
 	
@@ -88,10 +70,7 @@ public class ParseUtil {
 			boolean success = OperationGeometry.parseMatRowMajor(op.calculate(variables, controll), mat);
 			strB.setLength(0);
 			str = op.toString(strB).toString();
-			if (!success)
-			{
-				throw new OperationParseException(str);
-			}
+			if (!success){throw new OperationParseException(str);}
 		}
 		else if (o instanceof Matrixd)
 		{

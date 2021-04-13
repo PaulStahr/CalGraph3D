@@ -181,8 +181,8 @@ public class TextureView extends JFrame implements ActionListener, ItemListener{
 					double yd = y * invOutHeight; 
 					if (outputTransformation != null)
 					{
-						double tmpx = outputTransformation.transformAffineX(xd, yd);
-						yd = outputTransformation.transformAffineY(xd, yd);
+						double tmpx = outputTransformation.ldotAffineX(xd, yd);
+						yd = outputTransformation.ldotAffineY(xd, yd);
 						xd = tmpx;
 					}
 					outputTextureMapping.mapTexToCart(xd, yd, v3);

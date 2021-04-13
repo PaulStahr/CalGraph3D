@@ -77,9 +77,9 @@ import scene.object.SceneObjectVektor;
 import util.ArrayTools;
 import util.JFrameUtils;
 import util.OperationGeometry;
-import util.ThreadPool;
 import util.SaveLineCreator;
 import util.StringUtils;
+import util.ThreadPool;
 import util.data.SortedIntegerArrayList;
 import util.data.SortedIntegerArrayList.ReadOnlySortedIntegerArrayList;
 import util.data.UniqueObjects;
@@ -345,21 +345,10 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
         setGraphVisible(true);
     }
     
-    public void addGraphListener(GraphListener gl){
-    	graphListener.add(gl);
-    }
-    
-    public void removeGraphListener(GraphListener gl){
-    	graphListener.remove(gl);
-    }
-    
-    public SceneObject getGlObject(){
-    	return glObject;
-    }
-
-    public final boolean isSelected(){
-        return isSelected;
-    }
+    public void addGraphListener(GraphListener gl)      {graphListener.add(gl);}
+    public void removeGraphListener(GraphListener gl)   {graphListener.remove(gl);}
+    public SceneObject getGlObject()                    {return glObject;}
+    public final boolean isSelected()                   {return isSelected;}
 
     public final void setSelected(boolean selected){
         if (isSelected == selected)
@@ -378,7 +367,6 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
 		} catch (OperationParseException e) {
 			return RealDoubleOperation.NaN;
 		}
-
     }
     
     private final void updateOperations(){
@@ -817,7 +805,8 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
                         v0.setValue(opsVar0[i]);
                         final Operation tmp = operation0.calculate(variableStack, control);
                         final double re = tmp.doubleValue(), imag = tmp.doubleValueImag();
-                        graphToGlobal.rdotAffine(x, re, imag, vertices, i * 3);                    }                	
+                        graphToGlobal.rdotAffine(x, re, imag, vertices, i * 3);
+                    }
                 }else{
                     for (int i=0;i<steps0;i++){
                         v0.setValue(opsVar0[i]);
@@ -909,7 +898,7 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
                     for (int i=0;i<steps0;i++){
                         v0.setValue(opsVar0[i]);
                         final double x = operation0.calculate(variableStack, control).doubleValue(), y = operation1.calculate(variableStack, control).doubleValue(), z = operation2.calculate(variableStack, control).doubleValue();
-                        graphToGlobal.rdotAffine(x, y, z, vertices, i * 3);      			
+                        graphToGlobal.rdotAffine(x, y, z, vertices, i * 3);
                     }
                 }else{
                 	for (int i=0;i<steps0;i++){
@@ -941,9 +930,9 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
                             final double y = op.doubleValue();
                             v1.setValue(op);                            
                             final double z = tmp0.calculate(variableStack, control).doubleValue();
-                            vertexX[index]=(float)graphToGlobal.rdotX(x, y, z, 1);
-                            vertexY[index]=(float)graphToGlobal.rdotY(x, y, z, 1);
-                            vertexZ[index]=(float)graphToGlobal.rdotZ(x, y, z, 1);
+                            vertexX[index]=(float)graphToGlobal.rdotAffineX(x, y, z);
+                            vertexY[index]=(float)graphToGlobal.rdotAffineY(x, y, z);
+                            vertexZ[index]=(float)graphToGlobal.rdotAffineZ(x, y, z);
                         }
                     }else{
                         //final float x = (float)opsVar0[i].doubleValue();
@@ -976,9 +965,9 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
                         for (int j=0;j<steps1;j++, index++){
                             v1.setValue(opsVar1[j]);
                             final double x = tmp0.calculate(variableStack, control).doubleValue(), y = tmp1.calculate(variableStack, control).doubleValue(), z = tmp2.calculate(variableStack, control).doubleValue();
-                            vertexX[index]=(float)graphToGlobal.rdotX(x, y, z, 1);
-                            vertexY[index]=(float)graphToGlobal.rdotY(x, y, z, 1);
-                            vertexZ[index]=(float)graphToGlobal.rdotZ(x, y, z, 1);
+                            vertexX[index]=(float)graphToGlobal.rdotAffineX(x, y, z);
+                            vertexY[index]=(float)graphToGlobal.rdotAffineY(x, y, z);
+                            vertexZ[index]=(float)graphToGlobal.rdotAffineZ(x, y, z);
                         }
                     }else{
                         for (int j=0;j<steps1;j++, index++){
@@ -1141,27 +1130,27 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
 		                        for (int j=0;j<steps1;j++, index++){
 		                        	final double vl1 = opsVar1[j].value;
 		                            variable1.setValue(opsVar1[j]);
-		                            vertex0[index]=(float)graphToGlobal.rdotX(vl0, vl1, tmp0.calculate(variableStack, control).doubleValue(), 1);
-		                            vertex1[index]=(float)graphToGlobal.rdotY(vl0, vl1, tmp0.calculate(variableStack, control).doubleValue(), 1);
-		                            vertex2[index]=(float)graphToGlobal.rdotZ(vl0, vl1, tmp0.calculate(variableStack, control).doubleValue(), 1);
+		                            vertex0[index]=(float)graphToGlobal.rdotAffineX(vl0, vl1, tmp0.calculate(variableStack, control).doubleValue());
+		                            vertex1[index]=(float)graphToGlobal.rdotAffineY(vl0, vl1, tmp0.calculate(variableStack, control).doubleValue());
+		                            vertex2[index]=(float)graphToGlobal.rdotAffineZ(vl0, vl1, tmp0.calculate(variableStack, control).doubleValue());
 		                        }
 		                        break;
                     		}case 1:{
                     			for (int j=0;j<steps1;j++, index++){
 		                        	final double vl1 = opsVar1[j].value;
 		                            variable1.setValue(opsVar1[j]);
-                                    vertex0[index]=(float)graphToGlobal.rdotX(vl0, tmp0.calculate(variableStack, control).doubleValue(), vl1, 1);
-                                    vertex1[index]=(float)graphToGlobal.rdotY(vl0, tmp0.calculate(variableStack, control).doubleValue(), vl1, 1);
-                                    vertex2[index]=(float)graphToGlobal.rdotZ(vl0, tmp0.calculate(variableStack, control).doubleValue(), vl1, 1);
+                                    vertex0[index]=(float)graphToGlobal.rdotAffineX(vl0, tmp0.calculate(variableStack, control).doubleValue(), vl1);
+                                    vertex1[index]=(float)graphToGlobal.rdotAffineY(vl0, tmp0.calculate(variableStack, control).doubleValue(), vl1);
+                                    vertex2[index]=(float)graphToGlobal.rdotAffineZ(vl0, tmp0.calculate(variableStack, control).doubleValue(), vl1);
                     			}
                     			break;
                     		}case 0:{
                                 for (int j=0;j<steps1;j++, index++){
 		                        	final double vl1 = opsVar1[j].value;
 		                            variable1.setValue(opsVar1[j]);
-                                    vertex0[index]=(float)graphToGlobal.rdotX(tmp0.calculate(variableStack, control).doubleValue(), vl0, vl1, 1);
-                                    vertex1[index]=(float)graphToGlobal.rdotY(tmp0.calculate(variableStack, control).doubleValue(), vl0, vl1, 1);
-                                    vertex2[index]=(float)graphToGlobal.rdotZ(tmp0.calculate(variableStack, control).doubleValue(), vl0, vl1, 1);
+                                    vertex0[index]=(float)graphToGlobal.rdotAffineX(tmp0.calculate(variableStack, control).doubleValue(), vl0, vl1);
+                                    vertex1[index]=(float)graphToGlobal.rdotAffineY(tmp0.calculate(variableStack, control).doubleValue(), vl0, vl1);
+                                    vertex2[index]=(float)graphToGlobal.rdotAffineZ(tmp0.calculate(variableStack, control).doubleValue(), vl0, vl1);
                                 }
                                 break;
                     		}
@@ -1191,9 +1180,9 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
                             final double x = Math.cos(value0)*value1;
                             final double y = Math.sin(value0)*value1;
                             final double z = tmp0.calculate(variableStack, control).doubleValue();
-                            vertexX[index]=(float)graphToGlobal.rdotX(x, y, z, 1);
-                            vertexY[index]=(float)graphToGlobal.rdotY(x, y, z, 1);
-                            vertexZ[index]=(float)graphToGlobal.rdotZ(x, y, z, 1);
+                            vertexX[index]=(float)graphToGlobal.rdotAffineX(x, y, z);
+                            vertexY[index]=(float)graphToGlobal.rdotAffineY(x, y, z);
+                            vertexZ[index]=(float)graphToGlobal.rdotAffineZ(x, y, z);
                         }
                     }else{
                         for (int j=0;j<steps1;j++, index++){
@@ -1239,9 +1228,9 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
 	                        for (int j=0;j<steps1;j++, index++){
 	                            v2.setValue(opsVar1[j]);
 	                            final double x = tmp0.calculate(variableStack, control).doubleValue(), y = tmp1.calculate(variableStack, control).doubleValue(), z = tmp2.calculate(variableStack, control).doubleValue();
-	                            vertexX[index]=(float)graphToGlobal.rdotX(x, y, z, 1);
-	                            vertexY[index]=(float)graphToGlobal.rdotY(x, y, z, 1);
-	                            vertexZ[index]=(float)graphToGlobal.rdotZ(x, y, z, 1);
+	                            vertexX[index]=(float)graphToGlobal.rdotAffineX(x, y, z);
+	                            vertexY[index]=(float)graphToGlobal.rdotAffineY(x, y, z);
+	                            vertexZ[index]=(float)graphToGlobal.rdotAffineZ(x, y, z);
 	                        }
 	                    }else{
 	                        for (int j=0;j<steps1;j++, index++){
@@ -1270,14 +1259,8 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
     	
     	public final RealDoubleOperation getNearest(double d)
     	{
-    		if (d <= min)
-    		{
-    			return data[0];
-    		}
-    		if (d >= max)
-    		{
-    			return data[data.length - 1];
-    		}
+    		if (d <= min){return data[0];}
+    		if (d >= max){return data[data.length - 1];}
     		return data[(int)(data.length * (d - min) / dist)];
     	}
     	

@@ -77,8 +77,8 @@ public class GuiTextureObject extends OpticalObject{
 	public void getColor(double x, double y, int result[]) 
 	{
 		
-		int xi = (int)(mat.transformAffineX(x,y) * raster.getWidth());
-		int yi = (int)(mat.transformAffineY(x,y) * raster.getHeight());
+		int xi = (int)(mat.ldotAffineX(x,y) * raster.getWidth());
+		int yi = (int)(mat.ldotAffineY(x,y) * raster.getHeight());
 		if (xi < 0 || xi >= raster.getWidth() || yi < 0 || yi >= raster.getHeight())
 		{
 			Arrays.fill(result, 0);
@@ -93,8 +93,8 @@ public class GuiTextureObject extends OpticalObject{
 	public void getColor(double x, double y, float result[]) 
 	{
 		//TODO interpolate
-		int xi = (int)(mat.transformAffineX(x,y) * raster.getWidth());
-		int yi = (int)(mat.transformAffineY(x,y) * raster.getHeight());
+		int xi = (int)(mat.ldotAffineX(x,y) * raster.getWidth());
+		int yi = (int)(mat.ldotAffineY(x,y) * raster.getHeight());
 		if (xi < 0 || xi >= raster.getWidth() || yi < 0 || yi >= raster.getHeight())
 		{
 			Arrays.fill(result, 0);

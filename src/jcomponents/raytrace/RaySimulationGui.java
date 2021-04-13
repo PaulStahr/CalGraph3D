@@ -172,9 +172,9 @@ import scene.object.SceneObjectLine;
 import scene.object.SceneObjectMesh;
 import util.ArrayUtil;
 import util.JFrameUtils;
+import util.StringUtils;
 import util.ThreadPool;
 import util.ThreadPool.ParallelRangeRunnable;
-import util.StringUtils;
 import util.TimedUpdateHandler;
 import util.data.UniqueObjects;
 
@@ -1383,54 +1383,44 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 			Object source = ie.getSource();
 			if (source instanceof JComboBox)
 			{
-				if (!EventQueue.isDispatchThread())
-		    	{
-		    		throw new RuntimeException("Table Changes only allowed by dispatchment thread");
-		    	}
-				if (!isUpdating)
-				{
-					Object selected = ((JComboBox<?>)source).getSelectedItem();
-					isUpdating = true;
-					if (source == forceStartpoint)					{scene.setForceStartpoint(selected);}
-					else if (source == forceEndpoint)				{scene.setForceEndpoint(forceEndpoint.getSelectedItem());}
-					else if (source == comboBoxWritableEnvironment)	{scene.setWritableEnvironmentTexture(selected == null ? null : selected.toString());}
-					else if (source == comboBoxRenderToTexture)		{scene.setRenderToTexture(selected == null ? null : selected.toString());}	
-					else if (source == comboBoxTextureMapping)		{scene.setTextureMapping((TextureMapping)comboBoxTextureMapping.getSelectedItem());}
-					isUpdating = false;
-				}
+				if (!EventQueue.isDispatchThread()){throw new RuntimeException("Table Changes only allowed by dispatchment thread");}
+				if (isUpdating){return;}
+				Object selected = ((JComboBox<?>)source).getSelectedItem();
+				isUpdating = true;
+				if (source == forceStartpoint)					{scene.setForceStartpoint(selected);}
+				else if (source == forceEndpoint)				{scene.setForceEndpoint(forceEndpoint.getSelectedItem());}
+				else if (source == comboBoxWritableEnvironment)	{scene.setWritableEnvironmentTexture(selected == null ? null : selected.toString());}
+				else if (source == comboBoxRenderToTexture)		{scene.setRenderToTexture(selected == null ? null : selected.toString());}	
+				else if (source == comboBoxTextureMapping)		{scene.setTextureMapping((TextureMapping)comboBoxTextureMapping.getSelectedItem());}
+				isUpdating = false;
 			}
 		}
 
 		@Override
 		public void changedUpdate(DocumentEvent de) {
 			javax.swing.text.Document doc = de.getDocument();
-			if (!EventQueue.isDispatchThread())
-	    	{
-	    		throw new RuntimeException("Table Changes only allowed by dispatchment thread");
-	    	}
-			if (!isUpdating)
+			if (!EventQueue.isDispatchThread()){throw new RuntimeException("Table Changes only allowed by dispatchment thread");}
+			if (isUpdating){return;}
+			if (doc == textFieldEnvironment.getDocument())
 			{
-				if (doc == textFieldEnvironment.getDocument())
-				{
-					isUpdating = true;
-					scene.setEnvironmentTexture(textFieldEnvironment.getText());
-					isUpdating = false;
+				isUpdating = true;
+				scene.setEnvironmentTexture(textFieldEnvironment.getText());
+				isUpdating = false;
+			}
+			else if (doc == cameraStartingObjects.getDocument())
+			{
+				Operation op = cameraStartingObjects.get();
+				ParseUtil parser = new ParseUtil();
+				Controller controll = new Controller();
+				try {
+					scene.setCameraStartObjects(parser.parseStringArray(op, controll));
+				} catch (OperationParseException e) {
+					logger.error("Can't parse expression", e);
 				}
-				else if (doc == cameraStartingObjects.getDocument())
-				{
-					Operation op = cameraStartingObjects.get();
-					ParseUtil parser = new ParseUtil();
-					Controller controll = new Controller();
-					try {
-						scene.setCameraStartObjects(parser.parseStringArray(op, controll));
-					} catch (OperationParseException e) {
-						logger.error("Can't parse expression", e);
-					}
-				}
-				else if (doc == textFieldName.getDocument())
-				{
-					scene.setId(textFieldName.getText());
-				}
+			}
+			else if (doc == textFieldName.getDocument())
+			{
+				scene.setId(textFieldName.getText());
 			}
 		}
 
