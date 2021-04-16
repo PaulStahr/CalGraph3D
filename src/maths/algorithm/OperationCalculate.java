@@ -29,8 +29,8 @@ import java.util.List;
 
 import maths.Controller;
 import maths.Operation;
-import maths.Operation.CalculationController;
 import maths.UserFunctionOperation;
+import maths.Operation.CalculationController;
 import maths.data.ArrayOperation;
 import maths.data.RealDoubleOperation;
 import maths.data.RealLongOperation;

@@ -25,7 +25,6 @@ package maths.functions.atomic;
 import java.util.List;
 
 import maths.Operation;
-import maths.variable.VariableAmount;
 import maths.algorithm.Calculate;
 import maths.algorithm.OperationCalculate;
 import maths.data.ArrayOperation;
@@ -37,6 +36,7 @@ import maths.data.RealDoubleOperation;
 import maths.data.RealLongOperation;
 import maths.data.RealRationalOperation;
 import maths.exception.ArrayIndexOutOfBoundsExceptionOperation;
+import maths.variable.VariableAmount;
 
 /** 
 * @author  Paul Stahr

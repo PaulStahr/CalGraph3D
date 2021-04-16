@@ -25,8 +25,8 @@ package maths.functions;
 import java.util.List;
 
 import maths.Operation;
-import maths.variable.VariableAmount;
 import maths.algorithm.OperationCalculate;
+import maths.variable.VariableAmount;
 import maths.data.ArrayOperation;
 import maths.data.RealDoubleOperation;
 

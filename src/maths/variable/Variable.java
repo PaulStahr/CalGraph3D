@@ -31,8 +31,8 @@ import org.slf4j.LoggerFactory;
 
 import maths.Operation;
 import maths.Operation.CalculationController;
-import maths.OperationCompiler;
 import maths.algorithm.OperationCalculate;
+import maths.OperationCompiler;
 import maths.data.ArrayOperation;
 import maths.data.BooleanOperation;
 import maths.data.MapOperation;

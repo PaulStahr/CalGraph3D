@@ -26,8 +26,8 @@ import java.util.AbstractList;
 import java.util.List;
 
 import maths.Operation;
-import maths.variable.VariableAmount;
 import maths.algorithm.OperationCalculate;
+import maths.variable.VariableAmount;
 import maths.data.ArrayOperation;
 import maths.data.CharacterOperation;
 import maths.functions.FunctionOperation;

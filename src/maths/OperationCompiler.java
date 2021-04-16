@@ -113,6 +113,7 @@ import maths.functions.conversion.ToLongOperation;
 import maths.functions.conversion.ToStringOperation;
 import maths.functions.hyperbolic.ArcCosinusOperation;
 import maths.functions.hyperbolic.ArcSinusOperation;
+import maths.functions.hyperbolic.ArcTangems2Operation;
 import maths.functions.hyperbolic.ArcTangensOperation;
 import maths.functions.hyperbolic.CosinusHyperbolicOperation;
 import maths.functions.hyperbolic.CosinusOperation;
@@ -533,6 +534,7 @@ public final class OperationCompiler
 		                		case "randmat"	:return new RandomMatrixOperation(a, b);
 		                		case "rotmat"	:return new CreateRotationOperation(a, b);
 		                        case "affine"	:return new CreateAffineTransformation(a, b);
+		                        case "atan2"    :return new ArcTangems2Operation(a,b);
 		                        case "readcsv"	:return new ReadCsvOperation(a, b);
 		                        case "writecsv" :return new WriteCsvOperation(a, b);
 		                		case "set":{
