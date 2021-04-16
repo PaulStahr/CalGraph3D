@@ -24,6 +24,7 @@ package util;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 import util.keyfunction.KeyFunctionInt;
 import util.keyfunction.KeyFunctionLong;
@@ -49,7 +50,23 @@ public class ListTools {
 			list.remove(i);
 		}
 	}
-	
+
+    public static final <T> void removeIf(ArrayList<T> list, Predicate<T> filter) {
+        int writeIndex = 0;
+        for (int i = 0; i< list.size(); ++i)
+        {
+            T obj = list.get(i);
+            if (!filter.test(obj))
+            {
+                list.set(writeIndex++, obj);
+            }
+        }
+        for (int i = list.size() - 1; i >= writeIndex; --i)
+        {
+            list.remove(i);
+        }
+    }
+
 	public static <T, O> int binarySearch(T[] a, int fromIndex, int toIndex, O key, HeterogenousComparator<? super T, ? super O> c)
 	{
         int low = fromIndex;

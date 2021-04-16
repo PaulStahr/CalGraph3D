@@ -22,10 +22,12 @@
 package scene;
 
 import java.util.ArrayList;
+import java.util.function.Predicate;
 
 import geometry.Rotation3;
 import geometry.Vector3f;
 import scene.object.SceneObject;
+import util.ListTools;
 
 public class Scene{
 	public static final byte LIGHTS = 3, NORMAL_MAP = 4, REFLECTION_MAP = 5;
@@ -70,23 +72,16 @@ public class Scene{
 	public void repaint() {
 		++requestedUpdateCount;
 	}
-	
-	public void removeDestroyed()
-	{
-		int writeIndex = 0;
-		for (int i = 0; i < sceneObjects.size(); ++i)
-		{
-			SceneObject so = sceneObjects.get(i);
-			if (!so.isDestroyed())
-			{
-				sceneObjects.set(writeIndex++, sceneObjects.get(i));
-			}
-		}
-		for (int i = sceneObjects.size() - 1; i >= writeIndex; --i)
-		{
-			sceneObjects.remove(i);
-		}
-	}
+
+    Predicate<SceneObject> filter = new Predicate<SceneObject>() {
+
+        @Override
+        public boolean test(SceneObject t) {
+            return t.isDestroyed();
+        }
+    };
+
+    public void removeDestroyed(){ListTools.removeIf(sceneObjects, filter);}
 	
 	public void getCameraPosition(Vector3f position, Rotation3 rotation)
 	{
