@@ -30,6 +30,7 @@ import scene.object.FloatVectorObject;
 import util.ArrayUtil;
 import util.StringUtils;
 import util.data.DoubleArrayList;
+import util.data.DoubleList;
 import util.data.IntegerArrayList;
 
 public class Geometry {
@@ -53,13 +54,39 @@ public class Geometry {
 			count = 0;
 		}
 		
-		public final void addPoint(float positions[], float directions[], int i)
+        public final void addRay(DoubleList positions, DoubleList directions, int idx)
+        {
+            float dirlen = 0;
+            float scalar = 0;
+            for (int j = 0; j < dim; ++j)
+            {
+                int index = idx + j;
+                double dir = directions.getD(index);
+                dirlen += dir * dir;
+                scalar += dir * positions.getD(index);
+            }
+            scalar *= (dirlen = 1 / dirlen);
+            for (int j = 0; j < dim; ++j)
+            {
+                int index = idx + j;
+                double dir = directions.getD(index) * dirlen;
+                int jc = j * nCols;
+                mat[jc + dim] += scalar * directions.getD(index) - positions.getD(index);
+                for (int k = 0; k <= j; ++k)
+                {
+                    mat[jc + k] += dir * directions.getD(idx + k);
+                }
+            }
+            ++count;
+        }
+
+		public final void addRay(float positions[], float directions[], int idx)
 		{
 			float dirlen = 0;
 			float scalar = 0;
 			for (int j = 0; j < dim; ++j)
 			{
-				int index = i + j;
+				int index = idx + j;
 				float dir = directions[index];
 				dirlen += dir * dir;
 				scalar += dir * positions[index];
@@ -67,23 +94,20 @@ public class Geometry {
 			scalar *= (dirlen = 1 / dirlen);
 			for (int j = 0; j < dim; ++j)
 			{
-				int index = i + j;
+				int index = idx + j;
 				float dir = directions[index] * dirlen;
 				int jc = j * nCols;
 				mat[jc + dim] += scalar * directions[index] - positions[index];
 				for (int k = 0; k <= j; ++k)
 				{
-					mat[jc + k] += dir * directions[i + k];
+					mat[jc + k] += dir * directions[idx + k];
 				}
 			}
 			++count;
 		}
-		
-		public int getCount()
-		{
-			return count;
-		}
-		
+
+		public int getCount(){return count;}
+
 		public final void calculate()
 		{
 			for (int i = 0; i < mat.length; i += nCols + 1)
@@ -871,38 +895,14 @@ public class Geometry {
     	double end = 0;
     	double diffX = v1.x - v0.x;
     	double diffY = v1.y - v0.y;
-    	if (v0.x < minX)
-		{
-			begin = Math.max(begin,(minX - v0.x) / diffX);
-		}
-		else if (v0.x > maxX)
-		{
-			begin = Math.max(begin,(maxX - v0.x) / diffX);
-		}
-		if (v0.y < minY)
-		{
-			begin = Math.max(begin,(minY-v0.y) / diffY);
-		}
-		else if (v0.y > maxY)
-		{
-			begin = Math.max(begin,(maxY - v0.y) / diffY);
-		}
-		if (v1.x < minX)
-		{
-			end = Math.max(end, (v1.x - minX) / diffX);
-		}
-		else if (v1.x > maxX)
-		{
-			end = Math.max(end, (v1.x - maxX) / diffX);
-		}
-		if (v1.y < minY)
-		{
-			end = Math.max(end,(v1.y - minY) / diffY);
-		}
-		else if (v1.y > maxY)
-		{
-			end = Math.max(end, (v1.y - maxY) / diffY);
-		}
+    	if (v0.x < minX)       {begin = Math.max(begin,(minX - v0.x) / diffX);}
+		else if (v0.x > maxX)  {begin = Math.max(begin,(maxX - v0.x) / diffX);}
+		if (v0.y < minY)       {begin = Math.max(begin,(minY - v0.y) / diffY);}
+		else if (v0.y > maxY)  {begin = Math.max(begin,(maxY - v0.y) / diffY);}
+		if (v1.x < minX)       {end   = Math.max(end,  (v1.x - minX) / diffX);}
+		else if (v1.x > maxX)  {end   = Math.max(end,  (v1.x - maxX) / diffX);}
+		if (v1.y < minY)       {end   = Math.max(end,  (v1.y - minY) / diffY);}
+		else if (v1.y > maxY)  {end   = Math.max(end,  (v1.y - maxY) / diffY);}
 		if (begin + end< 1)
 		{
 			v0.x += diffX * begin;
@@ -922,42 +922,15 @@ public class Geometry {
     	double end = 0;
     	double diffX = v1.x - v0.x;
     	double diffY = v1.y - v0.y;
-    	if (Double.isNaN(diffX) || Double.isNaN(diffY))
-    	{
-    		return false;
-    	}
-    	if (v0.x < minX)
-		{
-			begin = Math.max(begin,(minX - v0.x) / diffX);
-		}
-		else if (v0.x > maxX)
-		{
-			begin = Math.max(begin,(maxX - v0.x) / diffX);
-		}
-		if (v0.y < minY)
-		{
-			begin = Math.max(begin,(minY-v0.y) / diffY);
-		}
-		else if (v0.y > maxY)
-		{
-			begin = Math.max(begin,(maxY - v0.y) / diffY);
-		}
-		if (v1.x < minX)
-		{
-			end = Math.max(end, (v1.x - minX) / diffX);
-		}
-		else if (v1.x > maxX)
-		{
-			end = Math.max(end, (v1.x - maxX) / diffX);
-		}
-		if (v1.y < minY)
-		{
-			end = Math.max(end,(v1.y - minY) / diffY);
-		}
-		else if (v1.y > maxY)
-		{
-			end = Math.max(end, (v1.y - maxY) / diffY);
-		}
+    	if (Double.isNaN(diffX) || Double.isNaN(diffY)){return false;}
+    	if (v0.x < minX)	  {begin = Math.max(begin,(minX - v0.x) / diffX);}
+		else if (v0.x > maxX) {begin = Math.max(begin,(maxX - v0.x) / diffX);}
+		if (v0.y < minY)      {begin = Math.max(begin,(minY - v0.y) / diffY);}
+		else if (v0.y > maxY) {begin = Math.max(begin,(maxY - v0.y) / diffY);}
+		if (v1.x < minX)      {end   = Math.max(end,  (v1.x - minX) / diffX);}
+		else if (v1.x > maxX) {end   = Math.max(end,  (v1.x - maxX) / diffX);}
+		if (v1.y < minY)      {end   = Math.max(end,  (v1.y - minY) / diffY);}
+		else if (v1.y > maxY) {end   = Math.max(end,  (v1.y - maxY) / diffY);}
 		if (begin + end< 1)
 		{
 			v0.x += diffX * begin;

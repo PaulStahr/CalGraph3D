@@ -52,7 +52,8 @@ public class PointCloudVisualization extends TextureView implements ItemListener
 	private TextureMapping mapping;
 	private final Raster raster;
 	
-	protected void updatePreview()
+	@Override
+    protected void updatePreview()
 	{	
 		mapping = TextureMapping.get(JFrameUtils.getFirstSelected(parametrizations));
 		boolean printTrajectory = menuItemTrajectory.isSelected() && dal != null;
@@ -162,18 +163,9 @@ public class PointCloudVisualization extends TextureView implements ItemListener
 			}
 			
 			fc.surfaceDist = menuItemMaxDensitySurface.isSelected();
-			if (menuItemMaxDensityLinear.isSelected())
-			{
-				fc.method = FitCircle.LINEAR;
-			}
-			else if (menuItemMaxDensityQuadratic.isSelected())
-			{
-				fc.method = FitCircle.QUADRATIC;
-			}
-			else if(menuItemMaxDensityGauss.isSelected())
-			{
-				fc.method = FitCircle.GAUSS;
-			}
+			if     (menuItemMaxDensityLinear.isSelected())       {fc.method = FitCircle.LINEAR;}
+			else if(menuItemMaxDensityQuadratic.isSelected())    {fc.method = FitCircle.QUADRATIC;}
+			else if(menuItemMaxDensityGauss.isSelected())        {fc.method = FitCircle.GAUSS;}
 			fc.sigma = textFieldSigma.get().doubleValue();
 			
 			fc.run();
@@ -193,7 +185,6 @@ public class PointCloudVisualization extends TextureView implements ItemListener
 				double circleSize = fc.getIncludingCircleSize(op.doubleValue());
 				Vector3d v3 = new Vector3d();
 				TextureMapping.SPHERICAL.mapSphericalToCart(azimuth, elevation, v3);
-				System.out.print(v3);
 				double xp = v3.x, yp = v3.y, zp = v3.z;
 				for (int y = 0; y < height; ++y)
 				{

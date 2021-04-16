@@ -15,7 +15,7 @@ import maths.Armadillo;
 @RunWith(Parameterized.class)
 public class ArmandilloTest {
     @Parameters
-    public static List<Integer> goodData() {return Arrays.asList(new Integer[]{0,1,2});}
+    public static List<Integer> params() {return Arrays.asList(new Integer[]{0,1,2});}
     private final int dir;
     
     public ArmandilloTest(int dir) {
@@ -23,7 +23,6 @@ public class ArmandilloTest {
     }
     
     @Test
-    @Parameters(name = "goodData")
     public void testDiffusionEquation(){
         int size = 10;
         int width  = dir == 0 ? size : 1;

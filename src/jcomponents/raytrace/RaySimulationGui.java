@@ -2613,7 +2613,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 					{
 						if (accepted[j] == RaytraceScene.STATUS_ACCEPTED && (scene.forceEndpoint == null || scene.forceEndpoint == endObject[j]))
 						{
-							npc.addPoint(endpos, enddir, j * 3);
+							npc.addRay(endpos, enddir, j * 3);
 						}
 					}
 					npc.calculate();

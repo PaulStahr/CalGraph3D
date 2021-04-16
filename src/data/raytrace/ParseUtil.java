@@ -22,8 +22,7 @@ public class ParseUtil {
 	public boolean b;
 	public double d;
 	private final StringBuilder strB = new StringBuilder();
-	
-	
+
 	public static final String parseString(Object o)
 	{
 		if (o == null || o.equals(""))    {return null;}

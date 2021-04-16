@@ -483,7 +483,7 @@ public class RaytraceCommandLine {
 						if (rsd.lastObject[k] == destination && rsd.accepted[k] == RaytraceScene.STATUS_ACCEPTED)
 						{
 							bundleWeightPoint.add(rsd.endpoints, k * 3);
-							npc.addPoint(rsd.endpoints, rsd.enddirs, k * 3);
+							npc.addRay(rsd.endpoints, rsd.enddirs, k * 3);
 						}
 					}
 					npc.calculate();
@@ -550,7 +550,7 @@ public class RaytraceCommandLine {
 							{
 								if (accepted[j] == RaytraceScene.STATUS_ACCEPTED && endObject[j] == destination)
 								{
-									npc.addPoint(endpos, enddir, j * 3);
+									npc.addRay(endpos, enddir, j * 3);
 								}
 							}
 							npc.calculate();

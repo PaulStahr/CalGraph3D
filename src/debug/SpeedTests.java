@@ -20,8 +20,6 @@
  * SOFTWARE.
  ******************************************************************************/
 package debug;
-import geometry.Geometry;
-
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
@@ -30,6 +28,7 @@ import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import geometry.Geometry;
 import maths.Armadillo;
 import maths.Controller;
 import maths.Operation;
@@ -93,7 +92,8 @@ public class SpeedTests {
 		float vertices[] = new float[300000];
 		float color[] = new float[400000];
 		
-		public final void run()
+		@Override
+        public final void run()
 		{
 			BufferUtils.fillWithVertexAndColorData(vertices, color, fb);
 		}
@@ -104,7 +104,8 @@ public class SpeedTests {
 		float vertices[] = new float[300000];
 		float color[] = new float[400000];
 		
-		public final void run()
+		@Override
+        public final void run()
 		{
 			BufferUtils.fillWithVertexAndColorData2(vertices, color, fb);
 		}
@@ -114,7 +115,8 @@ public class SpeedTests {
 		FloatBuffer fb = Buffers.createFloatBuffer(1000000);
 		int count = fb.capacity() / 2;
 		
-		public final void run()
+		@Override
+        public final void run()
 		{
 			int index = 0;
 			for (int i =0; i < count; ++i)
@@ -129,7 +131,8 @@ public class SpeedTests {
 		FloatBuffer fb = Buffers.createFloatBuffer(1000000);
 		int count = fb.capacity() / 2;
 		
-		public final void run()
+		@Override
+        public final void run()
 		{
 			fb.position(0);
 			for (int i = 0; i < count; ++i)
@@ -145,7 +148,8 @@ public class SpeedTests {
 		int array[] = new int[1000000];
 		int count = fb.capacity() / 2;
 		
-		public final void run()
+		@Override
+        public final void run()
 		{
 			int index = 0;
 			for (int i = 0; i < count; ++i)
@@ -163,7 +167,8 @@ public class SpeedTests {
 		int array[] = new int[1000000];
 		int count = fb.capacity() / 2;
 		
-		public final void run()
+		@Override
+        public final void run()
 		{
 			int index = 0;
 			for (int i = 0; i < count; ++i)
@@ -187,7 +192,8 @@ public class SpeedTests {
 		float verticesf[] = new float[300000];
 		float normalsf[] = new float[300000];
 		
-		public void run()
+		@Override
+        public void run()
 		{
 			Geometry.calcVertexNormals(1000, 100, verticesf, normalsf, false, false);	
 		}
@@ -197,7 +203,8 @@ public class SpeedTests {
 	{
 		FloatVectorObject vertices = new FloatVectorObject(100000);
 		FloatVectorObject normals = new FloatVectorObject(100000);
-		public void run()
+		@Override
+        public void run()
 		{	
 			Geometry.calcVertexNormals(1000, 100, vertices, normals, false, false);
 		}	
@@ -208,7 +215,8 @@ public class SpeedTests {
 		private static final ArrayList<Object> finalizedObjects = new ArrayList<Object>();
 		
 		private static class FinalizerObject extends Object{
-			public void finalize()
+			@Override
+            public void finalize()
 			{
 				synchronized (finalizedObjects) {
 					finalizedObjects.add(this);		
@@ -276,7 +284,8 @@ public class SpeedTests {
 		FloatVectorObject fv0 = new FloatVectorObject(1000000);
 		FloatVectorObject fv1 = new FloatVectorObject(1000000);
 		
-		public void run()
+		@Override
+        public void run()
 		{
 			Geometry.calcVertexNormals(1000, 1000, fv0, fv1, false, false);
 		}
@@ -286,7 +295,8 @@ public class SpeedTests {
 		FloatVectorObject fv0 = new FloatVectorObject(1000000);
 		FloatVectorObject fv1 = new FloatVectorObject(1000000);
 		
-		public void run()
+		@Override
+        public void run()
 		{
 				Geometry.calcVertexNormals2(1000, 1000, fv0, fv1, false, false);
 		}
@@ -343,7 +353,8 @@ public class SpeedTests {
 	public static class HypotTest implements Runnable{
 		double erg=0;
 		
-		public void run()
+		@Override
+        public void run()
 		{
 			final double x = Math.random(), y = Math.random();
 			erg += Math.atan(x/y);			
@@ -353,7 +364,8 @@ public class SpeedTests {
 	public static class HypotTest2 implements Runnable{
 		double erg=0;
 		
-		public void run()
+		@Override
+        public void run()
 		{
 			final double x = Math.random(), y = Math.random();
 			erg += Math.atan2(x,y);			
@@ -371,7 +383,8 @@ public class SpeedTests {
 				op1[i]= new DivisionOperation(new RealDoubleOperation((double)304/43), new RealDoubleOperation((double)32/12));
 		}
 		
-		public void run()
+		@Override
+        public void run()
 		{
 			for (int i=0;i<100000000;i++){
 				erg += op1[i%op1.length].calculate(null, null).doubleValue();
@@ -389,7 +402,8 @@ public class SpeedTests {
 				op2[i]= new DivisionOperation(RealRationalOperation.getInstance(304,43), RealRationalOperation.getInstance(32,12));
 		}
 		
-		public void run()
+		@Override
+        public void run()
 		{
 			for (int i=0;i<100000000;i++){
 				erg += op2[i%op2.length].calculate(null, null).doubleValue();
@@ -401,7 +415,8 @@ public class SpeedTests {
 		StringBuilder res = new StringBuilder(100);
 		double d = 60.005;
 
-		public void run()
+		@Override
+        public void run()
 		{
 			for (int i=0;i<10000000;i++){
 				res.setLength(0);
@@ -413,7 +428,8 @@ public class SpeedTests {
 	public static class doubleToString1 implements Runnable{ 
 		StringBuilder erg = new StringBuilder(100);
 		double d = 60.005;
-		public void run()
+		@Override
+        public void run()
 		{
 			for (int i=0;i<10000000;i++){
 				erg.setLength(0);
@@ -498,7 +514,8 @@ public class SpeedTests {
 			}	
 		}
 			
-		public void run()
+		@Override
+        public void run()
 		{
 			erg += op.calculate(null, control).doubleValue();		
 		}
@@ -517,7 +534,8 @@ public class SpeedTests {
 			}	
 		}
 		
-		public void run()
+		@Override
+        public void run()
 		{
 			Operation a = op.calculate(null, null);
 			for (int j=0;j<a.size();j++){
@@ -533,7 +551,8 @@ public class SpeedTests {
 			Calculate.init();
 		}
 		
-		public void run()
+		@Override
+        public void run()
 		{
 			for (long k=-100;k<100;k++)
 				erg = erg+(Long)Calculate.pow(k, 6);		
@@ -547,7 +566,8 @@ public class SpeedTests {
 			Calculate.init();
 		}
 		
-		public void run()
+		@Override
+        public void run()
 		{
 			for (long k=-100;k<100;k++)
 				erg = erg+(Long)Calculate.pow2(k, 6);		

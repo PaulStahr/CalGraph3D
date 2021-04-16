@@ -123,7 +123,7 @@ public class FocusAnalysis {
 							if (rsd.lastObject[k] == destination && rsd.accepted[k] == RaytraceScene.STATUS_ACCEPTED)
 							{
 								bundleWeightPoint.add(rsd.endpoints, k * 3);
-								npc.addPoint(rsd.endpoints, rsd.enddirs, k * 3);
+								npc.addRay(rsd.endpoints, rsd.enddirs, k * 3);
 							}
 						}
 						int bundleAcceptedCount = npc.getCount();
