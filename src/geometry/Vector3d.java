@@ -291,7 +291,7 @@ public final class Vector3d implements Vectord
     {
     	x = v0.y * v1.z - v0.z * v1.y;
     	y = v0.z * v1.x - v0.x * v1.z;
-    	z = v0.x * v1.y - v0.y * v0.x;
+    	z = v0.x * v1.y - v0.y * v1.x;
     }
 
 	public final void reflect(Vector3d v) {add(v, -2 * dot(v)/v.dot());}

@@ -63,18 +63,19 @@ public enum TextureMapping
         {
             x *= Calculate.TWO_PI;
             y *= Math.PI;
-            out.x = Math.sin(y) * Math.cos(x);
-            out.y = Math.sin(y) * Math.sin(x);
+            double sin = Math.sin(y);
+            out.x = sin * Math.cos(x);
+            out.y = sin * Math.sin(x);
             out.z = Math.cos(y);
-            return 1/out.z;
+            return sin * (Math.PI * Calculate.TWO_PI);
         }
 
         @Override
         public double mapTexToCart(double x, double y)
         {
             y *= Math.PI;
-            double z = Math.cos(y);
-            return 1/z;
+            double sin = Math.sin(y);
+            return sin * (Math.PI * Calculate.TWO_PI);
         }
 
 		@Override
@@ -138,10 +139,10 @@ public enum TextureMapping
             double rad = Math.sqrt(x * x + y * y);
             out.z = Math.cos(rad * Calculate.TWO_PI);
             double sin = Math.sin(rad * Calculate.TWO_PI);
-            double det = rad == 0 ? Math.PI : sin / rad;
+            double det = rad == 0 ? Calculate.TWO_PI : sin / rad;
             out.x = x * det;
             out.y = y * det;
-            return 1 / sin; //TODO det or 1 / sin
+            return Calculate.TWO_PI * det;
         }
 
         @Override
@@ -150,7 +151,8 @@ public enum TextureMapping
             y = y - 0.5;
             double rad = Math.sqrt(x * x + y * y);
             double sin = Math.sin(rad * Calculate.TWO_PI);
-            return 1 / sin; //TODO det or 1 / sin
+            double det = rad == 0 ? Calculate.TWO_PI : sin / rad;
+            return Calculate.TWO_PI * det;
         }
         
 		@Override
@@ -244,25 +246,25 @@ public enum TextureMapping
 
 		@Override
 		public double mapTexToCart(double x, double y, Vector3d out) {
-			x = x - 0.5;
-			y = y - 0.5;
+			x -= 0.5;
+			y -= 0.5;
 			double rad = Math.sqrt(x * x + y * y);
 			out.z = Math.cos(rad * Math.PI);
 			double sin = Math.sin(rad * Math.PI);
 			double det = rad == 0 ? Math.PI : sin / rad;
 			out.x = x * det;
 			out.y = y * det;
-			return det;
+			return Math.PI * det;
 		}
 		
 		@Override
 		public double mapTexToCart(double x, double y) {
-			x = x - 0.5;
-			y = y - 0.5;
+			x -= 0.5;
+			y -= 0.5;
 			double rad = Math.sqrt(x * x + y * y);
 			double sin = Math.sin(rad * Math.PI);
 			double det = rad == 0 ? Math.PI : sin / rad;
-			return det;
+			return Math.PI * det;
 		}
 		
 		@Override
@@ -286,10 +288,8 @@ public enum TextureMapping
 	}, FLAT("Flat") {
 		@Override
 		public double mapCartToTex(double x, double y, double z, Vector2d out) {
-			double len = Math.sqrt(x * x + y * y);
-			len = len == 0 ? 0 : (INV_TWO_PI * Math.atan2(len, z)/ len);
-			out.x = x * len + 0.5;
-			out.y = y * len + 0.5;
+			out.x = x * 0.5 + 0.5;
+			out.y = y * 0.5 + 0.5;
 			return Double.NaN;
 		}
 
@@ -297,14 +297,14 @@ public enum TextureMapping
 		public double mapTexToCart(double x, double y, Vector3d out) {
 			out.x = x = (x - 0.5) * 2;
 			out.y = y = (y - 0.5) * 2;
-			return 2 * (out.z = Math.sqrt(1 - x * x - y * y));
+			return 4 / (out.z = Math.sqrt(1 - x * x - y * y));
 		}
 		
 		@Override
 		public double mapTexToCart(double x, double y) {
-			x = (x - 0.5) * 2;
-			y = (y - 0.5) * 2;
-			return 2 * Math.sqrt(1 - x * x - y * y);
+            x -= 0.5;
+            y -= 0.5;
+			return 2 / Math.sqrt(0.25 - x * x - y * y);
 		}
 		
 		@Override
