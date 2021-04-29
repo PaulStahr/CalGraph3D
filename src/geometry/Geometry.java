@@ -164,22 +164,19 @@ public class Geometry {
 	public static final void volumeToMesh(int[] data, int width, int height, int depth, double mid, IntegerArrayList faceIndices, DoubleArrayList vertexPositions)
 	{
 		int offsets[] = new int[8];
-		int cubeOffsets[] = new int[8];
 		int vertexIndices[] = new int[(width) * (height) * (depth) * 3];
 		Arrays.fill(vertexIndices, -1);
 		boolean inside[] = new boolean[8];
 		boolean visited[] = new boolean[8];
-		boolean closedSet[] = new boolean[visited.length];
+		boolean insideConnected[] = new boolean[8];
 		for (int i = 0; i < 3; ++i)
 		{
 			for (int j = 0; j < (1 << i); ++j)
 			{
 				offsets[j + (1 << i)] = offsets[j] + (i == 0 ? 1 : i == 1 ? width : width * height);
-				cubeOffsets[j + (1 << i)] = cubeOffsets[j] + (i == 0 ? 1 : i == 1 ? (width - 1): (width - 1)* (height-1));
 			}
 		}
 		IntegerArrayList searchStack = new IntegerArrayList();
-		
 		for (int z = 0, index = 0; z < depth - 1; ++z, ++index)
 		{
 			for (int y = 0; y < height - 1; ++y, ++index)
@@ -201,12 +198,12 @@ public class Geometry {
 						Arrays.fill(visited, false);
 						for (int bitmask = 0; bitmask < 8; ++bitmask)
 						{
-							Arrays.fill(closedSet, false);
+							Arrays.fill(insideConnected, false);
 							int innerVertex = bitmask;
 							int inOutAxis = -1;
 							if (inside[bitmask] && !visited[bitmask])
 							{
-								visited[bitmask] = closedSet[bitmask] = true;
+								visited[bitmask] = insideConnected[bitmask] = true;
 								searchStack.add(bitmask);
 								while(!searchStack.isEmpty())
 								{
@@ -218,7 +215,7 @@ public class Geometry {
 										if (inside[neighbour] && !visited[neighbour])
 										{
 											searchStack.add(neighbour);
-											visited[neighbour] = closedSet[neighbour] = true;
+											visited[neighbour] = insideConnected[neighbour] = true;
 										}
 										if (!inside[neighbour])
 										{
@@ -238,40 +235,34 @@ public class Geometry {
 							while(true)
 							{
 								final int outerVertex = innerVertex ^ (1 << inOutAxis);
-								int min = innerVertex & outerVertex;
-								int max = innerVertex | outerVertex;
-								int vIndex = (cubeIndex + cubeOffsets[min]) * 3 + inOutAxis;
-								if (vIndex >= vertexIndices.length)
-								{
-									throw new ArrayIndexOutOfBoundsException("(" + cubeIndex + " + " + cubeOffsets[min] + ") * " + 3 + " + " + inOutAxis + " = " + vIndex + " < " + vertexIndices.length);
-								}
+								int lowerIndex = innerVertex & outerVertex;
+								int higherIndex = innerVertex | outerVertex;
+								int vIndex = (cubeIndex + offsets[lowerIndex]) * 3 + inOutAxis;
+								if (vIndex >= vertexIndices.length){throw new ArrayIndexOutOfBoundsException("(" + cubeIndex + " + " + offsets[lowerIndex] + ") * " + 3 + " + " + inOutAxis + " = " + vIndex + " < " + vertexIndices.length);}
 								int facePoint2 = vertexIndices[vIndex];
 								if (facePoint2 == -1)
 								{
-									double xp = x + ((min >> 0) & 1);
-									double yp = y + ((min >> 1) & 1);
-									double zp = z + ((min >> 2) & 1);
-									double v0 = data[index + offsets[min]]- mid, v1 = data[index + offsets[max]] - mid;
-									double alpha = v0 / (v0 - v1);
-									if (alpha < 0 || alpha > 1)
-									{
-										throw new RuntimeException("alpha not in range: " + alpha);
-									}
-									if (alpha <= 0.00001) //clip near to lattice values to remove small triangles
+									double v0 = data[index + offsets[lowerIndex]], v1 = data[index + offsets[higherIndex]];
+									double alpha = (v0 - mid) / (v0 - v1);
+									if (alpha < 0 || alpha > 1){throw new RuntimeException("alpha not in range: " + alpha);}
+									/*if (alpha <= 0.00001) //clip near to lattice values to remove small triangles
 									{
 										vIndex = (cubeIndex + cubeOffsets[min]) * 3;
 										facePoint2 = vertexIndices[vIndex];
 									}
 									if (alpha >= 0.99999) //clip near to lattice values to remove small triangles
 									{
-										vIndex = (cubeIndex + cubeOffsets[max]) * 3;
+										vIndex = (cubeIndex + cubeOffsets[min]) * 3;
 										facePoint2 = vertexIndices[vIndex];
-									}
+									}*/
 									if (facePoint2 == -1)
 									{
 										facePoint2 = vertexIndices[vIndex] = vertexPositions.size() / 3;
+	                                    double xp = x + ((lowerIndex >> 0) & 1);
+	                                    double yp = y + ((lowerIndex >> 1) & 1);
+	                                    double zp = z + ((lowerIndex >> 2) & 1);
+                                        int addIndex = vertexPositions.size() + inOutAxis;
 										vertexPositions.add(xp, yp, zp);
-										int addIndex = vertexPositions.size() - 3 + inOutAxis;
 										vertexPositions.set(addIndex, vertexPositions.getD(addIndex) + alpha);
 									}
 								}
@@ -291,23 +282,27 @@ public class Geometry {
 								final int newAxis = (((innerVertex ^ (innerVertex >> 1) ^ (innerVertex >> 2)) & 1) + inOutAxis + 1)%3;
 								final int newInner = innerVertex ^ (1 << newAxis);
 								final int newOuter = outerVertex ^ (1 << newAxis);
-								if (closedSet[newInner] && !closedSet[newOuter] && (newInner != startInnerVertex || inOutAxis != startInOutAxis))
-								{
-									innerVertex = newInner;
-								}
-								else if (!closedSet[newInner] && (innerVertex != startInnerVertex || newAxis != startInOutAxis))
-								{
-									inOutAxis = newAxis;
-								}
-								else if (closedSet[newOuter] && (newOuter != startInnerVertex || newAxis != startInOutAxis))
-								{
-									innerVertex = newOuter;
-									inOutAxis = newAxis;
-								}
-								else
-								{
-									break;
-								}
+							    if (insideConnected[newInner] && !insideConnected[newOuter])
+                                {
+                                    innerVertex = newInner;//move on both vertices
+                                }
+                                else if (!insideConnected[newInner])
+                                {
+                                    inOutAxis = newAxis;//move on outer vertex
+                                }
+                                else if (insideConnected[newOuter])
+                                {
+                                    innerVertex = newOuter;//move on inner vertex
+                                    inOutAxis = newAxis;
+                                }
+                                else
+                                {
+                                    throw new RuntimeException("");
+                                }
+                                if (innerVertex == startInnerVertex && inOutAxis == startInOutAxis)
+                                {
+                                    break;
+                                }
 							}
 						}
 					}
@@ -319,22 +314,19 @@ public class Geometry {
 	public static final void volumeToMesh(float[] data, int width, int height, int depth, double mid, IntegerArrayList faceIndices, DoubleArrayList vertexPositions)
 	{
 		int offsets[] = new int[8];
-		int cubeOffsets[] = new int[8];
-		int vertexIndices[] = new int[(width) * (height) * (depth) * 3];
+		int vertexIndices[] = new int[width * height * depth * 3];
 		Arrays.fill(vertexIndices, -1);
 		boolean inside[] = new boolean[8];
 		boolean visited[] = new boolean[8];
-		boolean closedSet[] = new boolean[visited.length];
+		boolean insideConnected[] = new boolean[8];
 		for (int i = 0; i < 3; ++i)
 		{
 			for (int j = 0; j < (1 << i); ++j)
 			{
 				offsets[j + (1 << i)] = offsets[j] + (i == 0 ? 1 : i == 1 ? width : width * height);
-				cubeOffsets[j + (1 << i)] = cubeOffsets[j] + (i == 0 ? 1 : i == 1 ? (width - 1): (width - 1)* (height-1));
 			}
 		}
 		IntegerArrayList searchStack = new IntegerArrayList();
-		
 		for (int z = 0, index = 0; z < depth - 1; ++z, ++index)
 		{
 			for (int y = 0; y < height - 1; ++y, ++index)
@@ -352,16 +344,16 @@ public class Geometry {
 					}
 					if (is_cutted)
 					{
-						int cubeIndex = x + (width - 1) * (y + (height - 1) * z);
+						int cubeIndex = x + width * (y + height * z);
 						Arrays.fill(visited, false);
 						for (int bitmask = 0; bitmask < 8; ++bitmask)
 						{
-							Arrays.fill(closedSet, false);
+							Arrays.fill(insideConnected, false);
 							int innerVertex = bitmask;
 							int inOutAxis = -1;
 							if (inside[bitmask] && !visited[bitmask])
 							{
-								visited[bitmask] = closedSet[bitmask] = true;
+								visited[bitmask] = insideConnected[bitmask] = true;
 								searchStack.add(bitmask);
 								while(!searchStack.isEmpty())
 								{
@@ -369,11 +361,10 @@ public class Geometry {
 									for (int axis = 0; axis < 3;++axis)
 									{
 										int neighbour = current ^ (1 << axis);
-										
 										if (inside[neighbour] && !visited[neighbour])
 										{
 											searchStack.add(neighbour);
-											visited[neighbour] = closedSet[neighbour] = true;
+											visited[neighbour] = insideConnected[neighbour] = true;
 										}
 										if (!inside[neighbour])
 										{
@@ -383,50 +374,42 @@ public class Geometry {
 									}
 								}
 							}
-							if (inOutAxis == -1)
-							{
-								continue;
-							}
+							if (inOutAxis == -1){continue;}
+							//At this point connectedSet marks a set of vertices which are connected and are greater then mid
 							int facePoint0 = -1, facePoint1 = -1;
 							final int startInnerVertex = innerVertex;
 							final int startInOutAxis = inOutAxis;
 							while(true)
 							{
 								final int outerVertex = innerVertex ^ (1 << inOutAxis);
-								int min = innerVertex & outerVertex;
-								int max = innerVertex | outerVertex;
-								int vIndex = (cubeIndex + cubeOffsets[min]) * 3 + inOutAxis;
-								if (vIndex >= vertexIndices.length)
-								{
-									throw new ArrayIndexOutOfBoundsException("(" + cubeIndex + " + " + cubeOffsets[min] + ") * " + 3 + " + " + inOutAxis + " = " + vIndex + " < " + vertexIndices.length);
-								}
+								final int lowerVertex = innerVertex & outerVertex;
+								final int higherVertex = innerVertex | outerVertex;
+								final int vIndex = (cubeIndex + offsets[lowerVertex]) * 3 + inOutAxis;
+								if (vIndex >= vertexIndices.length){throw new ArrayIndexOutOfBoundsException("(" + cubeIndex + " + " + offsets[lowerVertex] + ") * " + 3 + " + " + inOutAxis + " = " + vIndex + " < " + vertexIndices.length);}
 								int facePoint2 = vertexIndices[vIndex];
 								if (facePoint2 == -1)
 								{
-									double xp = x + ((min >> 0) & 1);
-									double yp = y + ((min >> 1) & 1);
-									double zp = z + ((min >> 2) & 1);
-									double v0 = data[index + offsets[min]]- mid, v1 = data[index + offsets[max]] - mid;
-									double alpha = v0 / (v0 - v1);
-									if (alpha < 0 || alpha > 1)
+									final double v0 = data[index + offsets[lowerVertex]], v1 = data[index + offsets[higherVertex]];
+									final double alpha = (v0 - mid) / (v0 - v1);
+									if (alpha < 0 || alpha > 1){throw new RuntimeException("alpha not in range: " + alpha);}
+									/*if (alpha <= 0.00001) //clip near to lattice values to remove small triangles
 									{
-										throw new RuntimeException("alpha not in range: " + alpha);
-									}
-									if (alpha <= 0.00001) //clip near to lattice values to remove small triangles
-									{
-										vIndex = (cubeIndex + cubeOffsets[min]) * 3;
+										vIndex = (cubeIndex + offsets[lowerVertex]) * 4;
 										facePoint2 = vertexIndices[vIndex];
 									}
 									if (alpha >= 0.99999) //clip near to lattice values to remove small triangles
 									{
-										vIndex = (cubeIndex + cubeOffsets[max]) * 3;
+										vIndex = (cubeIndex + offsets[higherVertex]) * 4;
 										facePoint2 = vertexIndices[vIndex];
-									}
+									}*/
 									if (facePoint2 == -1)
 									{
 										facePoint2 = vertexIndices[vIndex] = vertexPositions.size() / 3;
+	                                    double xp = x + ((lowerVertex >> 0) & 1);
+	                                    double yp = y + ((lowerVertex >> 1) & 1);
+	                                    double zp = z + ((lowerVertex >> 2) & 1);
+                                        int addIndex = vertexPositions.size() + inOutAxis;
 										vertexPositions.add(xp, yp, zp);
-										int addIndex = vertexPositions.size() - 3 + inOutAxis;
 										vertexPositions.set(addIndex, vertexPositions.getD(addIndex) + alpha);
 									}
 								}
@@ -434,7 +417,7 @@ public class Geometry {
 								{
 									if (facePoint2 != facePoint1 && facePoint0 != facePoint1 && facePoint0 != facePoint2)
 									{
-										faceIndices.add(facePoint0, facePoint1, facePoint2);
+								       faceIndices.add(facePoint0, facePoint1, facePoint2);
 									}
 								}
 								else
@@ -442,26 +425,29 @@ public class Geometry {
 									facePoint0 = facePoint1;
 								}
 								facePoint1 = facePoint2;
-								
 								final int newAxis = (((innerVertex ^ (innerVertex >> 1) ^ (innerVertex >> 2)) & 1) + inOutAxis + 1)%3;
 								final int newInner = innerVertex ^ (1 << newAxis);
 								final int newOuter = outerVertex ^ (1 << newAxis);
-								if (closedSet[newInner] && !closedSet[newOuter] && (newInner != startInnerVertex || inOutAxis != startInOutAxis))
+								if (insideConnected[newInner] && !insideConnected[newOuter])
 								{
-									innerVertex = newInner;
+									innerVertex = newInner;//move on both vertices
 								}
-								else if (!closedSet[newInner] && (innerVertex != startInnerVertex || newAxis != startInOutAxis))
+								else if (!insideConnected[newInner])
 								{
-									inOutAxis = newAxis;
+									inOutAxis = newAxis;//move on outer vertex
 								}
-								else if (closedSet[newOuter] && (newOuter != startInnerVertex || newAxis != startInOutAxis))
+								else if (insideConnected[newOuter])
 								{
-									innerVertex = newOuter;
+									innerVertex = newOuter;//move on inner vertex
 									inOutAxis = newAxis;
 								}
 								else
 								{
-									break;
+									throw new RuntimeException("");
+								}
+								if (innerVertex == startInnerVertex && inOutAxis == startInOutAxis)
+								{
+								    break;
 								}
 							}
 						}
