@@ -106,7 +106,30 @@ public class ArrayUtil {
 		}
 		return max;
 	}
-	
+
+	public static final float[] minMax(float data[])
+	{
+	    float min = Float.POSITIVE_INFINITY;
+	    float max = Float.NEGATIVE_INFINITY;
+	    for (float val : data)
+        {
+            if (val < min){min = val;}
+            if (val > max){max = val;}
+        }
+	    return new float[] {min, max};
+	}
+
+    public static double[] minMax(double[] data) {
+        double min = Double.POSITIVE_INFINITY;
+        double max = Double.NEGATIVE_INFINITY;
+        for (double val : data)
+        {
+            if (val < min){min = val;}
+            if (val > max){max = val;}
+        }
+        return new double[] {min, max};
+    }
+
 	public static final float min(float data[])
 	{
 		float min = Float.POSITIVE_INFINITY;

@@ -105,8 +105,7 @@ public class IntegerArrayList extends AbstractList<Integer> implements IntegerLi
 		if (length == data.length){
 			data = Arrays.copyOf(data, Math.max(data.length + 1, data.length * 2));
 		}
-		data[length] = value;
-		++length;
+		data[length++] = value;
 		return true;
 	}
 
@@ -126,9 +125,7 @@ public class IntegerArrayList extends AbstractList<Integer> implements IntegerLi
 	
 	public void add(int value0, int value1, int value2)
 	{
-		if (length + 2 >= data.length){
-			data = Arrays.copyOf(data, Math.max(data.length + 3, data.length * 2));
-		}
+		if (length + 3 > data.length){data = Arrays.copyOf(data, Math.max(length + 3, data.length * 2));}
 		data[length++] = value0;
 		data[length++] = value1;
 		data[length++] = value2;
@@ -146,6 +143,18 @@ public class IntegerArrayList extends AbstractList<Integer> implements IntegerLi
 		if (index >= length)
 			throw new ArrayIndexOutOfBoundsException(index);
 		return data[index];
+	}
+
+	public int[] toArray(int data[]) {
+	    if (data == null || data.length < length)
+	    {
+	        return Arrays.copyOf(this.data, length);
+	    }
+	    else
+	    {
+	        write(data, 0);
+	        return data;
+	    }
 	}
 
 	@Override

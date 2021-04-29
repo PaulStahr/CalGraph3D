@@ -298,7 +298,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		modified();
 		//TODO spacing
 	}
-	
+
 	static class VolumeCalculationEnvironment{
 		Variable xVar = new Variable("x");
 		Variable yVar = new Variable("y");
@@ -313,7 +313,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		private int height;
 		private int depth;
 		public final Vector3d position = new Vector3d();
-		
+
 		public VolumeCalculationEnvironment(VariableStack vs, Matrix4d latticeToGlobal, int width, int height, int depth)
 		{
 			this.vs = vs;
@@ -329,13 +329,13 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			vs.addLocal(zLocalVar);
 			vs.addLocal(indexVar);
 		}
-		
+
 		public void setPosition(int index, int x, int y, int z)
 		{
 			xLocalVar.setValue((double)x/width);
 			yLocalVar.setValue((double)y/height);
 			zLocalVar.setValue((double)z/depth);
-			
+
 			latticeToGlobal.rdotAffine(x,y,z, position);
 			xVar.setValue(position.x);
 			yVar.setValue(position.y);
@@ -343,7 +343,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			indexVar.setValue(index);
 		}
 	}
-	
+
 	public void editValues(OpticalSurfaceObject oso[], Operation operationIOR, Operation operationTranslucency, Operation givenValueOperation, Operation isGivenOperation, VariableStack variables, Volume vol)
 	{
 		int width = vol.width, height = vol.height, depth = vol.depth;
@@ -369,7 +369,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		float maxDat = Integer.MIN_VALUE;
 		int minTrans = Integer.MAX_VALUE;
 		int maxTrans = Integer.MIN_VALUE;
-		
+
 		for (int i = 0; i < data.length; ++i)
 		{
 			minDat = Math.min(minDat, data[i]);
@@ -377,11 +377,11 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			minTrans = Math.min(minTrans, translucency[i]);
 			maxTrans = Math.max(maxTrans, translucency[i]);
 		}
-		
+
 		double divx = 1. / (width - 3), divy = 1. / (height - 3), divz = 1. / (depth - 3);
 		oso = tmpList.toArray(new OpticalSurfaceObject[tmpList.size()]);
 		final double values[][] = new double[oso.length][widthp * heightp * (depth + 1)];
-		
+
 		latticeToGlobal.set(unitVolumeToGlobal);
 		latticeToGlobal.preScale(divx, divy, divz);
 		Matrix4d cubesToGlobal = new Matrix4d();
@@ -427,7 +427,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		maxDataVar.setValue(maxDat);
 		vs.addLocal(maxDataVar);
 		VolumeCalculationEnvironment vce = new VolumeCalculationEnvironment(vs, latticeToGlobal, width, height, depth);
-		
+
 		Controller control = new Controller();
 		control.calculateRandom(true);
 		ImageStack is = dcm == null ? null : dcm.getImageStack();
@@ -468,20 +468,14 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			}
 			Armadillo.solveDiffusionEquation(width, height, depth, equalityOperationResult, notGivenIndices, notGivenCount);
 			vs.add(equalityOperationResVar = new Variable("lres"));
-			double minEq = Double.POSITIVE_INFINITY;
-			double maxEq = Double.NEGATIVE_INFINITY;
-			for (int i = 0; i < equalityOperationResult.length; ++i)
-			{
-				minEq = Math.min(minEq, equalityOperationResult[i]);
-				maxEq = Math.max(maxEq, equalityOperationResult[i]);
-			}
+			double eqLimits[] = ArrayUtil.minMax(equalityOperationResult);
 			Variable minEqVar = new Variable("eqmin");
-			minEqVar.setValue(minEq);
+			minEqVar.setValue(eqLimits[0]);
 			vs.addLocal(minEqVar);
 			Variable maxEqVar = new Variable("eqmax");
-			maxEqVar.setValue(maxEq);
+			maxEqVar.setValue(eqLimits[1]);
 			vs.addLocal(maxEqVar);
-			logger.debug(new StringBuilder().append('(').append(minEq).append(',').append(maxEq).append(')').toString());
+			logger.debug(new StringBuilder().append('(').append(eqLimits[0]).append(',').append(eqLimits[1]).append(')').toString());
 		}
 		double min = Double.POSITIVE_INFINITY, max = Double.NEGATIVE_INFINITY;
 		
@@ -597,8 +591,8 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		else
 		{
 	        ImageStack is = dcm.getImageStack();
-	        setSize(is.getWidth(), is.getHeight(), is.getSize());
-	        int width = vol.width, height = vol.height, depth = vol.depth;
+            int width = is.getWidth(), height = is.getHeight(), depth = is.getSize();
+	        setSize(width, height, depth);
 	        readVoxels(is, vol.data, width, height, depth);
 	        String properties = (String)dcm.getProperty("Info");
 			StringReader reader = new StringReader(properties);
@@ -675,12 +669,12 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			dal.add(Double.parseDouble(item));
 		}
 	}
-	
+
 	/*public final int numMeshVertices()
 	{
 		return 8;
 	}*/
-	
+
 	/*public void getMeshVertices(float vertices[])
 	{
 		for (int i = 0, index = 0; i < 8; ++i)
@@ -689,7 +683,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			index += 3;
 		}
 	}*/
-	
+
 	/*public int[] getMeshFaces(int faces[])
 	{
 		int num_faces = 24;
@@ -729,15 +723,13 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		}
 		return faces;
 	}*/
-	
 
-	
 	public final int numMeshVertices()
 	{
 		updateMesh();
 		return vertexPositions.size();
 	}
-	
+
 	public void getMeshVertices(float vertices[])
 	{
 		Matrix4d tmp = new Matrix4d();
@@ -749,14 +741,14 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			index += 3;
 		}
 	}
-	
+
 	public int[] getMeshFaces(int faces[])
 	{
-		if (faces == null || faces.length != faceIndices.size()){faces = new int[faceIndices.size()];}
+		if (faces == null || faces.length != faceIndices.size()){return faceIndices.toArrayI();}
 		faceIndices.write(faces, 0);
 		return faces;
 	}
-	
+
 	private final DoubleArrayList vertexPositions = new DoubleArrayList();
 	private final IntegerArrayList faceIndices = new IntegerArrayList();
 	private VolumeRaytraceOptions options;
@@ -779,12 +771,13 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 	
 	public void updateMesh()
 	{
-		vertexPositions.clear();
-		faceIndices.clear();
-
-		double low = ArrayUtil.min(vol.data);
-		double high = ArrayUtil.max(vol.data);
-		Geometry.volumeToMesh(vol.data, vol.width, vol.height, vol.depth, (low + high) / 2, faceIndices, vertexPositions);
+	    synchronized(vertexPositions)
+	    {
+    		vertexPositions.clear();
+    		faceIndices.clear();
+    		float bounds[] = ArrayUtil.minMax(vol.data);
+    		Geometry.volumeToMesh(vol.data, vol.width, vol.height, vol.depth, (bounds[0] + bounds[1]) * 0.5, faceIndices, vertexPositions);
+	    }
 	}
 		
 	public float[] getVolumeVertices(float vertices[])
@@ -795,7 +788,6 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		{
 			vertices = new float[num_vertices * 3];
 		}
-		
 		for (int z = 1 - depth, index = 0; z < depth + 1; z += 2)
 		{
 			for (int y = 1 - height; y < height + 1; y += 2)
@@ -842,7 +834,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		}
 		return color;
 	}
-	
+
 	public void setSize(int width, int height, int depth)
 	{
 		if (vol.width == width && vol.height == height && vol.depth == depth)
@@ -855,13 +847,12 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		applyMatrix();
 		vs = null;
 	}
-	
+
 	private static final int clip(int value, int min, int max)
 	{
 		return value <= min ? min : value >= max ? max : value;
 	}
-	
-	
+
 	private final VolumeScene getVolumeScene()
 	{
 		VolumeScene res = vs;
@@ -891,7 +882,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		}
 		return res;
 	}
-	
+
     private void initOptions() {
         if (options == null)
         {
@@ -997,7 +988,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			}
 		}catch(Throwable e){logger.error("Error in volume tracing", e);}
 	}
-	
+
 	/*public void calculateRays2(float position[], float direction[], int iteration[], int fromIndex, int toIndex)
 	{
 		if (!native_raytrace){return;}
@@ -1036,7 +1027,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			logger.error("Error in volume tracing", e);
 		}
 	}*/
-	
+
 	@Override
 	public Intersection getIntersection(Vector3d position, Vector3d direction, Intersection intersection, double lowerBound, double upperBound)
 	{
@@ -1087,8 +1078,6 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		applyMatrix();
 		vs = null;
 	}
-	
-	public Volume getVolume() {
-		return vol;
-	}
+
+	public Volume getVolume() {return vol;}
 }
