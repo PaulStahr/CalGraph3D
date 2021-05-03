@@ -1,16 +1,16 @@
 /*******************************************************************************
  * Copyright (c) 2019 Paul Stahr
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -32,37 +32,37 @@ public final class Matrix4d implements Matrixd, DoubleList{
 	public double m30, m31, m32, m33;
 
 	public Matrix4d(){this(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1);}
-	
+
 	public Matrix4d(double diag){this(diag,0,0,0,0,diag,0,0,0,0,diag,0,0,0,0,diag);}
-	
+
 	public Matrix4d(Matrix4d m) {
-	   this.m00 = m.m00;this.m01 = m.m01;this.m02 = m.m02;this.m03 = m.m03;
-	   this.m10 = m.m10;this.m11 = m.m11;this.m12 = m.m12;this.m13 = m.m13;
-	   this.m20 = m.m20;this.m21 = m.m21;this.m22 = m.m22;this.m23 = m.m23;
-	   this.m30 = m.m30;this.m31 = m.m31;this.m32 = m.m32;this.m33 = m.m33;
+	    this.m00 = m.m00;this.m01 = m.m01;this.m02 = m.m02;this.m03 = m.m03;
+	    this.m10 = m.m10;this.m11 = m.m11;this.m12 = m.m12;this.m13 = m.m13;
+	    this.m20 = m.m20;this.m21 = m.m21;this.m22 = m.m22;this.m23 = m.m23;
+	    this.m30 = m.m30;this.m31 = m.m31;this.m32 = m.m32;this.m33 = m.m33;
 	}
-	
+
 	public Matrix4d(double x0, double x1, double x2, double x3, double y0, double y1, double y2, double y3, double z0, double z1, double z2, double z3, double w0, double w1, double w2, double w3){
 		this.m00 = x0;this.m01 = x1;this.m02 = x2;this.m03 = x3;
 		this.m10 = y0;this.m11 = y1;this.m12 = y2;this.m13 = y3;
 		this.m20 = z0;this.m21 = z1;this.m22 = z2;this.m23 = z3;
 		this.m30 = w0;this.m31 = w1;this.m32 = w2;this.m33 = w3;
 	}
-	
+
 	public final void set(Matrix3d mat)
 	{
 		this.m00 = mat.m00;this.m01 = mat.m01;this.m02 = mat.m02;
 		this.m10 = mat.m10;this.m11 = mat.m11;this.m12 = mat.m12;
 		this.m20 = mat.m20;this.m21 = mat.m21;this.m22 = mat.m22;
 	}
-	
+
 	public final void set(double x0, double x1, double x2, double x3, double y0, double y1, double y2, double y3, double z0, double z1, double z2, double z3, double w0, double w1, double w2, double w3){
 		this.m00 = x0;this.m01 = x1;this.m02 = x2;this.m03 = x3;
 		this.m10 = y0;this.m11 = y1;this.m12 = y2;this.m13 = y3;
 		this.m20 = z0;this.m21 = z1;this.m22 = z2;this.m23 = z3;
 		this.m30 = w0;this.m31 = w1;this.m32 = w2;this.m33 = w3;
 	}
-	
+
 	public final boolean invert(Matrix4d read)
 	{
 		double [] mat = new double[size() * 2];
@@ -97,31 +97,55 @@ public final class Matrix4d implements Matrixd, DoubleList{
 		this.m10 = y0;this.m11 = y1;this.m12 = y2;
 		this.m20 = z0;this.m21 = z1;this.m22 = z2;
 	}
-	
-	public final void getCol(int row, Vector3d vec)
-	{
-		switch (row)
-		{
-			case 0:vec.set(m00, m10, m20);return;
-			case 1:vec.set(m01, m11, m21);return;
-			case 2:vec.set(m02, m12, m22);return;
-			case 3:vec.set(m03, m13, m23);return;
-			default: throw new ArrayIndexOutOfBoundsException(row);
-		}
-	}
-	
-	public final void getRow(int col, Vector3d vec)
-	{
-		switch (col)
-		{
-			case 0: vec.set(m00, m01, m02);return;
-			case 1: vec.set(m10, m11, m12);return;
-			case 2: vec.set(m20, m21, m22);return;
-			case 3: vec.set(m30, m31, m32);return;
-			default: throw new ArrayIndexOutOfBoundsException(col);
-		}
-	}
-	
+
+    public final void getCol(int row, Vector3d vec)
+    {
+        switch (row)
+        {
+            case 0:vec.set(m00, m10, m20);return;
+            case 1:vec.set(m01, m11, m21);return;
+            case 2:vec.set(m02, m12, m22);return;
+            case 3:vec.set(m03, m13, m23);return;
+            default: throw new ArrayIndexOutOfBoundsException(row);
+        }
+    }
+
+    public final void getCol(int row, Vector4d vec)
+    {
+        switch (row)
+        {
+            case 0:vec.set(m00, m10, m20, m30);return;
+            case 1:vec.set(m01, m11, m21, m31);return;
+            case 2:vec.set(m02, m12, m22, m32);return;
+            case 3:vec.set(m03, m13, m23, m33);return;
+            default: throw new ArrayIndexOutOfBoundsException(row);
+        }
+    }
+
+    public final void getRow(int col, Vector3d vec)
+    {
+        switch (col)
+        {
+            case 0: vec.set(m00, m01, m02);return;
+            case 1: vec.set(m10, m11, m12);return;
+            case 2: vec.set(m20, m21, m22);return;
+            case 3: vec.set(m30, m31, m32);return;
+            default: throw new ArrayIndexOutOfBoundsException(col);
+        }
+    }
+
+    public final void getRow(int col, Vector4d vec)
+    {
+        switch (col)
+        {
+            case 0: vec.set(m00, m01, m02, m03);return;
+            case 1: vec.set(m10, m11, m12, m13);return;
+            case 2: vec.set(m20, m21, m22, m23);return;
+            case 3: vec.set(m30, m31, m32, m33);return;
+            default: throw new ArrayIndexOutOfBoundsException(col);
+        }
+    }
+
 	public final double getRowDot3(int row)
 	{
 		switch (row)
@@ -133,23 +157,23 @@ public final class Matrix4d implements Matrixd, DoubleList{
 			default: throw new ArrayIndexOutOfBoundsException(row);
 		}
 	}
-	
+
 	public final void getRowDot3(Vector3d vec)
 	{
 		vec.x = m00 * m00 + m01 * m01 + m02 * m02;
 		vec.y = m10 * m10 + m11 * m11 + m12 * m12;
 		vec.z = m20 * m20 + m21 * m21 + m22 * m22;
 	}
-	
+
 	public final void getColDot3(Vector3d vec)
 	{
 		vec.x = m00 * m00 + m10 * m10 + m20 * m20;
 		vec.y = m01 * m01 + m11 * m11 + m21 * m21;
 		vec.z = m02 * m02 + m12 * m12 + m22 * m22;
 	}
-	
+
 	public final double getColDot3(int col)
-	{	
+	{
 		switch (col)
 		{
 			case 0: return m00 * m00 + m10 * m10 + m20 * m20;
@@ -159,7 +183,7 @@ public final class Matrix4d implements Matrixd, DoubleList{
 			default: throw new ArrayIndexOutOfBoundsException(col);
 		}
 	}
-	
+
 	public final void setCols(Vector3d c0, Vector3d c1, Vector3d c2, Vector3d c3)
 	{
 		m00 = c0.x; m10 = c0.y; m20 = c0.z;
@@ -167,31 +191,55 @@ public final class Matrix4d implements Matrixd, DoubleList{
 		m02 = c2.x; m12 = c2.y; m22 = c2.z;
 		m03 = c3.x; m13 = c3.y; m23 = c3.z;
 	}
-	
-	public final void setCol(int row, Vector3d vec)
-	{
-		switch (row)
-		{
-			case 0:m00 = vec.x; m10 = vec.y; m20 = vec.z;return;
-			case 1:m01 = vec.x; m11 = vec.y; m21 = vec.z;return;
-			case 2:m02 = vec.x; m12 = vec.y; m22 = vec.z;return;
-			case 3:m03 = vec.x; m13 = vec.y; m23 = vec.z;return;
-			default: throw new ArrayIndexOutOfBoundsException(row);
-		}
-	}
-	
-	public final void setRow(int col, Vector3d vec)
-	{
-		switch (col)
-		{
-			case 0: m00 = vec.x; m01 = vec.y; m02 = vec.z;return;
-			case 1: m10 = vec.x; m11 = vec.y; m12 = vec.z;return;
-			case 2: m20 = vec.x; m21 = vec.y; m22 = vec.z;return;
-			case 3: m30 = vec.x; m31 = vec.y; m32 = vec.z;return;
-			default: throw new ArrayIndexOutOfBoundsException(col);
-		}
-	}
-	
+
+    public final void setCol(int col, Vector3d vec)
+    {
+        switch (col)
+        {
+            case 0:m00 = vec.x; m10 = vec.y; m20 = vec.z;return;
+            case 1:m01 = vec.x; m11 = vec.y; m21 = vec.z;return;
+            case 2:m02 = vec.x; m12 = vec.y; m22 = vec.z;return;
+            case 3:m03 = vec.x; m13 = vec.y; m23 = vec.z;return;
+            default: throw new ArrayIndexOutOfBoundsException(col);
+        }
+    }
+
+    public final void setCol(int col, Vector4d vec)
+    {
+        switch (col)
+        {
+            case 0:m00 = vec.x; m10 = vec.y; m20 = vec.z; m30 = vec.w;return;
+            case 1:m01 = vec.x; m11 = vec.y; m21 = vec.z; m31 = vec.w;return;
+            case 2:m02 = vec.x; m12 = vec.y; m22 = vec.z; m32 = vec.w;return;
+            case 3:m03 = vec.x; m13 = vec.y; m23 = vec.z; m33 = vec.w;return;
+            default: throw new ArrayIndexOutOfBoundsException(col);
+        }
+    }
+
+    public final void setRow(int col, Vector3d vec)
+    {
+        switch (col)
+        {
+            case 0: m00 = vec.x; m01 = vec.y; m02 = vec.z;return;
+            case 1: m10 = vec.x; m11 = vec.y; m12 = vec.z;return;
+            case 2: m20 = vec.x; m21 = vec.y; m22 = vec.z;return;
+            case 3: m30 = vec.x; m31 = vec.y; m32 = vec.z;return;
+            default: throw new ArrayIndexOutOfBoundsException(col);
+        }
+    }
+
+    public final void setRow(int col, Vector4d vec)
+    {
+        switch (col)
+        {
+            case 0: m00 = vec.x; m01 = vec.y; m02 = vec.z; m03 = vec.w;return;
+            case 1: m10 = vec.x; m11 = vec.y; m12 = vec.z; m13 = vec.w;return;
+            case 2: m20 = vec.x; m21 = vec.y; m22 = vec.z; m23 = vec.w;return;
+            case 3: m30 = vec.x; m31 = vec.y; m32 = vec.z; m33 = vec.w;return;
+            default: throw new ArrayIndexOutOfBoundsException(col);
+        }
+    }
+
 	public final void setRow(int row, double x, double y, double z)
 	{
 		switch (row)
@@ -203,7 +251,7 @@ public final class Matrix4d implements Matrixd, DoubleList{
 			default: throw new ArrayIndexOutOfBoundsException(row);
 		}
 	}
-	
+
 	public final void setCol(int col, double x, double y, double z)
 	{
 		switch (col)
@@ -215,7 +263,7 @@ public final class Matrix4d implements Matrixd, DoubleList{
 			default: throw new ArrayIndexOutOfBoundsException(col);
 		}
 	}
-	
+
 	public final void setRows(Vector3d x, Vector3d y, Vector3d z, Vector3d w)
 	{
 			m00 = x.x; m01 = x.y; m02 = x.z;
@@ -223,56 +271,56 @@ public final class Matrix4d implements Matrixd, DoubleList{
 			m20 = z.x; m21 = z.y; m22 = z.z;
 			m30 = w.x; m31 = w.y; m32 = w.z;
 	}
-	
+
 	public final void setColMajor(final double mat[][]){
 		m00 = mat[0][0]; m01 = mat[0][1]; m02 = mat[0][2]; m03 = mat[0][3];
 		m10 = mat[1][0]; m11 = mat[1][1]; m12 = mat[1][2]; m13 = mat[1][3];
 		m20 = mat[2][0]; m21 = mat[2][1]; m22 = mat[2][2]; m23 = mat[2][3];
 		m30 = mat[3][0]; m31 = mat[3][1]; m32 = mat[3][2]; m33 = mat[3][3];
 	}
-	
+
 	public final void setColMajor(final double mat[]){
 		m00 = mat[0];  m01 = mat[1];  m02 = mat[2];  m03 = mat[3];
 		m10 = mat[4];  m11 = mat[5];  m12 = mat[6];  m13 = mat[7];
 		m20 = mat[8];  m21 = mat[9];  m22 = mat[10]; m23 = mat[11];
 		m30 = mat[12]; m31 = mat[13]; m32 = mat[14]; m33 = mat[15];
 	}
-	
+
 	public final void setColMajor(final double mat[][], int row, int col){
 		m00 = mat[0 + row][col]; m01 = mat[0 + row][1 + col]; m02 = mat[0 + row][2 + col]; m03 = mat[0 + row][3 + col];
 		m10 = mat[1 + row][col]; m11 = mat[1 + row][1 + col]; m12 = mat[1 + row][2 + col]; m13 = mat[1 + row][3 + col];
 		m20 = mat[2 + row][col]; m21 = mat[2 + row][1 + col]; m22 = mat[2 + row][2 + col]; m23 = mat[2 + row][3 + col];
 		m30 = mat[3 + row][col]; m31 = mat[3 + row][1 + col]; m32 = mat[3 + row][2 + col]; m33 = mat[3 + row][3 + col];
 	}
-	
+
 	public final void setColMajor(final double mat[], int pos, int stride){
 		m00 = mat[pos]; m01 = mat[pos+1]; m02 = mat[pos+2]; m03 = mat[pos+3];pos += stride;
 		m10 = mat[pos]; m11 = mat[pos+1]; m12 = mat[pos+2]; m13 = mat[pos+3];pos += stride;
 		m20 = mat[pos]; m21 = mat[pos+1]; m22 = mat[pos+2]; m23 = mat[pos+3];pos += stride;
 		m30 = mat[pos]; m31 = mat[pos+1]; m32 = mat[pos+2]; m33 = mat[pos+3];
 	}
-	
+
 	public final void getColMajor(final double mat[][]){
 		mat[0][0] = m00; mat[0][1] = m01; mat[0][2] = m02; mat[0][3] = m03;
 		mat[1][0] = m10; mat[1][1] = m11; mat[1][2] = m12; mat[1][3] = m13;
 		mat[2][0] = m20; mat[2][1] = m21; mat[2][2] = m22; mat[2][3] = m23;
 		mat[3][0] = m30; mat[3][1] = m31; mat[3][2] = m32; mat[3][3] = m33;
 	}
-	
+
 	public final void getColMajor(final double mat[]){
 		mat[0]  = m00; mat[1] = m01;  mat[2]  = m02; mat[3] = m03;
 		mat[4]  = m10; mat[5] = m11;  mat[6]  = m12; mat[7] = m13;
 		mat[8]  = m20; mat[9] = m21;  mat[10] = m22; mat[11] = m23;
 		mat[12] = m30; mat[13] = m31; mat[14] = m32; mat[15] = m33;
 	}
-	
+
 	public final void getColMajor(final double mat[], int begin, int stride){
 		mat[begin] = m00; mat[begin+1] = m01; mat[begin+2] = m02; mat[begin+3] = m03;begin += stride;
 		mat[begin] = m10; mat[begin+1] = m11; mat[begin+2] = m12; mat[begin+3] = m13;begin += stride;
 		mat[begin] = m20; mat[begin+1] = m21; mat[begin+2] = m22; mat[begin+3] = m23;begin += stride;
 		mat[begin] = m30; mat[begin+1] = m31; mat[begin+2] = m32; mat[begin+3] = m33;
 	}
-	
+
 	@Override
 	public final void setRowMajor(final double mat[][]){
 		m00 = mat[0][0]; m01 = mat[1][0]; m02 = mat[2][0]; m03 = mat[3][0];
@@ -280,28 +328,28 @@ public final class Matrix4d implements Matrixd, DoubleList{
 		m20 = mat[0][2]; m21 = mat[1][2]; m22 = mat[2][2]; m23 = mat[3][2];
 		m30 = mat[0][3]; m31 = mat[1][3]; m32 = mat[2][3]; m33 = mat[3][3];
 	}
-	
+
 	public final void setRowMajor(final double mat[]){
 		m00 = mat[0]; m01 = mat[4]; m02 = mat[8]; m03 = mat[12];
 		m10 = mat[1]; m11 = mat[5]; m12 = mat[9]; m13 = mat[13];
 		m20 = mat[2]; m21 = mat[6]; m22 = mat[10]; m23 = mat[14];
 		m30 = mat[3]; m31 = mat[7]; m32 = mat[11]; m33 = mat[15];
 	}
-	
+
 	public final void setRowMajor(final double mat[][], int row, int col){
 		m00 = mat[row][0 + col]; m01 = mat[1 + row][0 + col]; m02 = mat[2 + row][0 + col]; m03 = mat[3 + row][0 + col];
 		m10 = mat[row][1 + col]; m11 = mat[1 + row][1 + col]; m12 = mat[2 + row][1 + col]; m13 = mat[3 + row][1 + col];
 		m20 = mat[row][2 + col]; m21 = mat[1 + row][2 + col]; m22 = mat[2 + row][2 + col]; m23 = mat[3 + row][2 + col];
 		m30 = mat[row][3 + col]; m31 = mat[1 + row][3 + col]; m32 = mat[2 + row][3 + col]; m33 = mat[3 + row][3 + col];
 	}
-	
+
 	public final void getRowMajor(final double mat[][]){
 		mat[0][0] = m00; mat[1][0] = m01; mat[2][0] = m02; mat[3][0] = m03;
 		mat[0][1] = m10; mat[1][1] = m11; mat[2][1] = m12; mat[3][1] = m13;
 		mat[0][2] = m20; mat[1][2] = m21; mat[2][2] = m22; mat[3][2] = m23;
 		mat[0][3] = m30; mat[1][3] = m31; mat[2][3] = m32; mat[3][3] = m33;
 	}
-	
+
 	public final void rdotAffine(Vector3f v)	{rdotAffine(v.x, v.y, v.z, v);}
 
 	public final void rdotAffine(double x, double y, double z, Vector3f v){
@@ -334,7 +382,7 @@ public final class Matrix4d implements Matrixd, DoubleList{
 	public final double rdotY(double x, double y, double z){return m10 * x + m11 * y + m12 * z;}
 	public final double rdotZ(double x, double y, double z){return m20 * x + m21 * y + m22 * z;}
 	public final double rdotW(double x, double y, double z){return m30 * x + m31 * y + m32 * z;}
-	
+
 	public final void preTranslate(double x, double y, double z)
 	{
 		m03 += x * m00 + y * m01 + z * m02;
@@ -342,14 +390,14 @@ public final class Matrix4d implements Matrixd, DoubleList{
 		m23 += x * m20 + y * m21 + z * m22;
 		m33 += x * m30 + y * m31 + z * m32;
 	}
-	
+
 	public final void postTranslate(double x, double y, double z){
         m00 += m30 * x; m10 += m30 * y; m20 += m30 * z;
         m01 += m31 * x; m11 += m31 * y; m21 += m31 * z;
         m02 += m32 * x; m12 += m32 * y; m22 += m32 * z;
 	    m03 += m33 * x; m13 += m33 * y; m23 += m33 * z;
 	}
-	
+
 	public final void affineScale(double s)
 	{
 		m00 *= s; m10 *= s; m20 *= s;
@@ -387,58 +435,58 @@ public final class Matrix4d implements Matrixd, DoubleList{
 		vector.w = m30 * x + m31 * y + m32 * z + m33 * w;
 	}
 
-	public final void ldotAffine(Vector3d vector)						{ldotAffine(vector.x, vector.y, vector.z, vector);}	
+	public final void ldotAffine(Vector3d vector)						{ldotAffine(vector.x, vector.y, vector.z, vector);}
 	public final void rdotAffine(Vector3d vector)						{rdotAffine(vector.x, vector.y, vector.z, vector);}
 	public void rdotAffine(float[] position, int i, Vector3d result) 	{rdotAffine(position[i], position[i + 1], position[i + 2], result);}
 	public void rdotAffine(double[] position, int i, Vector3d result) 	{rdotAffine(position[i], position[i + 1], position[i + 2], result);}
 	public void rdotAffine(DoubleList position, int i, Vector3d result) {rdotAffine(position.getD(i), position.getD(i + 1), position.getD(i + 2), result);}
 	public final void ldot(Vector3d vector)                             {ldot(vector.x, vector.y, vector.z, vector);}
-	
+
 	public final void rdotAffine(double x, double y, double z, Vector3d vector){
 		vector.x = m00 * x + m01 * y + m02 * z + m03;
 		vector.y = m10 * x + m11 * y + m12 * z + m13;
 		vector.z = m20 * x + m21 * y + m22 * z + m23;
 	}
-	
+
 	public final void ldot(double x, double y, double z, Vector3d vector)
 	{
 		vector.x = m00 * x + m10 * y + m20 * z;
 		vector.y = m01 * x + m11 * y + m21 * z;
 		vector.z = m02 * x + m12 * y + m22 * z;
 	}
-	
+
 	public final void rdot(double x, double y, double z, Vector3d result)
-	{		
+	{
 		result.x = m00 * x + m01 * y + m02 * z;
 		result.y = m10 * x + m11 * y + m12 * z;
 		result.z = m20 * x + m21 * y + m22 * z;
 	}
-	
+
 	public void rdot(double x, double y, double z, float[] out, int i) {
 		out[i++] = (float)(m00 * x + m01 * y + m02 * z);
 		out[i++] = (float)(m10 * x + m11 * y + m12 * z);
 		out[i++] = (float)(m20 * x + m21 * y + m22 * z);
 	}
-	
+
 	public void rdot(Vector3d in, float result[], int i)	{rdot(in.x, in.y, in.z, result, i);}
 	public void rdot(Vector3d in, double result[], int i)	{rdot(in.x, in.y, in.z, result, i);}
 	public void rdot(Vector3d in, DoubleList result, int i)	{rdot(in.x, in.y, in.z, result, i);}
 	public void rdot(Vector3d in, Object result, int i)		{rdot(in.x, in.y, in.z, result, i);}
-	
+
 	public void rdot(double x, double y, double z, double[] out, int i) {
 		out[i++] = m00 * x + m01 * y + m02 * z;
 		out[i++] = m10 * x + m11 * y + m12 * z;
 		out[i++] = m20 * x + m21 * y + m22 * z;
 	}
-	
+
 	public void rdot(double x, double y, double z, DoubleList out, int i) {
 		out.setElem(i++, m00 * x + m01 * y + m02 * z);
 		out.setElem(i++, m10 * x + m11 * y + m12 * z);
 		out.setElem(i++, m20 * x + m21 * y + m22 * z);
 	}
-	
+
 	public final void rdot(Vector3d vector){rdot(vector.x, vector.y, vector.z, vector);}
-	
+
 	public final void rdot(double x, double y, double z, Object out, int pos)
 	{
 		if (out instanceof float[])        {rdot(x, y, z, (float[])out, pos);}
@@ -446,7 +494,7 @@ public final class Matrix4d implements Matrixd, DoubleList{
     	else if (out instanceof DoubleList){rdot(x, y, z, (DoubleList)out, pos);}
     	else                               {throw new IllegalArgumentException(out.getClass().toString());}
 	}
-	
+
 	public final void rdot(Object in, int pos, Vector3d out)
 	{
 		if (in instanceof float[])         {rdot((float[])in, pos, out);}
@@ -454,11 +502,11 @@ public final class Matrix4d implements Matrixd, DoubleList{
     	else if (in instanceof DoubleList) {rdot((DoubleList)in, pos, out);}
     	else                               {throw new IllegalArgumentException(in.getClass().toString());}
 	}
-	
+
 	public final void rdot(float in[], int index, Vector3d vector)     {rdot(in[index], in[index + 1], in[index + 2], vector);}
 	public final void rdot(double in[], int index, Vector3d vector)    {rdot(in[index], in[index + 1], in[index + 2], vector);}
 	public final void rdot(DoubleList in, int index, Vector3d vector)  {rdot(in.getD(index), in.getD(index + 1), in.getD(index + 2), vector);}
-	
+
 	public final void rdotAffine(Object in, int pos, Vector3d out)
 	{
 		if 		(in instanceof float[])		{rdotAffine((float[])in, pos, out);}
@@ -466,7 +514,7 @@ public final class Matrix4d implements Matrixd, DoubleList{
     	else if (in instanceof DoubleList)	{rdotAffine((DoubleList)in, pos, out);}
     	else{throw new IllegalArgumentException(in.getClass().toString());}
 	}
-	
+
 	public final void rdotAffine(Vector3d in, Object out, int pos)
 	{
 		if		(out instanceof float[])			{rdotAffine(in, (float[])out, pos);}
@@ -474,63 +522,63 @@ public final class Matrix4d implements Matrixd, DoubleList{
     	else if (out instanceof DoubleList)	{rdotAffine(in, (DoubleList)out, pos);}
     	else	{throw new IllegalArgumentException(in.getClass().toString());}
 	}
-	
 
-	
+
+
 	public final void ldotAffine(Vector3d vector, Vector3d out)				{ldotAffine(vector.x, vector.y, vector.z, out);}
 	public final void rdotAffine(Vector3d vector, Vector3d out)				{rdotAffine(vector.x, vector.y, vector.z, out);}
 	public final void rdotAffine(Vector3d vector, float out[], int index)	{rdotAffine(vector.x, vector.y, vector.z, out, index);}
 	public final void rdotAffine(Vector3d vector, double out[], int index)	{rdotAffine(vector.x, vector.y, vector.z, out, index);}
 	public final void rdotAffine(Vector3d vector, DoubleList out, int index){rdotAffine(vector.x, vector.y, vector.z, out, index);}
 	public final void ldotAffine(Vector3d vector, float out[], int index)	{ldotAffine(vector.x, vector.y, vector.z, out, index);}
-	
+
 	public final void ldotAffine(double x, double y, double z, Vector3d out){
 		out.x = m00 * x + m10 * y + m20 * z + m30;
 		out.y = m01 * x + m11 * y + m21 * z + m31;
 		out.z = m02 * x + m12 * y + m22 * z + m32;
 	}
-		
+
 	public final void ldotAffine(double x, double y, double z, float out[], int index){
 		out[index]   = (float)(m00 * x + m10 * y + m20 * z + m30);
 		out[++index] = (float)(m01 * x + m11 * y + m21 * z + m31);
 		out[++index] = (float)(m02 * x + m12 * y + m22 * z + m32);
 	}
-	
+
 	public final void rdotAffine(double x, double y, double z, float out[], int index){
 		out[index]   = (float)(m00 * x + m01 * y + m02 * z + m03);
 		out[++index] = (float)(m10 * x + m11 * y + m12 * z + m13);
 		out[++index] = (float)(m20 * x + m21 * y + m22 * z + m23);
 	}
-	
+
 	public final void rdotAffine(double x, double y, double z, double out[], int index){
 		out[index]   = m00 * x + m01 * y + m02 * z + m03;
 		out[++index] = m10 * x + m11 * y + m12 * z + m13;
 		out[++index] = m20 * x + m21 * y + m22 * z + m23;
 	}
-	
+
 	public final void rdotAffine(double x, double y, double z, DoubleList out, int index){
 		out.setElem(index++,m00 * x + m01 * y + m02 * z + m03);
 		out.setElem(index++,m10 * x + m11 * y + m12 * z + m13);
 		out.setElem(index++,m20 * x + m21 * y + m22 * z + m23);
 	}
-	
+
 	public final void ldotAffine(DoubleArrayList in, int inIndex, float[] out, int outIndex){ldotAffine(in.getD(inIndex), in.getD(++inIndex), in.getD(++inIndex), out, outIndex);}
 	public final void rdotAffine(DoubleArrayList in, int inIndex, float[] out, int outIndex){rdotAffine(in.getD(inIndex), in.getD(++inIndex), in.getD(++inIndex), out, outIndex);}
 	public final void rdotAffine(float in[], int inIndex, float[] out, int outIndex) 		{rdotAffine(in[inIndex], in[inIndex + 1], in[inIndex + 2], out, outIndex);}
 	public final void rdotAffine(double in[], int inIndex, float[] out, int outIndex) 		{rdotAffine(in[inIndex], in[inIndex + 1], in[inIndex + 2], out, outIndex);}
-	
+
 	public final void ldot(double x, double y, double z, double w, float out[], int index){
 		out[index]   = (float)(m00 * x + m10 * y + m20 * z + m30 * w);
 		out[++index] = (float)(m01 * x + m11 * y + m21 * z + m31 * w);
 		out[++index] = (float)(m02 * x + m12 * y + m22 * z + m32 * w);
 	}
-	
+
 	public final void rdot(double x, double y, double z, double w, float out[], int index){
 		out[index]   = (float)(m00 * x + m01 * y + m02 * z + m03 * w);
 		out[++index] = (float)(m10 * x + m11 * y + m12 * z + m13 * w);
 		out[++index] = (float)(m20 * x + m21 * y + m22 * z + m23 * w);
 	}
-	
+
 	@Override
 	public final String toString(){
 		StringBuilder strB = new StringBuilder(24);
@@ -540,7 +588,7 @@ public final class Matrix4d implements Matrixd, DoubleList{
 		strB.append(m30).append(' ').append(m31).append(' ').append(m32).append(' ').append(m33).append('\n');
 		return strB.toString();
 	}
-	
+
 	@Override
 	public final void setElem(int i, double value)
 	{
@@ -552,7 +600,7 @@ public final class Matrix4d implements Matrixd, DoubleList{
 		}
 		throw new ArrayIndexOutOfBoundsException(i);
 	}
-	
+
 	@Override
 	public final void set(int x, int y, double value){
 		switch(x){
@@ -584,10 +632,10 @@ public final class Matrix4d implements Matrixd, DoubleList{
 
 	@Override
 	public final int size() {return 16;}
-	
+
 	@Override
 	public final int rows(){return 4;}
-	
+
 	@Override
 	public final int cols(){return 4;}
 
@@ -602,7 +650,7 @@ public final class Matrix4d implements Matrixd, DoubleList{
 		default:throw new ArrayIndexOutOfBoundsException(index);
 		}
 	}
-	
+
 	public final void dotl(Matrix4d lhs)
 	{
 		double x = lhs.m00 * m00 + lhs.m01 * m10 + lhs.m02 * m20 + lhs.m03 * m30;
@@ -626,7 +674,7 @@ public final class Matrix4d implements Matrixd, DoubleList{
 		       w = lhs.m30 * m03 + lhs.m31 * m13 + lhs.m32 * m23 + lhs.m33 * m33;
                             m03 = x;       m13 = y;       m23 = z;       m33 = w;
 	}
-	
+
 	public final void dotr(Matrix4d rhs)
 	{
 		double v0 = m00 * rhs.m00 + m01 * rhs.m10 + m02 * rhs.m20 + m03 * rhs.m30;
