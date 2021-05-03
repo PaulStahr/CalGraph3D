@@ -29,9 +29,7 @@ import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-
 
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -39,10 +37,11 @@ import org.jdom2.input.SAXBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import data.DataHandler;
+import io.StreamUtil;
 import util.ArrayTools;
 import util.EmptyList;
 import util.StringUtils;
-import data.DataHandler;
 
 public class ProgramWebServers {
 	private static final ArrayList<ProgramWebServer> servers = new ArrayList<ProgramWebServer>();
@@ -231,15 +230,7 @@ public class ProgramWebServers {
 						break read;
 					try {
 						InputStream stream = new URL(location).openStream();
-						InputStreamReader reader = new InputStreamReader(stream);
-						char data[] = new char[Math.max(stream.available(), 2048)];
-						int offset = 0, read;
-						while ((read = reader.read(data, offset, data.length-offset))!= -1){
-							offset+=read;
-							if (data.length == offset)
-								data = Arrays.copyOf(data, data.length*2);
-						}
-						stringData = new String(data, 0, offset+read);
+						stringData = StreamUtil.readStreamToString(stream);
 					} catch (MalformedURLException e) {
 						e.printStackTrace();
 					} catch (IOException e) {

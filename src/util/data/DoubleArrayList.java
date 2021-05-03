@@ -86,9 +86,7 @@ public class DoubleArrayList extends AbstractList<Double> implements DoubleList{
 	}
 	
 	public boolean add(double value0, double value1, double value2){
-		if (length + 2 >= data.length){
-			data = Arrays.copyOf(data, Math.max(data.length + 3, data.length * 2));
-		}
+		if (length + 3 > data.length){data = Arrays.copyOf(data, Math.max(length + 3, data.length * 2));}
 		data[length++] = value0;
 		data[length++] = value1;
 		data[length++] = value2;

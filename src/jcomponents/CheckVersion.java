@@ -21,6 +21,9 @@
  ******************************************************************************/
 package jcomponents;
 
+import java.awt.Dimension;
+import java.awt.event.ActionListener;
+
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
@@ -28,9 +31,6 @@ import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
-
-import java.awt.Dimension;
-import java.awt.event.ActionListener;
 
 import data.DataHandler;
 import data.ProgramIcons;
@@ -47,7 +47,7 @@ import net.ProgramWebServers.Changelog;
 public class CheckVersion extends JFrame implements Runnable
 {
 	private static final long serialVersionUID = -6479080661365866948L;
-    private static final JComponentSingletonInstantiator<CharacterTable> instantiator = new JComponentSingletonInstantiator<CharacterTable>(CharacterTable.class);
+    private static final JComponentSingletonInstantiator<CheckVersion> instantiator = new JComponentSingletonInstantiator<CheckVersion>(CheckVersion.class);
 	private final JLabel labelOwnVersion 		= new JLabel("Ihre Version");
     private final JLabel versionOwnVersion 		= new JLabel(ProgrammData.getVersion());
     private final JLabel labelActualVersion 	= new JLabel("Aktuelle Version:");
