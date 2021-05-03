@@ -57,6 +57,10 @@ public class Volume {
 		int depth = inBuf.readInt();
 		int height = inBuf.readInt();
 		int width = inBuf.readInt();
+		long elems = (long)depth * (long)height;
+		if (elems > Integer.MAX_VALUE) {throw new OutOfMemoryError("Can't allocate " + depth + '*' + height + '*' + width + " Elements");}
+        elems = elems * width;
+        if (elems > Integer.MAX_VALUE) {throw new OutOfMemoryError("Can't allocate " + depth + '*' + height + '*' + width + " Elements");}
 		this.width = width;
 		this.height = height;
 		this.depth = depth;

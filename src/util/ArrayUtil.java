@@ -107,17 +107,29 @@ public class ArrayUtil {
 		return max;
 	}
 
-	public static final float[] minMax(float data[])
-	{
-	    float min = Float.POSITIVE_INFINITY;
-	    float max = Float.NEGATIVE_INFINITY;
-	    for (float val : data)
+    public static final float[] minMax(float data[])
+    {
+        float min = Float.POSITIVE_INFINITY;
+        float max = Float.NEGATIVE_INFINITY;
+        for (float val : data)
         {
             if (val < min){min = val;}
             if (val > max){max = val;}
         }
-	    return new float[] {min, max};
-	}
+        return new float[] {min, max};
+    }
+
+    public static final int[] minMax(int data[])
+    {
+        int min = Integer.MAX_VALUE;
+        int max = Integer.MIN_VALUE;
+        for (int val : data)
+        {
+            if (val < min){min = val;}
+            if (val > max){max = val;}
+        }
+        return new int[] {min, max};
+    }
 
     public static double[] minMax(double[] data) {
         double min = Double.POSITIVE_INFINITY;
@@ -270,7 +282,7 @@ public class ArrayUtil {
         return -1;
     }
 	
-	public static final float[] setToLength(float[] data, int length) {return data.length == length ? data : new float[length];}
+    public static final float[] setToLength(float[] data, int length) {return data != null && data.length == length ? data : new float[length];}
 
 	public static float[]	ensureLength(float[] data, int size) 	{return data.length >= size ? data : new float[size];}
     public static byte[]    ensureLength(byte[] data, int size)     {return data.length >= size ? data : new byte[size];}

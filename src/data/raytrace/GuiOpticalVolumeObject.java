@@ -75,9 +75,8 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 		setValues(volumeRow, va, parser);
 	}
 	
-	public GuiOpticalVolumeObject(VariableAmount va, ParseUtil parser) {
-		setValues(defaultValues, va, parser);
-	}
+	public GuiOpticalVolumeObject(VariableAmount va, ParseUtil parser) {setValues(defaultValues, va, parser);}
+
 	private static final Object defaultValues[] = new Object[TYPES.colSize()];
 	static
 	{
@@ -91,15 +90,8 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 		setValues(vctList, valueList, va, parser);
 	}
 
-	public void addChangeListener(OpticalVolumeObjectChangeListener r)
-	{
-		changeListeners.add(r);
-	}
-	
-	public void removeChangeListener(OpticalVolumeObjectChangeListener r)
-	{
-		changeListeners.remove(r);
-	}
+	public void addChangeListener(OpticalVolumeObjectChangeListener r)     {changeListeners.add(r);}
+	public void removeChangeListener(OpticalVolumeObjectChangeListener r)  {changeListeners.remove(r);}
 	
 	@Override
 	public void valueChanged(SCENE_OBJECT_COLUMN_TYPE ct, ParseUtil parser)
@@ -132,7 +124,7 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 		valueChanged(SCENE_OBJECT_COLUMN_TYPE.POSITION, null);
 		modified();
 	}
-	
+
 	@Override
 	public void readDycom(String file)
 	{
@@ -145,7 +137,7 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 		valueChanged(SCENE_OBJECT_COLUMN_TYPE.POSITION, null);
 		modified();
 	}
-	
+
 	@Override
 	public void updateValue(SCENE_OBJECT_COLUMN_TYPE ct, VariableAmount variables, ParseUtil parser) throws OperationParseException
 	{
@@ -207,13 +199,12 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 			sliderFrame.setMaximum(vol.depth - 1);
 			sliderFrame.addChangeListener(this);
 		}
-		
+
 		private void updateGraphic()
 		{
 			int width = vol.width, height = vol.height, depth = vol.depth;
 			float data[] = vol.data;
-			float max = ArrayUtil.max(data);
-			float min = ArrayUtil.min(data);
+			float minMax[] = ArrayUtil.minMax(data);
 			int pixel[] = new int[4];
 			BufferedImage bi = getImage();
 			if (bi.getWidth() != width || bi.getHeight() != height)
@@ -224,7 +215,9 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 			WritableRaster raster = bi.getRaster();
 			int layer = sliderFrame.getValue();
 			pixel[3] = 255;
-			if (max == min)
+			if (layer < 0 || layer >= depth) {throw new ArrayIndexOutOfBoundsException(layer);}
+			float range = minMax[1] - minMax[0];
+			if (range == 0)
 			{
 				bi.getGraphics().clearRect(0, 0, width, height);
 			}
@@ -234,20 +227,20 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 				{
 					for (int x = 0; x < width; ++x)
 					{
-						Arrays.fill(pixel, 0, 3, (int)((data[x + width * (y + depth * layer)] - min) * 255 / (max - min)));
+						Arrays.fill(pixel, 0, 3, (int)((data[x + width * (y + height * layer)] - minMax[0]) * 255 / range));
 						raster.setPixel(x, y, pixel);
 					}
 				}
 			}
 			repaint();
 		}
-		
+
 		@Override
 		public void stateChanged(ChangeEvent arg0) {
 			updateGraphic();
 		}
 	}
-	
+
 	public void view()
 	{
 		/*if (dcm != null && false)
@@ -260,7 +253,7 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 			vv.setVisible(true);
 		//}
 	}
-	
+
 	@Override
 	public void setValue(SCENE_OBJECT_COLUMN_TYPE ct, Object o, VariableAmount variables, ParseUtil parser) throws OperationParseException
 	{
@@ -313,7 +306,7 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 		}
 		parser.reset();
 	}
-	
+
 	@Override
 	public Object getValue(SCENE_OBJECT_COLUMN_TYPE ct)
 	{
@@ -337,8 +330,6 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 		return null;
 	}
 
-
-	
 	@Override
 	public final void read(OpticalObject obj, VariableAmount va, ParseUtil parser)
 	{
