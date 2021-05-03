@@ -453,7 +453,6 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 			currentVisualization.repaint();
 		}
 		DataHandler.runnableRunner.run(untracedRayRunnable, false);
-		
 	}
 	    
 	@Override
@@ -560,11 +559,11 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		 	        	String path = fileChooser.getSelectedFile().getAbsolutePath();
 		 	        	GuiOpticalVolumeObject volume = scene.volumeObjectList.get(row);
 		 	        	String fileType = StringUtils.getFileType(path);
-		 	        	if (fileType.equals("dcm"))
+		 	        	if ("dcm".equals(fileType))
 		 	        	{
 		 	        		volume.readDycom(path);
 		 	        	}
-		 	        	else if (fileType.equals("avi"))
+		 	        	else if ("avi".equals(fileType))
 		 	        	{
 		 	        		volume.readAvi(path);
 		 	        	}
@@ -997,7 +996,6 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		{
 			try {
 				new ErrorAnalysisFrame(scene).setVisible(true);
-					
 			}catch (Exception ex)
 			{
 				ex.printStackTrace();
@@ -2986,7 +2984,6 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 			DoubleMatrixUtil.multiply(vertices, dScale, 0, vertices.length);
 			currentMesh.setData(vertices, faces);
     		currentMesh.update(UpdateKind.DATA);
-
 		}
 	}
 }

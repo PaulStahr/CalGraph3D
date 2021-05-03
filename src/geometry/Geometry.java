@@ -1,16 +1,16 @@
 /*******************************************************************************
  * Copyright (c) 2019 Paul Stahr
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -34,7 +34,6 @@ import util.data.DoubleList;
 import util.data.IntegerArrayList;
 
 public class Geometry {
-	
 	public static final class NearestPointCalculator
 	{
 		final int dim;
@@ -47,13 +46,13 @@ public class Geometry {
 			this.nCols = dim + 1;
 			this.mat = new double[dim * nCols];
 		}
-		
+
 		public final void reset()
 		{
 			Arrays.fill(mat, 0);
 			count = 0;
 		}
-		
+
         public final void addRay(DoubleList positions, DoubleList directions, int idx)
         {
             float dirlen = 0;
@@ -110,12 +109,9 @@ public class Geometry {
 
 		public final void calculate()
 		{
-			for (int i = 0; i < mat.length; i += nCols + 1)
-			{
-				mat[i] -= count;
-			}
 			for (int i = 0; i < dim; ++i)
 			{
+			    mat[i * nCols + i] -= count;
 				for (int j = 0; j < i; ++j)
 				{
 					mat[j * nCols + i] = mat[i * nCols + j];
@@ -123,12 +119,9 @@ public class Geometry {
 			}
 			Calculate.toRREF(mat, dim);
 		}
-		
-		public final double get(int index)
-		{
-			return mat[index * nCols + dim];
-		}
-		
+
+		public final double get(int index){return mat[index * nCols + dim];}
+
 		public final void get(Vectord vec)
 		{
 			for (int i = 0; i < dim; ++i)
@@ -136,7 +129,7 @@ public class Geometry {
 				vec.setElem(i, mat[i * nCols + dim]);
 			}
 		}
-		
+
 		public final void get(float[] res)
 		{
 			for (int i = 0; i < dim; ++i)
@@ -145,7 +138,7 @@ public class Geometry {
 			}
 		}
 	}
-	
+
 	public static final void parse(String str, Vectord vec) throws ParseException
 	{
 		if (str.charAt(0) != '(' || str.charAt(str.length() - 1) != ')')
@@ -160,7 +153,7 @@ public class Geometry {
 			end = str.indexOf(begin, ',');
 		}
 	}
-	
+
 	public static final void volumeToMesh(int[] data, int width, int height, int depth, double mid, IntegerArrayList faceIndices, DoubleArrayList vertexPositions)
 	{
 		int offsets[] = new int[8];
@@ -211,7 +204,7 @@ public class Geometry {
 									for (int axis = 0; axis < 3;++axis)
 									{
 										int neighbour = current ^ (1 << axis);
-										
+
 										if (inside[neighbour] && !visited[neighbour])
 										{
 											searchStack.add(neighbour);
@@ -278,7 +271,7 @@ public class Geometry {
 									facePoint0 = facePoint1;
 								}
 								facePoint1 = facePoint2;
-								
+
 								final int newAxis = (((innerVertex ^ (innerVertex >> 1) ^ (innerVertex >> 2)) & 1) + inOutAxis + 1)%3;
 								final int newInner = innerVertex ^ (1 << newAxis);
 								final int newOuter = outerVertex ^ (1 << newAxis);
@@ -310,7 +303,7 @@ public class Geometry {
 			}
 		}
 	}
-	
+
 	public static final void volumeToMesh(float[] data, int width, int height, int depth, double mid, IntegerArrayList faceIndices, DoubleArrayList vertexPositions)
 	{
 		int offsets[] = new int[8];
@@ -471,7 +464,7 @@ public class Geometry {
 			end = str.indexOf(begin, ',');
 		}
 	}
-	
+
 	public static final void parse(String str, Vectori vec) throws ParseException
 	{
 		if (str.charAt(0) != '(' || str.charAt(str.length() - 1) != ')')
@@ -486,15 +479,10 @@ public class Geometry {
 			end = str.indexOf(begin, ',');
 		}
 	}
-	
-    public final static void calcFaceNormals (int sizeX, int sizeY, FloatVectorObject vertex, float faceNormal[]){
-		if (sizeX * sizeY != vertex.size()){
-    		throw new ArrayIndexOutOfBoundsException("Vertex Count doesn't match the size: " + sizeX + ',' + sizeY + ") vertexCount: " + vertex.size());
-    	}
 
-		if ((sizeX - 1) * (sizeY - 1) != faceNormal.length * 3){
-    		throw new ArrayIndexOutOfBoundsException("vertexNormal Count doesn't match the size: " + sizeX + ',' + sizeY + ") vertexNormalCount: " + vertex.size());
-    	}
+    public final static void calcFaceNormals (int sizeX, int sizeY, FloatVectorObject vertex, float faceNormal[]){
+		if (sizeX * sizeY != vertex.size())                       {throw new ArrayIndexOutOfBoundsException("Vertex Count doesn't match the size: " + sizeX + ',' + sizeY + ") vertexCount: " + vertex.size());}
+		if ((sizeX - 1) * (sizeY - 1) != faceNormal.length * 3)   {throw new ArrayIndexOutOfBoundsException("vertexNormal Count doesn't match the size: " + sizeX + ',' + sizeY + ") vertexNormalCount: " + vertex.size());}
 		final float vertexX[] = vertex.x, vertexY[] = vertex.y, vertexZ[] = vertex.z;
 		int normalIndex = 0;
     	int index00 = 0;
@@ -505,7 +493,7 @@ public class Geometry {
                 final float ax = vertexX[index11] - vertexX[index00];
                 final float ay = vertexY[index11] - vertexY[index00];
                 final float az = vertexZ[index11] - vertexZ[index00];
-                
+
                 final float bx = vertexX[index01] - vertexX[index10];
                 final float by = vertexY[index01] - vertexY[index10];
                 final float bz = vertexZ[index01] - vertexZ[index10];
@@ -524,16 +512,10 @@ public class Geometry {
             ++index00;
         }
     }
-    
-    public final static void calcVertexNormals2(final int sizeX, final int sizeY, FloatVectorObject vertex, FloatVectorObject vertexNormal, boolean xCyclic, boolean yCyclic){
-		if (sizeX * sizeY != vertex.size()){
-    		throw new ArrayIndexOutOfBoundsException("Vertex Count doesn't match the size: (" + sizeX + ',' + sizeY + ") vertexCount: " + vertex.size());
-    	}
 
-		if (sizeX * sizeY != vertexNormal.size()){
-    		throw new ArrayIndexOutOfBoundsException("vertexNormal Count doesn't match the size: (" + sizeX + ',' + sizeY + ") vertexNormalCount: " + vertex.size());
-    	}
-    	
+    public final static void calcVertexNormals2(final int sizeX, final int sizeY, FloatVectorObject vertex, FloatVectorObject vertexNormal, boolean xCyclic, boolean yCyclic){
+		if (sizeX * sizeY != vertex.size())       {throw new ArrayIndexOutOfBoundsException("Vertex Count doesn't match the size: (" + sizeX + ',' + sizeY + ") vertexCount: " + vertex.size());}
+		if (sizeX * sizeY != vertexNormal.size()) {throw new ArrayIndexOutOfBoundsException("vertexNormal Count doesn't match the size: (" + sizeX + ',' + sizeY + ") vertexNormalCount: " + vertex.size());}
     	final float vertexX[] = vertex.x, vertexY[] = vertex.y, vertexZ[] = vertex.z;
 		final float vertexNormalX[] = vertexNormal.x, vertexNormalY[] = vertexNormal.y, vertexNormalZ[] = vertexNormal.z;
     	final int sizeXMin1 = sizeX-1, sizeYMin1 = sizeY-1;
@@ -541,7 +523,7 @@ public class Geometry {
             final int middleIndexX = i*sizeY;
             final int lowIndexX = i==0 ? (xCyclic ? sizeY * sizeXMin1 : 0) : middleIndexX - sizeY;
             final int highIndexX = i== sizeXMin1 ? (xCyclic ? 0 : middleIndexX) : middleIndexX + sizeY;
-            
+
     		for (int j=0;j<sizeY;j++){
     			/**
     			 * Die Indices sind folgendermassen verteilt:
@@ -555,7 +537,7 @@ public class Geometry {
                 final int index01 = lowIndexX + j, index21 = highIndexX + j;
                 final int index10 = middleIndexX + (j==0 ? 0 : j-1);
                 final int index12 = middleIndexX + (j==sizeYMin1 ? sizeYMin1 : j+1);
-                   
+
                 final float ax = vertexX[index01] - vertexX[index21];
                 final float ay = vertexY[index01] - vertexY[index21];
                 final float az = vertexZ[index01] - vertexZ[index21];
@@ -570,11 +552,11 @@ public class Geometry {
 
                 vertexNormalX[index11]=xn*len;
                 vertexNormalY[index11]=yn*len;
-                vertexNormalZ[index11]=zn*len;    		
+                vertexNormalZ[index11]=zn*len;
             }
     	}
     }
-    
+
     public static final void add(double data[], int begin, int end, int stride, Vectord vec)
     {
     	for(; begin < end; begin += stride)
@@ -603,7 +585,7 @@ public class Geometry {
             final float yn=az*bx-ax*bz;
             final float zn=ax*by-ay*bx;
             final float len = 1/(float)Math.sqrt(xn * xn + yn * yn + zn * zn);
-            
+
             for (int i = face; i < face + 4; ++i)
             {
             	int index = faces[i] * 3;
@@ -623,9 +605,7 @@ public class Geometry {
     		vertexNormals[vertex + 2] = zn * len;
     	}
     }
-    
-    
-    
+
     public static final double crossq(double x1, double y1, double z1, double x2, double y2, double z2)
     {
     	final double x = y1 * z2 - z1 * y2;
@@ -633,12 +613,12 @@ public class Geometry {
     	final double z = x1 * y2 - y1 * x2;
     	return x * x + y * y + z * z;
     }
-    
+
     public static final double crossdot(double x1, double y1, double z1, double x2, double y2, double z2, double n0, double n1, double n2)
     {
     	return n0 * (y1 * z2 - z1 * y2) + n1 * (z1 * x2 - x1 * z2) + n2 * (x1 * y2 - y1 * x2);
     }
-    
+
     public final static void calcTriangleMeshVertexNormals(float vertices[], int faces[], float vertexNormals[])
     {
 		Arrays.fill(vertexNormals, 0);
@@ -658,7 +638,7 @@ public class Geometry {
             final float yn=az*bx-ax*bz;
             final float zn=ax*by-ay*bx;
             final float len = 1/(float)Math.sqrt(xn * xn + yn * yn + zn * zn);
-            
+
             for (int i = face; i < face + 3; ++i)
             {
             	int index = faces[i] * 3;
@@ -678,7 +658,7 @@ public class Geometry {
     		vertexNormals[vertex + 2] = zn * len;
     	}
     }
-    	
+
     public final static void calcTriangleMeshVertexFaceNormals(double vertices[], int faces[], double vertexNormals[], double faceNormals[])
     {
 		Arrays.fill(vertexNormals, 0);
@@ -701,14 +681,11 @@ public class Geometry {
             faceNormals[face] = xn;
             faceNormals[face + 1] = yn;
             faceNormals[face + 2] = zn;
-            
             /*final double len = 1/Math.sqrt(xn * xn + yn * yn + zn * zn);
-            
             xn *= len;
             yn *= len;
             zn *= len;
             */
-            
             for (int i = face; i < face + 3; ++i)
             {
             	int index = faces[i] * 3;
@@ -723,21 +700,15 @@ public class Geometry {
     		double yn = vertexNormals[vertex + 1];
     		double zn = vertexNormals[vertex + 2];
     		final double len = 1/Math.sqrt(xn * xn + yn * yn + zn * zn);
-    		vertexNormals[vertex] = xn * len;
+    		vertexNormals[vertex    ] = xn * len;
     		vertexNormals[vertex + 1] = yn * len;
     		vertexNormals[vertex + 2] = zn * len;
     	}
     }
 
     public final static void calcVertexNormals(final int sizeX, final int sizeY, FloatVectorObject vertex, FloatVectorObject vertexNormal, boolean xCyclic, boolean yCyclic){
-		if (sizeX * sizeY != vertex.size()){
-    		throw new ArrayIndexOutOfBoundsException("Vertex Count doesn't match the size: (" + sizeX + ',' + sizeY + ") vertexCount: " + vertex.size());
-    	}
-
-		if (sizeX * sizeY != vertexNormal.size()){
-    		throw new ArrayIndexOutOfBoundsException("vertexNormal Count doesn't match the size: (" + sizeX + ',' + sizeY + ") vertexNormalCount: " + vertex.size());
-    	}
-    	
+		if (sizeX * sizeY != vertex.size())       {throw new ArrayIndexOutOfBoundsException("Vertex Count doesn't match the size: (" + sizeX + ',' + sizeY + ") vertexCount: " + vertex.size());}
+		if (sizeX * sizeY != vertexNormal.size()) {throw new ArrayIndexOutOfBoundsException("vertexNormal Count doesn't match the size: (" + sizeX + ',' + sizeY + ") vertexNormalCount: " + vertex.size());}
     	final float vertexX[] = vertex.x, vertexY[] = vertex.y, vertexZ[] = vertex.z;
 		final float vertexNormalX[] = vertexNormal.x, vertexNormalY[] = vertexNormal.y, vertexNormalZ[] = vertexNormal.z;
     	final int sizeXMin1 = sizeX-1, sizeYMin1 = sizeY-1;
@@ -745,7 +716,7 @@ public class Geometry {
             final int middleIndexX = i*sizeY;
             final int lowIndexX = i==0 ? (xCyclic ? sizeY * sizeXMin1 : 0) : middleIndexX - sizeY;
             final int highIndexX = i== sizeXMin1 ? (xCyclic ? 0 : middleIndexX) : middleIndexX + sizeY;
-            
+
     		for (int j=0;j<sizeY;j++){
     			/**
     			 * Die Indices sind folgendermassen verteilt:
@@ -774,26 +745,22 @@ public class Geometry {
 
                 vertexNormalX[index11]=xn*len;
                 vertexNormalY[index11]=yn*len;
-                vertexNormalZ[index11]=zn*len;    		
+                vertexNormalZ[index11]=zn*len;
             }
     	}
     }
-    
+
     public final static void calcVertexNormals(final int sizeX, final int sizeY, FloatVectorObject vertex, float vertexNormal[], boolean xCyclic, boolean yCyclic){
- 		if (sizeX * sizeY != vertex.size()){
-     		throw new ArrayIndexOutOfBoundsException("Vertex Count doesn't match the size: (" + sizeX + ',' + sizeY + ") vertexCount: " + vertex.size());
-     	}
- 		if (sizeX * sizeY * 3 != vertexNormal.length){
-     		throw new ArrayIndexOutOfBoundsException("vertexNormal Count doesn't match the size: (" + sizeX + ',' + sizeY + ") vertexNormalCount: " + vertex.size());
-     	}
-     	
+ 		if (sizeX * sizeY != vertex.size())          {throw new ArrayIndexOutOfBoundsException("Vertex Count doesn't match the size: (" + sizeX + ',' + sizeY + ") vertexCount: " + vertex.size());}
+ 		if (sizeX * sizeY * 3 != vertexNormal.length){throw new ArrayIndexOutOfBoundsException("vertexNormal Count doesn't match the size: (" + sizeX + ',' + sizeY + ") vertexNormalCount: " + vertex.size());}
+
      	final float vertexX[] = vertex.x, vertexY[] = vertex.y, vertexZ[] = vertex.z;
      	final int sizeXMin1 = sizeX-1, sizeYMin1 = sizeY-1;
      	for (int i=0;i<sizeX;i++){
              final int middleIndexX = i*sizeY;
              final int lowIndexX = i==0 ? (xCyclic ? sizeY * sizeXMin1 : 0) : middleIndexX - sizeY;
              final int highIndexX = i== sizeXMin1 ? (xCyclic ? 0 : middleIndexX) : middleIndexX + sizeY;
-             
+
      		for (int j=0;j<sizeY;j++){
      			/**
      			 * Die Indices sind folgendermassen verteilt:
@@ -820,27 +787,22 @@ public class Geometry {
                  final float zn=ax*by-ay*bx;
                  final float len = 1/(float)Math.sqrt(xn * xn + yn * yn + zn * zn);
 
-                 vertexNormal[index11 * 3]=xn*len;
-                 vertexNormal[index11 * 3 + 1]=yn*len;
-                 vertexNormal[index11 * 3 + 2]=zn*len;    		
+                 vertexNormal[index11 * 3    ] = xn*len;
+                 vertexNormal[index11 * 3 + 1] = yn*len;
+                 vertexNormal[index11 * 3 + 2] = zn*len;
              }
      	}
-     }
+    }
+
     public final static void calcVertexNormals(final int sizeX, final int sizeY, float vertex[], float vertexNormal[], boolean xCyclic, boolean yCyclic){
- 		if (sizeX * sizeY * 3!= vertex.length){
-     		throw new ArrayIndexOutOfBoundsException("Vertex Count doesn't match the size: (" + sizeX + ',' + sizeY + ") vertexCount: " +vertex.length/ 3);
-     	}
- 		if (sizeX * sizeY * 3 != vertexNormal.length){
-     		throw new ArrayIndexOutOfBoundsException("vertexNormal Count doesn't match the size: (" + sizeX + ',' + sizeY + ") vertexNormalCount: " + vertex.length / 3);
-     	}
-     	
+ 		if (sizeX * sizeY * 3!= vertex.length)           {throw new ArrayIndexOutOfBoundsException("Vertex Count doesn't match the size: (" + sizeX + ',' + sizeY + ") vertexCount: " +vertex.length/ 3);}
+ 		if (sizeX * sizeY * 3 != vertexNormal.length)    {throw new ArrayIndexOutOfBoundsException("vertexNormal Count doesn't match the size: (" + sizeX + ',' + sizeY + ") vertexNormalCount: " + vertex.length / 3);}
      	final int sizeXMin1 = (sizeX-1) * 3, sizeYMin1 = (sizeY-1) * 3;
      	for (int i=0;i<sizeX * 3;i += 3){
              final int middleIndexX = i*sizeY;
              final int lowIndexX = i==0 ? (xCyclic ? sizeY * sizeXMin1 : 0) : middleIndexX - sizeY * 3;
              final int highIndexX = i== sizeXMin1 ? (xCyclic ? 0 : middleIndexX) : middleIndexX + sizeY * 3;
-             
-     		for (int j=0;j<sizeY * 3;j += 3){
+     		 for (int j=0;j<sizeY * 3;j += 3){
      			/**
      			 * Die Indices sind folgendermassen verteilt:
      			 * 			i-1		i		i+1
@@ -866,12 +828,12 @@ public class Geometry {
                  final float yn=az*bx-ax*bz;
                  final float len = 1/(float)Math.sqrt(xn * xn + yn * yn + zn * zn);
 
-                 vertexNormal[index11]=xn*len;
-                 vertexNormal[index11 + 1]=yn*len;
-                 vertexNormal[index11 + 2]=zn*len;    		
+                 vertexNormal[index11    ] = xn*len;
+                 vertexNormal[index11 + 1] = yn*len;
+                 vertexNormal[index11 + 2] = zn*len;
              }
      	}
-     }
+    }
 
     public static boolean cropToRectangle(Vector3d v0, Vector3d v1, Rectangle2D rect)
     {
@@ -899,7 +861,7 @@ public class Geometry {
 		}
 		return false;
     }
-    
+
     public static boolean cropToRectangle(Vector2d v0, Vector2d v1, Rectangle2D rect)
     {
     	double minX = rect.getMinX() + 1, maxX = rect.getMaxX() - 1;
@@ -927,7 +889,7 @@ public class Geometry {
 		}
 		return false;
     }
-    
+
     public static final void rotQuatToMatrix(Vector4d vec, Matrix3d mat)
     {
     	double s = 2 / vec.dot();
@@ -937,7 +899,7 @@ public class Geometry {
     	mat.m22 = 1 - vw * vec.w;
     	double syz = vec.y * vz, syw = vec.y * vw, szw = vec.z * vw;
     	double axw = vec.x * vw, axz = vec.x * vz, axy = vec.x * vy;
-    	
+
     	mat.m01 = syz - axw;
     	mat.m02 = syw + axz;
     	mat.m12 = szw - axy;
@@ -945,9 +907,9 @@ public class Geometry {
     	mat.m02 = syw - axz;
     	mat.m12 = szw + axy;
     }
-    
+
     public static final void rotMatrixToQuat(Matrix3d mat, Vector4d vec) {}
-    
+
     public static final void getOrthorgonalVectors(Vector3d in, Vector3d n0, Vector3d n1)
     {
 		Geometry.getOrthorgonalVector(in, n0);
@@ -956,8 +918,8 @@ public class Geometry {
 		n1.cross(in, n0);
 		n1.setNorm(length);
     }
-    
-    public static double[] getVarianceOnSphere(float[] position, float[] direction, byte[] accepted, Vector3d linePosition, Vector3d lineDirection, double evaluation_points[], double[] result) 
+
+    public static double[] getVarianceOnSphere(float[] position, float[] direction, byte[] accepted, Vector3d linePosition, Vector3d lineDirection, double evaluation_points[], double[] result)
     {
 		int num_vectors = position.length / 3;
 		double divide = 1. / ArrayUtil.countNonzero(accepted);
@@ -974,8 +936,7 @@ public class Geometry {
     		}
     	}
        	//System.out.println("dotprod:" + Arrays.toString(dotprod));
-       	
-       	
+
        	for (int j = 0; j < result.length; ++j)
     	{
     		double variance = 0;
@@ -994,7 +955,7 @@ public class Geometry {
 					double zn = position[i * 3 + 2] - linePosition.z + direction[i * 3 + 2] * alpha;
 					//System.out.print((lineDirection.dot(xn, yn, zn) / Math.sqrt(planeScalar)) + " ");
 					//System.out.print(alpha + " ");
-					
+
 					double arc = Math.acos(Math.min(lineDirection.dot(xn, yn, zn) / evaluation_points[j],1));
 					if (Double.isNaN(arc))
 					{
@@ -1009,10 +970,9 @@ public class Geometry {
     	}
     	return result;
     }
-    
+
 	public static double[] getVariance(float[] position, float[] direction, byte[] accepted, Vector3d linePosition, Vector3d lineDirection, double[] distances, double[] result) {
 		/*java("geometry.Geometry","","getVariance",{{0,0,0},{1,0,0},{1},{0,0,0},{1,0,0},0,1,{0,0,0}})*/
-		
 		System.out.println("position:" + Arrays.toString(position));
 		System.out.println("direction:" + Arrays.toString(direction));
 		System.out.println("accepted:" + Arrays.toString(accepted));
@@ -1050,7 +1010,7 @@ public class Geometry {
     	}
     	return result;
 	}
-    
+
     public static double[] getVariance(double position[], double direction[], Vector3d linePosition, Vector3d lineDirection, double begin, double end, double result[])
     {
     	int num_vectors = position.length / 3;
@@ -1080,31 +1040,21 @@ public class Geometry {
     	}
     	return result;
     }
-    
+
     public static final void getOrthorgonalZMatrix(Vector3d in, Matrixd out) {
     	double dirlength = Math.sqrt(in.dot());
     	double qx = in.x * in.x;
 		double qy = in.y * in.y;
 		double qz = in.z * in.z;
-		
+
 		double lqx = qy + qz;
 		double lqy = qx + qz;
 		double lqz = qx + qy;
-		
 		double n0x, n0y, n0z;
-		
-		if (lqx >= lqy && lqx >= lqz)
-		{
-			n0x = 0; n0y = -in.z; n0z = in.y;
-		}
-		else if (lqy >= lqx && lqy >= lqz)
-		{
-			n0x = -in.z; n0y = 0; n0z = in.x;
-		}
-		else
-		{
-			n0x = -in.y; n0y = in.x; n0z =0;
-		}
+
+		if (lqx >= lqy && lqx >= lqz)         {n0x = 0;     n0y = -in.z; n0z = in.y;}
+		else if (lqy >= lqx && lqy >= lqz)    {n0x = -in.z; n0y = 0;     n0z = in.x;}
+		else                                  {n0x = -in.y; n0y = in.x;  n0z = 0;}
 		double mult = dirlength / Math.sqrt(n0x * n0x + n0y * n0y + n0z * n0z);
 		n0x *= mult; n0y *= mult; n0z *= mult;
 		double n1x = in.y * n0z - in.z * n0y;
@@ -1123,26 +1073,18 @@ public class Geometry {
     		//((Matrix4d)out).set(n0x, n0y, n0z, n1x, n1y, n1z, in.x, in.y, in.z);
     	}
     }
-    
+
     public static final void getOrthorgonalVector(Vector3d in, Vector3d out) {
     	double qx = in.x * in.x;
 		double qy = in.y * in.y;
 		double qz = in.z * in.z;
-		
+
 		double lqx = qy + qz;
 		double lqy = qx + qz;
 		double lqz = qx + qy;
-		
-		if (lqx >= lqy && lqx >= lqz)
-		{
-			out.set(0, -in.z, in.y);
-			return;
-		}
-		if (lqy >= lqx && lqy >= lqz)
-		{
-			out.set(-in.z, 0, in.x);
-			return;
-		}
+
+		if (lqx >= lqy && lqx >= lqz){out.set(0, -in.z, in.y);return;}
+		if (lqy >= lqx && lqy >= lqz){out.set(-in.z, 0, in.x);return;}
 		out.set(-in.y, in.x,0);
 		return;
     }
@@ -1156,7 +1098,7 @@ public class Geometry {
 		}
 		return res;
 	}
-	
+
 	public static final void getRotationFromTo(Vector3d from, Vector3d to, Matrix3d m)
 	{
 		double cos = 1 / from.dot();
@@ -1169,7 +1111,7 @@ public class Geometry {
 		double nz = from.x * to.y - from.y * to.x;
 		double len = 1 / Math.sqrt(nx * nx + ny * ny + nz * nz);
 		nx *= len; ny *= len; nz *= len;
-		
+
 		double onemincos = Math.sqrt(scale) - cos;
 		m.m00 = (nx * nx * onemincos + cos);
 		m.m11 = (ny * ny * onemincos + cos);
@@ -1194,7 +1136,6 @@ public class Geometry {
 		vec.x = distance * Math.sin(elevation);
 		double cos = Math.cos(elevation);
 		vec.y = distance * cos * Math.sin(azimuth);
-		vec.z = distance * cos * Math.cos(azimuth);	
+		vec.z = distance * cos * Math.cos(azimuth);
 	}
-
 }
