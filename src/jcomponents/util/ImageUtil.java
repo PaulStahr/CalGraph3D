@@ -11,7 +11,7 @@ import util.data.IntegerArrayList;
 
 public class ImageUtil {
 	public static void addToPixel(double xf, double yf, int width, int height, float add[], int addBegin, int addEnd, float multiplier, int image[])
-	{
+	{//TODO add test
 		int x = (int)(xf * 0x100);
 		int y = (int)(yf * 0x100);
 		int xMod = x % 0x100;
@@ -28,7 +28,7 @@ public class ImageUtil {
 			--y;
 			yMod = 255;
 		}
-		
+
 		int ch = addEnd - addBegin;
 		int pIndex = (y * width + x) * ch;
 		for (int i = 0; i < ch; ++i)
@@ -41,9 +41,9 @@ public class ImageUtil {
 			image[pIndex + width * ch + ch + i] += (int)((xMod           * yMod)           * toAdd);
 		}
 	}
-	
+
 	public static final void addToPixel(double xf, double yf, int width, int height, float add[], int addBegin, int addEnd, float multiplier, float image[])
-	{
+	{//TODO add test
 		int x = (int)(xf * 0x100);
 		int y = (int)(yf * 0x100);
 		int xMod = x % 0x100;
@@ -60,7 +60,7 @@ public class ImageUtil {
 			--y;
 			yMod = 255;
 		}
-		
+
 		int ch = addEnd - addBegin;
 		int pIndex = (y * width + x) * ch;
 		if (addEnd > add.length)
@@ -77,7 +77,7 @@ public class ImageUtil {
 			image[pIndex + width * ch + ch + i] += (xMod           * yMod)           * toAdd;
 		}
 	}
-	
+
 	public static void addToPixel(double xf, double yf, int width, int height, float multiplier, int image[])
 	{
 		int x = (int)(xf * 0x100);
@@ -96,24 +96,21 @@ public class ImageUtil {
 			--y;
 			yMod = 255;
 		}
-		
+
 		int pIndex = y * width + x;
 		image[pIndex]             += (int)(((0x100 - xMod) * (0x100 - yMod)) * multiplier);
 		image[pIndex + 1]      	  += (int)((xMod           * (0x100 - yMod)) * multiplier);
 		image[pIndex + width]     += (int)(((0x100 - xMod) * yMod)           * multiplier);
 		image[pIndex + width + 1] += (int)((xMod           * yMod)           * multiplier);
 	}
-	
-	
+
+
 	public static final BufferedImage deepCopy(BufferedImage bi) {
-		if (bi == null)
-		{
-			return null;
-		}
+		if (bi == null){return null;}
 		ColorModel cm = bi.getColorModel();
 		return new BufferedImage(cm, bi.copyData(null), cm.isAlphaPremultiplied(), null);
 	}
-	
+
 	public static void convertSpericalToFlat(Raster source, WritableRaster destination)
 	{
 		/*int pixel[] = new int[4];
@@ -127,16 +124,16 @@ public class ImageUtil {
 			}
 		}*/
 	}
-	
+
 	/*public static void interpolateInvisiblePixels2(Raster source)
 	{
 		Armadillo.
 	}*/
-	
+
 	public static void interpolateInvisiblePixels(Raster source)
 	{
 		IntegerArrayList ial = new IntegerArrayList();
-		
+
 		int width = source.getWidth(), height = source.getHeight();
 		int numPixels = width * height;
 		int pixel[] = new int[4];
@@ -189,7 +186,7 @@ public class ImageUtil {
 		{
 			for (int i = 0; i < ial.size(); ++i)
 			{
-				
+
 			}
 		}
 	}
@@ -203,8 +200,8 @@ public class ImageUtil {
 			}
 		}
 	}
-	
-	
+
+
 	public static int getSmoothedPixel(double xf, double yf, double zf, int data[], int width, int height, int depth)
 	{
 		int x = (int)(xf * 0x100);
@@ -235,7 +232,7 @@ public class ImageUtil {
 		result /= 0x1000000;
 		return (int)result;
 	}
-	
+
 	public static float getSmoothedPixel(double xf, double yf, double zf, float data[], int width, int height, int depth)
 	{
 		int x = (int)(xf * 0x100);
@@ -266,7 +263,7 @@ public class ImageUtil {
 		result /= 0x1000000;
 		return result;
 	}
-	
+
 	public static void getSmoothedPixel(double xf, double yf, int output[], int tmp[], Raster raster)
 	{
 		int x = (int)(xf * 0x100);
@@ -286,15 +283,16 @@ public class ImageUtil {
 			--y;
 			yMod = 255;
 		}
-		
+		Arrays.fill(output, 0);
 		raster.getPixel(x, y, tmp);
 		ArrayUtil.addTo(tmp, 0, tmp.length, output, 0, (0x100 - xMod) * (0x100 - yMod));
 		raster.getPixel(x + 1, y, tmp);
-		ArrayUtil.addTo(tmp, 0, tmp.length, output, 0, xMod           * (0x100 - yMod));
+        ArrayUtil.addTo(tmp, 0, tmp.length, output, 0, xMod           * (0x100 - yMod));
 		raster.getPixel(x, y + 1, tmp);
-		ArrayUtil.addTo(tmp, 0, tmp.length, output, 0, (0x100 - xMod) * yMod);
+        ArrayUtil.addTo(tmp, 0, tmp.length, output, 0, (0x100 - xMod) * yMod);
 		raster.getPixel(x + 1, y + 1, tmp);
-		ArrayUtil.addTo(tmp, 0, tmp.length, output, 0, xMod           * yMod);
+        ArrayUtil.addTo(tmp, 0, tmp.length, output, 0, xMod           * yMod);
+		ArrayUtil.add(output, 0, output.length, 0x7FFF);
 		ArrayUtil.divide(output, 0, output.length, output, 0, 0x10000);
 	}
 
@@ -339,7 +337,7 @@ public class ImageUtil {
 			for (int x = 0; x < width; ++x)
 			{
 				raster.getPixel(x, y, pixel);
-				pixel[channel] = Math.min(count[y * width + x], 255); 
+				pixel[channel] = Math.min(count[y * width + x], 255);
 				raster.setPixel(x,y,pixel);
 			}
 		}
@@ -352,7 +350,7 @@ public class ImageUtil {
 			for (int x = 0; x < width; ++x)
 			{
 				raster.getPixel(x, y, pixel);
-				Arrays.fill(pixel, 0, 3, Math.min(count[y * width + x], 255)); 
+				Arrays.fill(pixel, 0, 3, Math.min(count[y * width + x], 255));
 				raster.setPixel(x,y,pixel);
 			}
 		}
@@ -381,5 +379,5 @@ public class ImageUtil {
 			}
 		}
 	}
-	
+
 }

@@ -13,49 +13,85 @@ import util.data.DoubleArrayList;
 import util.data.IntegerArrayList;
 
 public class GeometryTest {
-    public static interface InitFunctional{
+    public static interface InitFunctional2d{
+        public float eval(float x, float y);
+    }
+
+    public static interface InitFunctional3d{
         public float eval(float x, float y, float z);
     }
-    
-    public static final InitFunctional sphereGenerator = new InitFunctional() {
+
+    public static final InitFunctional3d sphereGenerator = new InitFunctional3d() {
         @Override
-        public float eval(float x, float y, float z) 
+        public float eval(float x, float y, float z)
         {
             return (float)(Math.sqrt(x * x + y * y + z * z) - 0.5);
         }
     };
-    
-    public static final InitFunctional identityXGenerator = new InitFunctional() {
+
+    public static final InitFunctional3d identityXGenerator = new InitFunctional3d() {
         @Override
-        public float eval(float x, float y, float z) 
+        public float eval(float x, float y, float z)
         {
             return x;
         }
     };
 
-    public static final InitFunctional identityYGenerator = new InitFunctional() {
+    public static final InitFunctional3d identityYGenerator = new InitFunctional3d() {
         @Override
-        public float eval(float x, float y, float z) 
+        public float eval(float x, float y, float z)
         {
             return x;
         }
     };
 
-    public static final InitFunctional identityZGenerator = new InitFunctional() {
+    public static final InitFunctional3d identityZGenerator = new InitFunctional3d() {
         @Override
-        public float eval(float x, float y, float z) 
+        public float eval(float x, float y, float z)
         {
             return x;
         }
     };
 
-    public static float eval(InitFunctional initF, float x, float y, float z, int width, int height, int depth)
+    public static final InitFunctional2d circleGenerator = new InitFunctional2d() {
+        @Override
+        public float eval(float x, float y)
+        {
+            return (float)(Math.sqrt(x * x + y * y) - 0.5);
+        }
+    };
+
+    public static final InitFunctional2d identityXGenerator2d = new InitFunctional2d() {
+        @Override
+        public float eval(float x, float y)
+        {
+            return x;
+        }
+    };
+
+    public static final InitFunctional2d identityYGenerator2d = new InitFunctional2d() {
+        @Override
+        public float eval(float x, float y)
+        {
+            return x;
+        }
+    };
+
+
+
+    public static float eval(InitFunctional3d initF, float x, float y, float z, int width, int height, int depth)
     {
         float invWidth = 1f/width, invHeight = 1f/height, invDepth = 1f / depth;
         return initF.eval((x * 2 + 1 - width) * invWidth, (y * 2 + 1 - height) * invHeight, (z * 2 + 1 - depth) * invDepth);
     }
-    
-    public static float[] generateArray(InitFunctional f, int width, int height, int depth) {
+
+    public static float eval(InitFunctional2d initF, float x, float y, int width, int height)
+    {
+        float invWidth = 1f/width, invHeight = 1f/height;
+        return initF.eval((x * 2 + 1 - width) * invWidth, (y * 2 + 1 - height) * invHeight);
+    }
+
+    public static float[] generateArray(InitFunctional3d f, int width, int height, int depth) {
         float data[] = new float[width * height * depth];
         for (int z = 0, index = 0; z < depth; ++z)
         {
@@ -69,7 +105,19 @@ public class GeometryTest {
         }
         return data;
     }
-    
+
+    public static float[] generateArray(InitFunctional2d f, int width, int height) {
+        float data[] = new float[width * height];
+        for (int y = 0, index = 0; y < height; ++y)
+        {
+            for (int x = 0; x < width; ++x)
+            {
+                data[index ++] = eval(f, x, y, width, height);
+            }
+        }
+        return data;
+    }
+
     @Test
     public void testVolumeToMesh(){
         int width = 10, height = 10, depth = 10;
@@ -111,7 +159,7 @@ public class GeometryTest {
             Geometry.volumeToMesh(data, 2, 2, 2, 0, faceIndices, vertexPositions);
             assertEquals("Corner " + i, 3, faceIndices.size());
             assertEquals(9, vertexPositions.size());
-        }        
+        }
     }
 
     @Test
