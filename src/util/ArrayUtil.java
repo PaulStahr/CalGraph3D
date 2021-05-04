@@ -16,7 +16,7 @@ public class ArrayUtil {
         final int len1 = first.length;
         final int len2 = second.length;
         final int lim = Math.min(len1, len2);
-       
+
         for (int k = 0;k < lim; ++k) {
             final char c1 = first[k];
             final char c2 = second[k];
@@ -26,12 +26,12 @@ public class ArrayUtil {
         }
         return len1 - len2;
     }
-	
+
 	public static final int compareTo(CharSequence first, char second[]) {
         final int len1 = first.length();
         final int len2 = second.length;
         final int lim = Math.min(len1, len2);
-       
+
         for (int k = 0;k < lim; ++k) {
             final char c1 = first.charAt(k);
             final char c2 = second[k];
@@ -41,12 +41,12 @@ public class ArrayUtil {
         }
         return len1 - len2;
     }
-	
+
 	public static final int compareTo(String first, char second[]) {
         final int len1 = first.length();
         final int len2 = second.length;
         final int lim = Math.min(len1, len2);
-       
+
         for (int k = 0;k < lim; ++k) {
             final char c1 = first.charAt(k);
             final char c2 = second[k];
@@ -67,7 +67,7 @@ public class ArrayUtil {
 		}
 		return true;
 	}
-	
+
 	public static final double max(double data[])
 	{
 		double max = Double.NEGATIVE_INFINITY;
@@ -80,7 +80,7 @@ public class ArrayUtil {
 		}
 		return max;
 	}
-	
+
 	public static final double min(double data[])
 	{
 		double min = Double.POSITIVE_INFINITY;
@@ -93,7 +93,7 @@ public class ArrayUtil {
 		}
 		return min;
 	}
-	
+
 	public static final float max(float data[])
 	{
 		float max = Float.NEGATIVE_INFINITY;
@@ -167,7 +167,7 @@ public class ArrayUtil {
 		}
 		return max;
 	}
-	
+
 	public static final int min(int data[])
 	{
 		int min = Integer.MAX_VALUE;
@@ -195,13 +195,13 @@ public class ArrayUtil {
 		}
 		return index;
 	}
-	
+
 	public void increaseMin(int array[], int begin, int end)
 	{
 		int idx = minIndex(array, begin, end);
 		++array[idx];
 	}
-	
+
 	public static final void swap(double[] data, int begin0, int begin1, int len) {
 		for (int j = 0; j < len; ++j)
 		{
@@ -227,7 +227,7 @@ public class ArrayUtil {
 	{
 		return linearSearch(data, 0, data.length, value);
 	}
-	
+
 	public static final int linearSearch(Object data[], int begin, int end, Object value)
 	{
 		for (int i = begin; i < end; ++i)
@@ -239,7 +239,7 @@ public class ArrayUtil {
 		}
 		return -1;
 	}
-	
+
 	public static final int linearSearch(int data[], int begin, int end, int value)
 	{
 		for (; begin < end; ++begin)
@@ -251,7 +251,7 @@ public class ArrayUtil {
 		}
 		return -1;
 	}
-	
+
 	public static final int linearSearch(byte data[], int begin, int end, byte value)
 	{
 		for (; begin < end; ++begin)
@@ -263,13 +263,13 @@ public class ArrayUtil {
 		}
 		return -1;
 	}
-	
+
 	public static final int firstEqualIndex(Object data[], Object value)
 	{
 		return firstEqualIndex(data, 0, data.length, value);
 	}
 
-    
+
     public static int firstEqualIndex(Object data[], int begin, int end, Object key)
     {
         for (; begin < end; ++begin)
@@ -281,7 +281,7 @@ public class ArrayUtil {
         }
         return -1;
     }
-	
+
     public static final float[] setToLength(float[] data, int length) {return data != null && data.length == length ? data : new float[length];}
 
 	public static float[]	ensureLength(float[] data, int size) 	{return data.length >= size ? data : new float[size];}
@@ -296,17 +296,25 @@ public class ArrayUtil {
 		}
 		return max;
 	}
-	
 
-	public static final float max(float[] imageColorArray, int begin, int end) {
-		float max = Float.NEGATIVE_INFINITY;
-		for (;begin != end; ++begin)
-		{
-			max = Math.max(max, imageColorArray[begin]);
-		}
-		return max;
-	}
-	
+
+    public static final float max(float[] imageColorArray, int begin, int end) {
+        float max = Float.NEGATIVE_INFINITY;
+        for (;begin != end; ++begin)
+        {
+            max = Math.max(max, imageColorArray[begin]);
+        }
+        return max;
+    }
+
+    public static final float min(float[] imageColorArray, int begin, int end) {
+        float min = Float.POSITIVE_INFINITY;
+        for (;begin != end; ++begin)
+        {
+            min = Math.min(min, imageColorArray[begin]);
+        }
+        return min;
+    }
 
 	public static void addTo(int[] in, int begin, int end, int[] out, int outBegin) {
 		for (; begin < end; ++begin, ++outBegin)
@@ -314,7 +322,7 @@ public class ArrayUtil {
 			out[outBegin] += in[begin];
 		}
 	}
-	
+
 
 	public static void addTo(float[] in, int begin, int end, float[] out, int outBegin) {
 		for (; begin < end; ++begin, ++outBegin)
@@ -322,7 +330,7 @@ public class ArrayUtil {
 			out[outBegin] += in[begin];
 		}
 	}
-	
+
 	public static void addTo(int[] in, int begin, int end, int[] out, int outBegin, int mult)
 	{
 		for (; begin < end; ++begin, ++outBegin)
@@ -330,7 +338,7 @@ public class ArrayUtil {
 			out[outBegin] += in[begin] * mult;
 		}
 	}
-	
+
 	public static final void divide(int[] in, int begin, int end, int[] out, int outBegin, int div)
 	{
 		for (; begin < end; ++begin, ++outBegin)
@@ -348,7 +356,7 @@ public class ArrayUtil {
 		double mult = (double)to / max;
 		for (;begin < end; ++begin)
 		{
-			imageColorArray[begin] = (int)(imageColorArray[begin] * mult) ;			
+			imageColorArray[begin] = (int)(imageColorArray[begin] * mult) ;
 		}
 		/*long mult = ((long)to * (long)Integer.MAX_VALUE) / max;
 		for (; begin != end; ++begin)
@@ -360,18 +368,30 @@ public class ArrayUtil {
 	/*
 	 * Normalizes the array in a way, that the highest value is equal to to
 	 * Returns the scaling factor which was needed to achive this
-	 * 
+	 *
 	 */
-	public static float normalizeTo(float[] imageColorArray, int begin, int end, float to) {
-		float max = max(imageColorArray, begin, end);
-		if (max == 0)
-		{
-			return 0;
-		}
-		float mult = to / max;
-		mult(imageColorArray, begin, end, mult);
-		return mult;
-	}
+    public static float normalizeTo(float[] imageColorArray, int begin, int end, float to) {
+        float max = max(imageColorArray, begin, end);
+        if (max == 0)
+        {
+            return 0;
+        }
+        float mult = to / max;
+        mult(imageColorArray, begin, end, mult);
+        return mult;
+    }
+
+    public static float[] normalizeTo(float[] imageColorArray, int begin, int end, float low, float high) {
+        float min = min(imageColorArray, begin, end);
+        float max = max(imageColorArray, begin, end);
+        float mult = (high - low) / (max - min);
+        float add = low - min * mult;
+        for (; begin < end; ++begin)
+        {
+            imageColorArray[begin] = imageColorArray[begin] * mult + add;
+        }
+        return new float[] {mult, add};
+    }
 
 	public static float normQ(float data[], int begin, int end, float init)
 	{
@@ -393,7 +413,7 @@ public class ArrayUtil {
 		for (; iBegin < iEnd; ++iBegin, ++oBegin)
 		{
 			out[oBegin] += mult * in[iBegin];
-		}	
+		}
 	}
 
 	public static int count(Object[] object, int objectBegin, int objectEnd,Object o) {
@@ -426,7 +446,7 @@ public class ArrayUtil {
 			data1[begin1] = data0[begin0] * mult;
 		}
 	}
-	
+
 	public static void setTo(float[] input, int ibegin, int oend, int[] output, int obegin, float mult) {
 		if (input == null)
 		{
@@ -448,7 +468,7 @@ public class ArrayUtil {
 			outBuf.writeInt(data[i]);
 		}
 	}
-	
+
 	public static void write(float[] data, int begin, int end, DataOutputStream outBuf) throws IOException {
 		for (int i = begin; i < end; ++i)
 		{
@@ -462,8 +482,8 @@ public class ArrayUtil {
 			outBuf.writeInt(ial.getI(i));
 		}
 	}
-	
-	
+
+
 	public static void write(DoubleList dal, int begin, int end, DataOutputStream outBuf) throws IOException {
 		for (int i = begin; i < end; ++i)
 		{
@@ -474,7 +494,7 @@ public class ArrayUtil {
 	public static void readDoubles(DoubleList mat, int begin, int end, DataInputStream inBuf) throws IOException {
 		for (int i = begin; i < end; ++i)
 		{
-			mat.setElem(i,inBuf.readDouble());			
+			mat.setElem(i,inBuf.readDouble());
 		}
 	}
 
@@ -662,7 +682,7 @@ public class ArrayUtil {
         }
         return write;
     }
-    
+
     public static final int removeIf(int[] data, int begin, int end, Predicate<? super Integer> predicate) {
         int write = 0;
         for (; begin < end; ++begin)
@@ -674,7 +694,7 @@ public class ArrayUtil {
         }
         return write;
     }
-    
+
     public static final int removeIf(double[] data, int begin, int end, Predicate<? super Double> predicate) {
         int write = 0;
         for (; begin < end; ++begin)
@@ -685,5 +705,30 @@ public class ArrayUtil {
             }
         }
         return write;
+    }
+
+    public static float[] interleave(float[] data, float[] data2, float[] data3) {
+        float result[] = new float[data.length * 3];
+        for (int i = 0; i < data.length; ++i)
+        {
+            result[i* 3] = data[i];
+            result[i * 3 + 1] = data2[i];
+            result[i * 3 + 2] = data3[i];
+        }
+        return result;
+    }
+
+    public static void add(int[] output, int begin, int end, int value) {
+        for (; begin < end; ++begin)
+        {
+            output[begin] += value;
+        }
+    }
+
+    public static void add(float[] output, int begin, int end, float value) {
+        for (; begin < end; ++begin)
+        {
+            output[begin] += value;
+        }
     }
 }
