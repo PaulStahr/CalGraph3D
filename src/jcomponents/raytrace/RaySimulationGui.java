@@ -1,16 +1,16 @@
 /*******************************************************************************
  * Copyright (c) 2019 Paul Stahr
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -178,7 +178,7 @@ import util.ThreadPool.ParallelRangeRunnable;
 import util.TimedUpdateHandler;
 import util.data.UniqueObjects;
 
-/** 
+/**
 * @author  Paul Stahr
 * @version 04.02.2012
 */
@@ -186,33 +186,33 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 {
 	private static final long serialVersionUID = -8104574201311985756L;
 	private static final Logger logger = LoggerFactory.getLogger(RaySimulationGui.class);
-	private static final int glObjectAttachementId = ObjectAttachmentContainer.getId();  
-	
+	private static final int glObjectAttachementId = ObjectAttachmentContainer.getId();
+
 	private static final class TableModel extends DefaultTableModel
 	{
 		/**
-		 * 
+		 *
 		 */
 		private static final long serialVersionUID = -3379232940335572529L;
 		private final COLUMN_TYPES types;
-		
+
 		public TableModel(COLUMN_TYPES types)
 		{
 			super(new Object[1][types.visibleColsSize()], types.getVisibleColumnNames());
 			this.types = types;
 		}
-		
+
 		@Override
         public final Class<?> getColumnClass(int columnIndex) {
             return types.getVisibleCol(columnIndex).cl;
         }
 	}
-	
-	
+
+
 	private final DefaultTableModel tableModelSurfaces = new TableModel(GuiOpticalSurfaceObject.TYPES);
 	private final DefaultTableModel tableModelVolumes = new TableModel(GuiOpticalVolumeObject.TYPES);
-	private final DefaultTableModel tableModelTextures= new TableModel(GuiTextureObject.TYPES);	
-	private final DefaultTableModel tableModelMeshes= new TableModel(MeshObject.TYPES);	
+	private final DefaultTableModel tableModelTextures= new TableModel(GuiTextureObject.TYPES);
+	private final DefaultTableModel tableModelMeshes= new TableModel(MeshObject.TYPES);
 	public final JTable tableSurfaces = new JTable(tableModelSurfaces);
 	public final JTable tableVolumes = new JTable(tableModelVolumes);
 	public final JTable tableTextures = new JTable(tableModelTextures);
@@ -284,7 +284,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 	public final RaytraceScene scene;
 	private final GuiTextureObject previewTexture;
 	private static final ArrayList<WeakReference<RaySimulationGui> > openGuis = new ArrayList<>();
-	
+
    	private static final Runnable optionRunnable = new Runnable() {
 		@Override
 		public void run() {
@@ -308,11 +308,11 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		Options.addModificationListener(optionRunnable);
 		DataHandler.runnableRunner.run(optionRunnable, "Gui Load Options");
 	}
-	
+
 	public final TimedUpdateHandler rayUpdateHandler = new TimedUpdateHandler() {
-    	
+
 		private final Vector3d tmp = new Vector3d();
-		
+
 		@Override
 		public final synchronized void update() {
 			if (toggleButtonTraceRays.isSelected())
@@ -341,14 +341,14 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 				}
 			}
 		}
-		
-		
+
+
 		@Override
 		public final int getUpdateInterval() {
 			return 10;
 		}
 	};
-	
+
 	public static final String env = "Env";
 	public static final String no = "No";
 	public void load(JComboBox<Object> box, Object o) {
@@ -366,7 +366,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		}
 	}
 	private final ArrayList<Object> al = new ArrayList<>();
-	
+
 	private void updateBoundComboBoxes()
 	{
 		al.add(no);
@@ -378,22 +378,22 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		updateBox(scenePanel.forceEndpoint, data);
 		updateBox(scenePanel.forceStartpoint, data);
 	}
-    
+
 	private static void updateBox(JComboBox<Object> comboBox, Object data[])
 	{
 		Object selected = comboBox.getSelectedItem();
-		comboBox.setModel(new DefaultComboBoxModel<Object>(data));
+		comboBox.setModel(new DefaultComboBoxModel<>(data));
 		comboBox.setSelectedItem(selected);
 
 	}
-	
+
 	private void updateTextureComboBoxes()
 	{
 		Object textures[] = scene.textureObjectList.toArray(new Object[scene.textureObjectList.size()]);
 		updateBox(scenePanel.comboBoxWritableEnvironment, textures);
 		updateBox(scenePanel.comboBoxRenderToTexture, textures);
 	}
-	
+
 	private final <E extends OpticalObject>void setTableValues(SCENE_OBJECT_COLUMN_TYPE ct, ArrayList<E> list, E current, JTable table)
 	{
 		try
@@ -421,7 +421,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 			logger.error("Error setting values", e);
 		}
 	}
-	
+
 	@Override
 	public void valueChanged(final GuiOpticalSurfaceObject object, final SCENE_OBJECT_COLUMN_TYPE ct) {
 		DataHandler.runnableRunner.run(new Runnable() {
@@ -443,7 +443,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 					currentMesh.reflectionMaterial.set(false, false, false, true, current.color);
 					currentMesh.setVisible(current.active);
 					currentMesh.update(UpdateKind.DATA);
-				}	
+				}
 			}
 		}, "Update Mesh");
 		updateTableValues(ct, scene.surfaceObjectList, object, tableSurfaces);
@@ -454,7 +454,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		}
 		DataHandler.runnableRunner.run(untracedRayRunnable, false);
 	}
-	    
+
 	@Override
 	public void valueChanged(final GuiOpticalVolumeObject object,final SCENE_OBJECT_COLUMN_TYPE ct) {
 		DataHandler.runnableRunner.run(new Runnable() {
@@ -468,7 +468,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 				}
 			}
 		}, "Update Mesh");
-		updateTableValues(ct, scene.volumeObjectList, object, tableVolumes);		
+		updateTableValues(ct, scene.volumeObjectList, object, tableVolumes);
 		repaintVisualizations();
 	}
 
@@ -481,7 +481,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		}
 		DataHandler.runnableRunner.run(untracedRayRunnable, false);
 	}
-	
+
 	private final <E extends OpticalObject>void updateTableValues(final SCENE_OBJECT_COLUMN_TYPE ct, final ArrayList<E> list, final E object, final JTable table)
 	{
 		if (isUpdating && SwingUtilities.isEventDispatchThread())
@@ -498,18 +498,18 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 			}
 		});
 	}
-	
+
 	@Override
 	public void valueChanged(final GuiTextureObject object, final SCENE_OBJECT_COLUMN_TYPE ct) {
 		updateTableValues(ct, scene.textureObjectList, object, tableTextures);
 		repaintVisualizations();
 	}
-	
+
 	@Override
-	public void valueChanged(final MeshObject object, SCENE_OBJECT_COLUMN_TYPE ct) 
+	public void valueChanged(final MeshObject object, SCENE_OBJECT_COLUMN_TYPE ct)
 	{
 		updateTableValues(ct, scene.meshObjectList, object, tableMeshes);
-		
+
 		DataHandler.runnableRunner.run(new Runnable() {
 			@Override
 			public void run() {
@@ -524,7 +524,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		    		currentMesh.lightMaterial.set(true, true, true, false, current.color);
 		    		currentMesh.reflectionMaterial.set(false, false, false, true, current.color);
 		    		dataChanged(current);
-		    		
+
 				}
 			}
 		}}, "Update Mesh");
@@ -596,7 +596,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 				else if (type == SCENE_OBJECT_COLUMN_TYPE.OPEN)
 				{
 					GuiTextureObject current = scene.textureObjectList.get(row);
-					
+
 					JFileChooser fileChooser= new JFileChooserRecentFiles(current.getFile());
 					if(fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION)
 		            {
@@ -620,7 +620,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 						scene.textureObjectList.get(row).load(scene.vs, parser);
 					} catch (IOException | OperationParseException e1) {
 						logger.error("can't load texture", e);
-						
+
 					}
 				}else if (type == SCENE_OBJECT_COLUMN_TYPE.SAVE)
 				{
@@ -632,7 +632,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 				}else if (type == SCENE_OBJECT_COLUMN_TYPE.SAVE_TO)
 				{
 					GuiTextureObject current = scene.textureObjectList.get(row);
-					
+
 					JFileChooser fileChooser= new JFileChooserRecentFiles(current.getFile().getAbsolutePath());
 					if(fileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION)
 		            {
@@ -655,7 +655,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 					final GuiTextureObject current = scene.textureObjectList.get(row);
 					TextureView tv = new TextureView(current.image);
 					final DataChangeListener tcl= new ImageComponent.AbstractTextureChangeListener(tv.getImageComponent()) {
-						
+
 						@Override
 						public void dataChanged(ImageComponent comp) {
 							comp.setImage(current.image);
@@ -678,16 +678,16 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 				{
 		 	        scene.remove(scene.meshObjectList.get(row));
 		 	    }
-				
+
 			}
  	    }
     };
-    
+
     private void visibleErrorMessage(String text, Exception e)
     {
     	JFrameUtils.logErrorAndShow(text, e, logger);
     }
-    
+
  	private final ButtonColumn surfaceDeleteColumn 	= new ButtonColumn(tableSurfaces,tableAction, 	GuiOpticalSurfaceObject.TYPES.getVisibleColumnNumber(SCENE_OBJECT_COLUMN_TYPE.DELETE));
  	private final ButtonColumn volumeDeleteColumn 	= new ButtonColumn(tableVolumes,tableAction, 	GuiOpticalVolumeObject.TYPES.getVisibleColumnNumber(SCENE_OBJECT_COLUMN_TYPE.DELETE));
  	private final ButtonColumn volumeLoadColumn 	= new ButtonColumn(tableVolumes,tableAction, 	GuiOpticalVolumeObject.TYPES.getVisibleColumnNumber(SCENE_OBJECT_COLUMN_TYPE.LOAD));
@@ -750,7 +750,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 				} catch (Exception e1) {
 					visibleErrorMessage("Can't read mesh", e1);
 					return;
-				} 
+				}
 			}
 			mesh.id = new StringBuilder().append('M').append(scene.meshObjectList.size()).toString();
 			scene.add(mesh);
@@ -883,7 +883,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 				JFileChooser fileChooser= new JFileChooser();
                 JPanel panel = new JPanel();
                 panel.add(new RecentFileList(fileChooser, DataHandler.getRecentFiles()));
-                JCheckBox checkBox = new JCheckBox("Export Data Objects"); 
+                JCheckBox checkBox = new JCheckBox("Export Data Objects");
                 panel.add(checkBox);
                 panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
                 fileChooser.setAccessory(panel);
@@ -903,11 +903,11 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
              	if (checkBox.isSelected())
          		{
              		String path = file.getAbsolutePath();
-             		File dir = new File(path.substring(0, path.lastIndexOf('.'))); 
+             		File dir = new File(path.substring(0, path.lastIndexOf('.')));
              		dir.mkdir();
              		for (int i = 0; i < scene.textureObjectList.size(); ++i)
              		{
-             			GuiTextureObject current = scene.textureObjectList.get(i); 
+             			GuiTextureObject current = scene.textureObjectList.get(i);
              			try {
 							current.saveTo(new File(dir.getAbsolutePath() + '/' + current.id + '.' + "png"));
 						} catch (IOException e1) {
@@ -952,7 +952,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 			JFileChooser fileChooser= new JFileChooser();
             JPanel panel = new JPanel();
             panel.add(new RecentFileList(fileChooser, DataHandler.getRecentFiles()));
-            JCheckBox checkBox = new JCheckBox("Export Disabled Objects"); 
+            JCheckBox checkBox = new JCheckBox("Export Disabled Objects");
             panel.add(checkBox);
             panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
             fileChooser.setAccessory(panel);
@@ -971,7 +971,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
             DataHandler.addRecentFile(file.getAbsolutePath());
             boolean exportInvisible = checkBox.isSelected();
      		String path = file.getAbsolutePath();
-     		File dir = new File(path.substring(0, path.lastIndexOf('.'))); 
+     		File dir = new File(path.substring(0, path.lastIndexOf('.')));
      		dir.mkdir();
      		for (int i = 0; i < glScene.getObjectCount(); ++i)
      		{
@@ -1018,7 +1018,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 			{
 				if (run ==0)
 				{
-					time = System.nanoTime();						
+					time = System.nanoTime();
 				}
 				gen.threeDimensional = false;
 				scene.updateScene();
@@ -1148,19 +1148,19 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 				gen.threeDimensional = true;
 				gen.setSource(oso.get(i));
 				scene.calculateRays(0, num_rays, num_rays, gen, 0, rsd.endpoints, rsd.enddirs, rsd.endcolor, null, rsd.accepted, rsd.bounces, rsd.lastObject, 10, false, rso, RaytraceScene.UNACCEPTED_MARK);
-				
+
 				double result[] = Geometry.getVariance(rsd.endpoints, rsd.enddirs, rsd.accepted, new Vector3d(0,0,0), new Vector3d(1,0,0), distances, new double[3]);
 				ArrayUtil.sqrt(result, 0, result.length);
 				DataHandler.globalVariables.setGlobal("divergence", new ArrayOperation(result));
-				
+
 				System.out.println(Arrays.toString(result));
-			}*/	
+			}*/
 		}
 		else if (source == menuItemRecordMacro)
 		{
 			if (menuItemRecordMacro.isSelected())
 			{
-				session.addListener(this);				
+				session.addListener(this);
 			}
 			else
 			{
@@ -1182,14 +1182,14 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 			mw.setVisible(true);
 		}
 	}
-    
-    private final ArrayList<String> executedCommands = new ArrayList<String>();
-    
+
+    private final ArrayList<String> executedCommands = new ArrayList<>();
+
     @Override
 	public void commandExecuted(String command) {
     	executedCommands.add(command);
     }
-     
+
     public void getSelectedLights(ArrayList<OpticalSurfaceObject> objects)
     {
     	for (int i = 0; i < tableSurfaces.getRowCount(); ++i)
@@ -1200,7 +1200,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
     		}
 		}
     }
-    
+
     private void copyClipboard() {
     	try
 		{
@@ -1213,23 +1213,23 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 			visibleErrorMessage("Error at copying", ex);
 		}
 	}
-    
+
     private void cutClipboard()
     {
     	copyClipboard();
     	//TODO delete selected items
     }
-    
+
     private void pasteClipboard()
     {
-    	final Clipboard systemClipboard = Toolkit.getDefaultToolkit().getSystemClipboard(); 
-		final Transferable transferData = systemClipboard.getContents( null ); 
+    	final Clipboard systemClipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+		final Transferable transferData = systemClipboard.getContents( null );
 		try{
-			for(DataFlavor dataFlavor : transferData.getTransferDataFlavors()){ 
-				Object content = transferData.getTransferData(dataFlavor); 
-				
-				if (content instanceof String){ 
-					
+			for(DataFlavor dataFlavor : transferData.getTransferDataFlavors()){
+				Object content = transferData.getTransferData(dataFlavor);
+
+				if (content instanceof String){
+
 					ByteArrayInputStream stream = new ByteArrayInputStream(((String)content).getBytes());
 					SceneIO.loadScene(stream, scene, this);
 					stream.close();
@@ -1249,7 +1249,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		panelTools.removeAll();
 		volumePipelines.removeAllPipelines();
     }
-    
+
     private final<E extends OpticalObject> void tablechanged(TableModelEvent e, JTable table, ArrayList<E> list, int colBegin, int rowBegin, int rowEnd, DefaultTableModel tableModel, COLUMN_TYPES types)
     {
     	int colEnd = e.getColumn() == TableModelEvent.ALL_COLUMNS ? table.getColumnCount() : (e.getColumn() + 1);
@@ -1267,7 +1267,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 			}
 		}
     }
-    
+
     @Override
 	public void tableChanged(TableModelEvent e) {
     	if (!EventQueue.isDispatchThread()){throw new RuntimeException("Table Changes only allowed by dispatchment thread");}
@@ -1284,12 +1284,12 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		else if (source == tableModelMeshes)	{tablechanged(e, tableMeshes, 	scene.meshObjectList, 	 colBegin, rowBegin, rowEnd, tableModelMeshes,   MeshObject.TYPES);}
 		isUpdating = false;
 	}
-     
+
 	@Override
 	public void valueChanged(ListSelectionEvent e) {
-		updateAdvanced();				
+		updateAdvanced();
 	}
-	
+
 	@Override
 	public void componentRemoved(ContainerEvent e) {
 		if (panelTools.getComponentCount() == 0)
@@ -1297,7 +1297,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 			panelTools.setVisible(false);
 		}
 	}
-	
+
 	@Override
 	public void componentAdded(ContainerEvent e) {
 		if (panelTools.getComponentCount() != 0)
@@ -1306,7 +1306,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 			panelTools.revalidate();
 		}
 	}
-	
+
 	private class ScenePanel extends JPanel implements ActionListener, ItemListener, DocumentListener
 	{
 		private static final long serialVersionUID = -5262653872299747841L;
@@ -1317,20 +1317,20 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 	    private final JLabel labelEnvironment = new JLabel("Read Environment");
 	    private final JTextField textFieldEnvironment = new JTextField();
 	    private final JLabel labelWritableEnvironment = new JLabel("Write Environment");
-	    private final JComboBox<Object> comboBoxWritableEnvironment = new JComboBox<Object>();
+	    private final JComboBox<Object> comboBoxWritableEnvironment = new JComboBox<>();
 	    private final JLabel labelRenderToTexture = new JLabel("RenderToTexture");
-	    private final JComboBox<Object> comboBoxRenderToTexture = new JComboBox<Object>();
+	    private final JComboBox<Object> comboBoxRenderToTexture = new JComboBox<>();
 	    private final JLabel labelForceStartpoint = new JLabel("ForceStartpoint");
-		private final JComboBox<Object> forceStartpoint = new JComboBox<Object>();
+		private final JComboBox<Object> forceStartpoint = new JComboBox<>();
 		private final JLabel labelForceEndpoint = new JLabel("Force Endpoint");
-		private final JComboBox<Object> forceEndpoint = new JComboBox<Object>();
+		private final JComboBox<Object> forceEndpoint = new JComboBox<>();
 		private final JLabel labelBounds = new JLabel("Bounds");
 		private final JMathTextField textFieldBounds = new JMathTextField();
 		private final JLabel labelTextureMapping = new JLabel("Texture Mapping");
-		private final JComboBox<TextureMapping> comboBoxTextureMapping = new JComboBox<TextureMapping>(TextureMapping.values());
+		private final JComboBox<TextureMapping> comboBoxTextureMapping = new JComboBox<>(TextureMapping.values());
 		private final JLabel startingObjects = new JLabel("Camera starting Objects");
 		private final JMathTextField cameraStartingObjects = new JMathTextField();
-		
+
 		public ScenePanel()
 		{
 			setLayout(JFrameUtils.DOUBLE_COLUMN_LAUYOUT);
@@ -1365,7 +1365,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 			add(startingObjects);
 			add(cameraStartingObjects);
 		}
-		
+
 		@Override
 		public void actionPerformed(ActionEvent ae)
 		{
@@ -1374,7 +1374,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 				scene.setVerifyRefractionIndices(checkBoxVerifyRefractionIndices.isSelected());
 			}
 		}
-		
+
 		@Override
 		public void itemStateChanged(ItemEvent ie)
 		{
@@ -1388,7 +1388,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 				if (source == forceStartpoint)					{scene.setForceStartpoint(selected);}
 				else if (source == forceEndpoint)				{scene.setForceEndpoint(forceEndpoint.getSelectedItem());}
 				else if (source == comboBoxWritableEnvironment)	{scene.setWritableEnvironmentTexture(selected == null ? null : selected.toString());}
-				else if (source == comboBoxRenderToTexture)		{scene.setRenderToTexture(selected == null ? null : selected.toString());}	
+				else if (source == comboBoxRenderToTexture)		{scene.setRenderToTexture(selected == null ? null : selected.toString());}
 				else if (source == comboBoxTextureMapping)		{scene.setTextureMapping((TextureMapping)comboBoxTextureMapping.getSelectedItem());}
 				isUpdating = false;
 			}
@@ -1432,23 +1432,23 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 			changedUpdate(arg0);
 		}
 	}
-	
-	
+
+
 	private final ScenePanel scenePanel = new ScenePanel();
-     
+
 	private void addTo(JMenu menu, JMenuItem toAdd)
 	{
 		menu.add(toAdd);
 		toAdd.addActionListener(this);
 	}
-	
+
     public RaySimulationGui(RaytraceScene scene){
     	this.scene = scene;
     	previewTexture = new GuiTextureObject(scene.vs, parser);
         currentVisualization = panelVisualization;
     	JMenuBar menuBar = new JMenuBar();
     	DataHandler.openWindows.incrementAndGet();
-    	openGuis.add(new WeakReference<RaySimulationGui>(this));
+    	openGuis.add(new WeakReference<>(this));
     	addWindowListener(this);
     	DataHandler.timedUpdater.add(rayUpdateHandler);
         setLayout(JFrameUtils.SINGLE_COLUMN_LAYOUT);
@@ -1459,18 +1459,18 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
         sceneObjectTrajectories.setVisible(true);
         sceneObjectEndpoints.setDrawType(DrawType.DOTS);
         sceneObjectTrajectories.setDrawType(DrawType.LINES);
-    	
+
      	menuItemNew.setMnemonic('N');
     	menuItemClear.setMnemonic('C');
     	menuItemAppend.setMnemonic('A');
     	menuItemOpen.setMnemonic('O');
     	menuItemSave.setMnemonic('S');
     	menuItemExportTo.setMnemonic('E');
-    	
+
     	menuItemCopy.setMnemonic('C');
     	menuItemCut.setMnemonic('X');
     	menuItemPaste.setMnemonic('P');
-    	
+
     	menuFile.setMnemonic('F');
     	addTo(menuFile,menuItemNew);
     	addTo(menuFile,menuItemClear);
@@ -1512,14 +1512,14 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
     	selectedObjectPanel.setLayout(new BoxLayout(selectedObjectPanel, BoxLayout.Y_AXIS));
     	panelTools.setVisible(false);
     	panelTools.addContainerListener(this);
-        
+
         setBounds(10,10, 505, 330);
         setTitle("Projekteinstellungen");
         setResizable(true);
         setMinimumSize(getPreferredSize());
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         DataHandler.addToUpdateTree(this);
-		
+
 		toggleButtonTwoD.addActionListener(this);
 		toggleButtonThreeD.addActionListener(this);
 		toggleButtonRaytrace.addActionListener(this);
@@ -1531,9 +1531,9 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		tableModelVolumes.addTableModelListener(this);
 		tableModelTextures.addTableModelListener(this);
 		tableModelMeshes.addTableModelListener(this);
-		
+
 		scene.add(this);
-		
+
 		scene.addObjectChangeListener((GuiTextureObject.TextureObjectChangeListener)this);
 		scene.addObjectChangeListener((GuiOpticalVolumeObject.OpticalVolumeObjectChangeListener)this);
 		scene.addObjectChangeListener((GuiOpticalSurfaceObject.OpticalSurfaceObjectChangeListener)this);
@@ -1550,11 +1550,11 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		volumeDeleteColumn.setMnemonic(KeyEvent.VK_D);
 		volumeLoadColumn.setMnemonic(KeyEvent.VK_D);
 		volumeViewColumn.setMnemonic(KeyEvent.VK_D);
-		texturOpenColumn.setMnemonic(KeyEvent.VK_D);	
-		texturLoadColumn.setMnemonic(KeyEvent.VK_D);	
-		texturSaveColumn.setMnemonic(KeyEvent.VK_D);	
+		texturOpenColumn.setMnemonic(KeyEvent.VK_D);
+		texturLoadColumn.setMnemonic(KeyEvent.VK_D);
+		texturSaveColumn.setMnemonic(KeyEvent.VK_D);
 		texturSaveToColumn.setMnemonic(KeyEvent.VK_D);
-		texturViewColumn.setMnemonic(KeyEvent.VK_D);	
+		texturViewColumn.setMnemonic(KeyEvent.VK_D);
 		texturDeleteColumn.setMnemonic(KeyEvent.VK_D);
 
 		tapPane.add(scrollPaneSurfaces, "Surfaces");
@@ -1563,11 +1563,11 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		tapPane.add(scrollPaneTextures, "Textures");
 		tapPane.add(scenePanel, "Scene");
 		tapPane.add(textAreaProjectInformation,"Description");
-		
+
 		JPanel contentPanel = new JPanel();
 		JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, tapPane, contentPanel);
 		add(splitPane);
-		
+
     	//layout = new GroupLayout(content);
 		layout = new GroupLayout(contentPanel);
         contentPanel.setLayout(layout);
@@ -1585,7 +1585,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 				.addComponent(panelVisualization, 0, 0, 100000)
 				.addComponent(panelTools, 315, 315, 315))
 			.addComponent(selectedObjectPanel);
-    	
+
     	verticalGroup
 	    	.addComponent(tapPane, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
 	    	.addGroup(layout.createParallelGroup()
@@ -1600,13 +1600,13 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 	    	.addComponent(selectedObjectPanel);
      	layout.setHorizontalGroup(horizontalGroup);
         layout.setVerticalGroup(verticalGroup);
-		
+
         ButtonGroup bg = new ButtonGroup();
         toggleButtonTwoD.setSelected(true);
         bg.add(toggleButtonTwoD);
         bg.add(toggleButtonThreeD);
         bg.add(toggleButtonRaytrace);
-        
+
         setJMenuBar(menuBar);
         EventQueue.invokeLater(new Runnable()
 		{
@@ -1617,15 +1617,15 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
         	}
     	});
     }
-    
+
      @Override
 	public void itemStateChanged(ItemEvent e) {
-		
+
 	}
-     
+
      @Override
 	public void valueChanged(final byte ct, final Object o) {
-    	 
+
 	 	switch(ct)
 		{
 	 	//TODO
@@ -1658,7 +1658,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		    		((OpticalObject)o).attachements.attachObject(so, glObjectAttachementId);
 					dataChanged((OpticalObject)o);
 				}
-				
+
 				break;
 			case RaytraceScene.OBJECT_REMOVE:
 				Object attachement = ((OpticalObject) o).attachements.get(glObjectAttachementId);
@@ -1674,7 +1674,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 			default:
 				break;
 		}
-	 	
+
 		if (!isUpdating || !EventQueue.isDispatchThread())
 		{
 			EventQueue.invokeLater(new Runnable()
@@ -1758,7 +1758,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		}
 		DataHandler.runnableRunner.run(untracedRayRunnable, false);
 	}
-     
+
     public Component currentVisualization;
     private void updateThreeD()
     {
@@ -1795,11 +1795,11 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
         	currentVisualization = tmp;
         }
     }
-     
+
     private class RaytraceVisualization extends JComponent implements MouseListener, MouseMotionListener, KeyListener, TimedUpdateHandler, ComponentListener, MouseWheelListener
     {
     	/**
-		 * 
+		 *
 		 */
 		private static final long serialVersionUID = -6243329713456426333L;
 		Camera camera = new Camera();
@@ -1808,21 +1808,21 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
     	boolean triggeredUpdate = false;
     	int mouseX, mouseY;
    //	   			glScene.setCameraPosition(camera.position, camera.rotation);
- 	
-    	private class OpenGlInputHandler implements OpenGlKeyHandler, OpenGlMouseHandler 
+
+    	private class OpenGlInputHandler implements OpenGlKeyHandler, OpenGlMouseHandler
     	{
     		@Override
 			public int getX()
         	{
         		return mouseX;
         	}
-    		
+
         	@Override
 			public int getY()
         	{
         		return mouseY;
         	}
-        	
+
         	@Override
     		public boolean isButtonDown(int i) {return mButtons[i];}
 
@@ -1836,19 +1836,19 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
     		@Override
     		public boolean isJavaKeyDown(int keyDown) {return keys[keyDown];}
     	}
-    	
+
     	@Override
 		public void update() {
 			cameraListener.run();
 		}
-    	
-    	
-		
+
+
+
 		@Override
 		public int getUpdateInterval() {
 			return 10;
 		}
-    	
+
     	public RaytraceVisualization()
     	{
         	setFocusable(true);
@@ -1859,7 +1859,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
         	addMouseWheelListener(this);
         	DataHandler.timedUpdater.add(this);
     	}
-    	
+
     	CameraViewRunnable cvr = new CameraViewRunnable(scene) {
     		@Override
     		public void finished()
@@ -1948,7 +1948,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		public void componentResized(ComponentEvent arg0) {
 			camera.setSize(getWidth(), getHeight());
 		}
-		
+
 		@Override
 		public void componentShown(ComponentEvent arg0) {}
 
@@ -1966,11 +1966,11 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 			}
 		}
     }
-    
+
     private void updateAdvanced()
     {
         selectedObjectPanel.removeAll();
-    	
+
         if (advancedView)
     	{
         	int selectedRows[] = tableSurfaces.getSelectedRows();
@@ -2000,7 +2000,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
     	}
         selectedObjectPanel.revalidate();
     }
-    
+
     public void updateAllTables()
     {
     	updateSurfaceTable();
@@ -2008,9 +2008,9 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		updateTextureTable();
 		updateMeshTable();
     }
-    
-    private static final DefaultCellEditor checkBoxCellEditor = new DefaultCellEditor(new JCheckBox()); 
-    
+
+    private static final DefaultCellEditor checkBoxCellEditor = new DefaultCellEditor(new JCheckBox());
+
     private final <E extends OpticalObject> void updateTable(JTable table, JScrollPane scrollPane, ArrayList<E> objectList, COLUMN_TYPES types, DefaultTableModel tm, ButtonColumn ...buttonColumn)
     {
     	Object[][] rowData = new Object[objectList.size()][types.visibleColsSize()];
@@ -2038,11 +2038,11 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
     	tm.setDataVector(rowData, types.getVisibleColumnNames());
 		for (int i = 0; i < types.visibleColsSize(); ++i)
 		{
-			SCENE_OBJECT_COLUMN_TYPE current = types.getVisibleCol(i); 
+			SCENE_OBJECT_COLUMN_TYPE current = types.getVisibleCol(i);
 			TableColumn column = table.getColumnModel().getColumn(i);
 		  	if (current.optionType == OpticalObject.TYPE_COMBOBOX)
 		 	{
-		     	JComboBox<String> comboBox = new JComboBox<String>(current.possibleValues.toArray(new String[current.possibleValues.size()]));
+		     	JComboBox<String> comboBox = new JComboBox<>(current.possibleValues.toArray(new String[current.possibleValues.size()]));
 		     	column.setCellEditor(new DefaultCellEditor(comboBox));
 		 	}else if (current.optionType == OpticalObject.TYPE_CHECKBOX)
 		 	{
@@ -2057,12 +2057,12 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		Dimension dim = table.getPreferredSize();
 		scrollPane.setPreferredSize(new Dimension(dim.width, dim.height + table.getTableHeader().getPreferredSize().height + 8));
     }
-    
+
     void updateSurfaceTable()	{updateTable(tableSurfaces, scrollPaneSurfaces, scene.surfaceObjectList, GuiOpticalSurfaceObject.TYPES, tableModelSurfaces, surfaceDeleteColumn);}
     void updateVolumeTable()	{updateTable(tableVolumes, 	scrollPaneVolumes, 	scene.volumeObjectList,	 GuiOpticalVolumeObject.TYPES, 	tableModelVolumes, 	volumeDeleteColumn, volumeLoadColumn, volumeViewColumn);}
     void updateTextureTable()	{updateTable(tableTextures, scrollPaneTextures, scene.textureObjectList, GuiTextureObject.TYPES, 		tableModelTextures, texturOpenColumn,	texturLoadColumn, texturSaveColumn, texturSaveToColumn, texturViewColumn, texturDeleteColumn);}
     void updateMeshTable()	    {updateTable(tableMeshes,	 scrollPaneMeshes, 	scene.meshObjectList, 	 MeshObject.TYPES, 				tableModelMeshes, 	meshOpenColumn, 	meshSaveColumn,   meshDeleteColumn);}
-    
+
     private static float[] drawVolume(OpticalVolumeObject v, Drawer g, Vector2d translation, double scale, float vertices[]) throws IOException
     {
     	/*
@@ -2072,7 +2072,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		{
 			int x0 = (int)((vertices[i * 3] + translation.x) * scale);
 			int y0 = (int)((vertices[i * 3 + 1] + translation.y) * scale);
-			
+
 			for (int b = 0; b < 3; ++b)
 			{
 				int j = i | (1 << b);
@@ -2086,7 +2086,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		}*/
 		return vertices;
     }
-    
+
     private static float[] drawMesh(MeshObject mesh, Drawer g, Vector2d translation, double scale, float vertices[]) throws IOException
     {
     	vertices = ArrayUtil.ensureLength(vertices, mesh.getMeshVertexLength());
@@ -2104,7 +2104,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		}
 		return vertices;
     }
-        
+
     private static void drawSurface(OpticalSurfaceObject l, Drawer draw, Vector3d vec, Vector2d translation, double scale) throws IOException
     {
     	Vector3d midpoint = l.midpoint;
@@ -2134,7 +2134,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 				vec.rotateRadiansZ(Math.PI * 0.5);
 				double rmax = l.maxRadiusGeometric * scale;
 				vec.setNorm(rmax);
-				
+
 				if (l.minRadiusGeometric == 0)
 				{
 					draw.drawLine(x + vec.x, y + vec.y, x - vec.x, y - vec.y);
@@ -2162,7 +2162,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 					double heigh = mult * (Math.sqrt(i * i * multToRad + 1) - 1);
 					draw.pushPoint(x + i * vec.x - heigh * direction.x, y + i * vec.y - heigh * direction.y);
 				}
-				
+
 				draw.drawPolyLine();
 				break;
 			}
@@ -2174,13 +2174,13 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 				x += direction.x * scale;
 				y += direction.y * scale;
 				double mult = 0.5 * scale * l.radiusGeometricQ * l.invDirectionLengthQ/256;
-				
+
 				for (int i = -16; i <= 16; ++i)
 				{
 					double heigh = mult * (i * i);
 					draw.pushPoint(x + i * vec.x - heigh * direction.x, y + i * vec.y - heigh * direction.y);
 				}
-				
+
 				draw.drawPolyLine();
 				break;
 			}
@@ -2196,7 +2196,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 				else
 				{
 					double minArcOpen = l.getMinArcOpen() * (180 / Math.PI);
-					
+
 					draw.drawArc(x - radius, y - radius, radius *2, radius *2, arcDir - maxArcOpen, maxArcOpen - minArcOpen);
 					draw.drawArc(x - radius, y - radius, radius *2, radius *2, arcDir + minArcOpen, maxArcOpen - minArcOpen);
 				}
@@ -2211,8 +2211,8 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 				y += direction.y * scale;
 				double tmp0 = (1 + l.conicConstant);
 				double dx = direction.x * scale, dy = direction.y * scale;
-				
-				
+
+
 				double dotProdLowerBound = (l.getDotProdLowerBound() + 1) / 16;
 				double dotProdUpperBound = (l.getDotProdUpperBound() + 1) / 16;
 				draw.setPointNumber(33);
@@ -2220,7 +2220,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 				{
 					double r = (dotProdLowerBound * (16 - i) + dotProdUpperBound * i);
 					double z =  Math.sqrt(r * (2 - tmp0 * r));
-					
+
 					draw.setPoint(x + z * vec.x - r * dx, y + z * vec.y - r * dy, 16 - i);
 					draw.setPoint(x - z * vec.x - r * dx, y - z * vec.y - r * dy, 16 + i);
 				}
@@ -2244,12 +2244,12 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 			}
 			default:
 				break;
-		 
+
 		 }
     }
-    
-   
-    
+
+
+
     private static Color LENSE_INVISIBLE = new Color(0,0,0,0x40);
     private static Color EMISSION_INVISIBLE = new Color(0,0,0xFF,0x40);
 	private static Color RAY_BLACK = new Color(0xFF,0,0,0x40);
@@ -2258,7 +2258,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
     public class VisualizationPanel extends JComponent implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
     {
     	 /**
-		 * 
+		 *
 		 */
 		private static final long serialVersionUID = -5720573203358723523L;
 		private int selectedDrag = -1;
@@ -2280,7 +2280,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 			originalGeometricRadius = Double.NaN;
 			selectedDrag = -1;
 		}
-		
+
 		@Override
 		public void mousePressed(MouseEvent e) {
 			grabFocus();
@@ -2310,7 +2310,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 				{
 					case 1:
 					{
-						
+
 						if (selectedObject instanceof GuiOpticalSurfaceObject)
 						{
 							originalPosition = new Vector3d(((GuiOpticalSurfaceObject)selectedObject).position);
@@ -2341,7 +2341,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 				originalPaintOffset = new Vector2d(paintOffset);
 			}
 		}
-		
+
 		public int getLense(int ex, int ey)
 	    {
 	    	try
@@ -2394,14 +2394,14 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 				visibleErrorMessage("Unexpeted IO Error", e);
 			}
 	    	return -1;
-	    }	
-	
+	    }
+
 		@Override
 		public void mouseExited(MouseEvent e) {}
-		
+
 		@Override
 		public void mouseEntered(MouseEvent e) {}
-		
+
 		@Override
 		public void mouseClicked(MouseEvent e) {
 			if (!(advancedView&=selectedAdvanced >= 0))
@@ -2420,10 +2420,10 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 				}
 			}
 		}
-		
+
 		@Override
 		public void mouseMoved(MouseEvent e) {}
-		
+
 		@Override
 		public void mouseDragged(MouseEvent e) {
 			if (selectedDrag >= 0)
@@ -2441,20 +2441,20 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 						else if (selectedDrag < scene.surfaceObjectList.size() + scene.volumeObjectList.size())
 						{
 							int row = selectedDrag - scene.surfaceObjectList.size();
-							scene.volumeObjectList.get(row).setValue(SCENE_OBJECT_COLUMN_TYPE.POSITION, newPosition, scene.vs, parser);							
+							scene.volumeObjectList.get(row).setValue(SCENE_OBJECT_COLUMN_TYPE.POSITION, newPosition, scene.vs, parser);
 						}
 						else if (selectedDrag < scene.surfaceObjectList.size() + scene.volumeObjectList.size() + scene.meshObjectList.size())
 						{
 							int row = selectedDrag - scene.surfaceObjectList.size() - scene.volumeObjectList.size();
-							scene.meshObjectList.get(row).setValue(SCENE_OBJECT_COLUMN_TYPE.POSITION, newPosition, scene.vs, parser);							
+							scene.meshObjectList.get(row).setValue(SCENE_OBJECT_COLUMN_TYPE.POSITION, newPosition, scene.vs, parser);
 						}
 					} catch (OperationParseException ex) {
 						logger.error("Can't read math expression",ex);
 					} catch (NumberFormatException ex) {
 						logger.error("Can't read number", ex);
 					}
-				}	
-				
+				}
+
 				if (!Double.isNaN(originalGeometricRadius))
 				{
 					newGeometricRadius = originalGeometricRadius;
@@ -2467,7 +2467,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 						logger.error("Can't read number", ex);
 					}
 				}
-				
+
 				if (originalDirection != null)
 				{
 					newDirection.set(originalDirection);
@@ -2490,13 +2490,13 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 				repaint();
 			}
 		}
-		
+
 		@Override
 		public void mouseWheelMoved(MouseWheelEvent e) {
 			scale *= Math.exp(-0.02*e.getUnitsToScroll());
 			repaint();
 		}
-		
+
 		public VisualizationPanel() {
 			setFocusable(true);
 			addMouseListener(this);
@@ -2504,7 +2504,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 			addMouseWheelListener(this);
 			addKeyListener(this);
 		}
-		
+
 		private double trajectory[] = UniqueObjects.EMPTY_DOUBLE_ARRAY;
 		private final Vector3d v0 = new Vector3d();
 		private final Rectangle bounds = new Rectangle();
@@ -2521,7 +2521,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		private final RayGenerator gen = new RayGenerator();
 		private final StringBuilder strB = new StringBuilder();
 		private final NearestPointCalculator npc = new NearestPointCalculator(3);
-		
+
 		public synchronized void paintComponent(Drawer gd) throws IOException
 		{
 			globalPaintOffset.set(gd.getWidth() * 0.5, gd.getHeight() * 0.5);
@@ -2532,7 +2532,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 				super.paintComponent(((Drawer.GraphicsDrawer)gd).getOutput());
 			}
 			scene.updateScene();
-			
+
 			if (gd instanceof Drawer.GraphicsDrawer)
 			{
 				Graphics g = ((Drawer.GraphicsDrawer)gd).getOutput();
@@ -2585,7 +2585,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 			{
 				final SurfaceObject source = (SurfaceObject)scene.getActiveLight(i);
 				gen.setSource(source);
-				
+
 				int bidirCount = source.numTracedRays * (source.bidirectional ? 2 : 1);
 				if (trajectory.length < (maxBounces * 3 + 6) * bidirCount)
 				{
@@ -2614,9 +2614,11 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 							npc.addRay(endpos, enddir, j * 3);
 						}
 					}
-					npc.calculate();
-					gd.setColor(Color.BLACK);
-					gd.drawArc((npc.get(0) + globalPaintOffset.x) * scale-5, (npc.get(1) + globalPaintOffset.y) * scale-5, 10, 10, 0, 360);
+					if (npc.calculate() == 3)
+					{
+	                    gd.setColor(Color.BLACK);
+	                    gd.drawArc((npc.get(0) + globalPaintOffset.x) * scale-5, (npc.get(1) + globalPaintOffset.y) * scale-5, 10, 10, 0, 360);
+					}
 					npc.reset();
 				}
 				if (true)
@@ -2721,7 +2723,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 			Arrays.fill(sceneTrajectories, sceneTrajectoryWriteIndex * 3, sceneTrajectories.length, Float.NaN);
 			sceneObjectTrajectories.update(UpdateKind.DATA);
 		}
-		
+
 		private double getScale(int pow)
 		{
 			pow += 3000000;
@@ -2734,7 +2736,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 				default: throw new RuntimeException();
 			}
 		}
-		
+
 		@Override
 		protected synchronized void paintComponent( Graphics g )
     	{
@@ -2759,7 +2761,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 					case KeyEvent.VK_C:copyClipboard();break;
 					case KeyEvent.VK_X:cutClipboard();break;
 					case KeyEvent.VK_V:pasteClipboard();break;
-						
+
 				}
 			}
 		}
@@ -2770,7 +2772,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		@Override
 		public void keyTyped(KeyEvent e) {}
     }
-    
+
     /*private static void fill(Object[] row, GuiOpticalObject goo)
     {
     	for (int i = 0; i < COLUMN_TYPE.size(); ++i)
@@ -2778,7 +2780,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
     		row[i] = goo.getValue(COLUMN_TYPE.get(i));
     	}
     }*/
-    
+
 	/*public static BufferedImage toBufferedImage(Image img)
 	{
 	    if (img instanceof BufferedImage)
@@ -2792,10 +2794,10 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 	    return bimage;
 	}*/
 
-	
+
 	private final ThreadPool.RunnableObject untracedRayRunnable = new ThreadPool.RunnableObject("UntracedRays", null){
 		private float enddirs[] = UniqueObjects.EMPTY_FLOAT_ARRAY;
-		private final ThreadPool.ThreadLocal<RaySimulationObject> rso = DataHandler.runnableRunner.new ThreadLocal<RaySimulationObject>();
+		private final ThreadPool.ThreadLocal<RaySimulationObject> rso = DataHandler.runnableRunner.new ThreadLocal<>();
 		private final AtomicInteger startPointIndexCount = new AtomicInteger(0);
 		private final RayGenerator gen = new RayGenerator();
 		private byte accepted[] = UniqueObjects.EMPTY_BYTE_ARRAY;
@@ -2803,14 +2805,14 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		private OpticalObject endObject[] = OpticalObject.EMPTY_ARRAY;
 		private final AtomicInteger notAcceptedCount = new AtomicInteger(0);
 		ParallelRangeRunner prr = new ParallelRangeRunner();
-		
+
 		class ParallelRangeRunner implements ParallelRangeRunnable
 		{
 			boolean bidirectional = false;
 			float endpoints[];
 			float endpointColor[];
 			int numUntracedRays;
-			
+
 			@Override
 			public void run(int from, int to) {
 				RaySimulationObject currentRay = rso.get();
@@ -2824,11 +2826,11 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 				DoubleMatrixUtil.multiply(endpoints, dScale, endpointIndex * 3, (endpointIndex + writeSize) * 3);
 				//Arrays.fill(endpoints, acceptedCount * 3, (endpointIndex + writeSize) * 3, Float.NaN);
 			}
-			
+
 			@Override
 			public void finished() {}
 		}
-		
+
 		@Override
 		public void run(){
 			scene.updateScene();
@@ -2857,7 +2859,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
     			sceneObjectEndpoints.setSize(numUntracedRays);
     			final float endpoints[] = sceneObjectEndpoints.getVertices();
     			final float endpointColor[] = sceneObjectEndpoints.getVertexColor();
-    			
+
 				gen.threeDimensional = true;
     			for (int i = 0; i < scene.getActiveLightCount(); ++i)
     			{
@@ -2881,7 +2883,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
             }
         }
     };
-	
+
 	@Override
 	public void dispose()
 	{
@@ -2901,7 +2903,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		}
 		//TODO clean gui-references
 	}
-	
+
 	public static RaySimulationGui getOpenGui(RaytraceScene scene)
 	{
 		for (int i = 0; i < openGuis.size(); ++i)
@@ -2937,12 +2939,12 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 			GuiOpticalVolumeObject current = (GuiOpticalVolumeObject)source;
 			Object attachement = current.attachements.get(glObjectAttachementId);
 			if (attachement != null)
-			{	
+			{
 				if (attachement instanceof SceneObjectMesh)
 				{
 					SceneObjectMesh currentMesh = (SceneObjectMesh)attachement;
 					float vertices[] = currentMesh.getVertices();
-					
+
 					currentMesh.setDrawType(SceneObject.DrawType.SOLID);
 					vertices = ArrayUtil.setToLength(vertices, current.numMeshVertices() * 3);
 					current.getMeshVertices(vertices);

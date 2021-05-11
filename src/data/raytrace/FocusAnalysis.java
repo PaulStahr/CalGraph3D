@@ -51,7 +51,7 @@ public class FocusAnalysis {
 	{
 		this.finishRunnable = runnable;
 	}
-	
+
 	public void run()
 	{
 		sourceElevations = new double[numElevations];
@@ -75,7 +75,7 @@ public class FocusAnalysis {
 			int jsteps = threeDim ? 1 + (int)(Math.sin(elevation) * numElevations) : 2;
 			azimuths[i] = new double[jsteps];
 			double jstep = Math.PI * 2 / jsteps;
-			
+
 			for (int j = 0; j < jsteps; ++j)
 			{
 				azimuths[i][j] = j * jstep;
@@ -86,7 +86,7 @@ public class FocusAnalysis {
 		pixelCount = new int[width * height];
 		vertices = new double[startIndex[numElevations] * 3];
 		ParallelRangeRunnable prr = new ThreadPool.ParallelRangeRunnable() {
-			
+
 
 			@Override
 			public void run(int from, int to) {
@@ -100,7 +100,7 @@ public class FocusAnalysis {
 				gen.threeDimensional = true;
 				gen.setSource(lightSource);
 				DoubleArrayList destinationElevations = new DoubleArrayList();
-				
+
 				NearestPointCalculator npc = new NearestPointCalculator(3);
 				Vector3d focalPoint = new Vector3d();
 				for (int i = from; i < to; ++i)
@@ -116,7 +116,7 @@ public class FocusAnalysis {
 						bundleWeightPoint.set(0,0,0);
 						gen.setArcs(sourceElevations[i], azimuths[i][j]);
 						scene.calculateRays(0, raycount, raycount, gen, 0, 0, null, null, rsd.endpoints, rsd.enddirs, rsd.endcolor, null, rsd.accepted, rsd.bounces, rsd.lastObject, maxBounces, false, currentRay, RaytraceScene.UNACCEPTED_DELETE);
-						
+
 						npc.reset();
 						for (int k = 0; k < raycount; ++k)
 						{
@@ -127,9 +127,8 @@ public class FocusAnalysis {
 							}
 						}
 						int bundleAcceptedCount = npc.getCount();
-						npc.calculate();
-						npc.get(focalPoint);
-						if (bundleAcceptedCount == 0){focalPoint.set(Double.NaN, Double.NaN, Double.NaN);}
+						if (bundleAcceptedCount == 0 || npc.calculate() != 3){focalPoint.set(Double.NaN, Double.NaN, Double.NaN);}
+						else {npc.get(focalPoint);}
 						focalPoint.write(vertices, (startIndex[i] + j) * 3);
 						lineFocusToDestinationMidpointDistance += destination.midpoint.distance(focalPoint);
 						lineAcceptedCount += bundleAcceptedCount;
@@ -150,7 +149,7 @@ public class FocusAnalysis {
 						for (int k = 0; k < raycount; ++k)
 						{
 							if (rsd.lastObject[k] == destination && rsd.accepted[k] == RaytraceScene.STATUS_ACCEPTED)
-							{							
+							{
 								position.set(rsd.endpoints, k * 3);
 								direction.set(rsd.enddirs,  k * 3);
 								destination.getTextureCoordinates(position, direction, tc);
@@ -182,7 +181,7 @@ public class FocusAnalysis {
 					System.out.println();
 				}
 			}
-			
+
 			@Override
 			public void finished()
 			{

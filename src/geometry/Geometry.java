@@ -107,20 +107,52 @@ public class Geometry {
 
 		public int getCount(){return count;}
 
-		public final void calculate()
-		{
-			for (int i = 0; i < dim; ++i)
-			{
-			    mat[i * nCols + i] -= count;
-				for (int j = 0; j < i; ++j)
-				{
-					mat[j * nCols + i] = mat[i * nCols + j];
-				}
-			}
-			Calculate.toRREF(mat, dim);
+		@Override
+        public final String toString() {
+		    StringBuilder strB = new StringBuilder();
+		    double mat[] = this.mat.clone();
+		    prepareMatrix(mat);
+		    for (int i = 0; i < dim; ++i)
+		    {
+		        for (int j = 0; j < nCols; ++j)
+		        {
+                    if (j != 0)
+                    {
+                        strB.append(',');
+                    }
+		            strB.append(mat[i * nCols + j]);
+		        }
+		        strB.append('\n');
+		    }
+		    return strB.toString();
 		}
 
-		public final double get(int index){return mat[index * nCols + dim];}
+		public final int calculate()
+		{
+		    prepareMatrix(mat);
+			int res = Calculate.toRREF(mat, dim);
+			for (int i = 0; i < dim; ++i)
+		    {
+			    if (Math.abs(mat[i * nCols + i] - 1) > 0.01)
+			    {
+			        return i;
+			    }
+		    }
+			return res;
+		}
+
+		private void prepareMatrix(double[] mat) {
+		    for (int i = 0; i < dim; ++i)
+            {
+                mat[i * nCols + i] -= count;
+                for (int j = 0; j < i; ++j)
+                {
+                    mat[j * nCols + i] = mat[i * nCols + j];
+                }
+            }
+        }
+
+        public final double get(int index){return mat[index * nCols + dim];}
 
 		public final void get(Vectord vec)
 		{

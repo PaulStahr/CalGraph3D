@@ -57,7 +57,7 @@ import util.stream.NullOutputStream;
 
 public class RaytraceCommandLine {
 	private static final Logger logger = LoggerFactory.getLogger(RaytraceCommandLine.class);
-	ArrayList<String> split = new ArrayList<String>();
+	ArrayList<String> split = new ArrayList<>();
 	ParseUtil parser = new ParseUtil();
 	CalculationController control = new Controller();
 	public static enum InterpreterState{
@@ -68,7 +68,7 @@ public class RaytraceCommandLine {
 	{
 		public final File scriptDir;
 		public final ArrayList<InterpreterState> interpreterState = new ArrayList<>();
-		
+
 		public ExecEnv(File scriptDir)
 		{
 			this.scriptDir = scriptDir;
@@ -85,7 +85,7 @@ public class RaytraceCommandLine {
 			return true;
 		}
 	}
-	
+
 	private void exec_impl(
 			String command,
 			ExecEnv env,
@@ -100,7 +100,7 @@ public class RaytraceCommandLine {
 		if (logger.isDebugEnabled()) {logger.debug("Running command " + command);}
 		StringUtils.split_in_args(split, command, 0, command.length(), new StringBuilder());
 		int interpreterStackSize = env.interpreterState.size();
-		
+
 		if (split.get(0).equals("if"))
 		{
 			String exp = split.get(1);
@@ -114,7 +114,7 @@ public class RaytraceCommandLine {
 			}
 			else
 			{
-	            throw new RuntimeException("Can't interpret " + exp + " as boolean expression");				
+	            throw new RuntimeException("Can't interpret " + exp + " as boolean expression");
 			}
 		}
 		else if (split.get(0).equals("else"))
@@ -338,7 +338,7 @@ public class RaytraceCommandLine {
 					}
 					else
 					{
-						ArrayList<String> tmp = new ArrayList<String>();
+						ArrayList<String> tmp = new ArrayList<>();
 						LockbackUtil.getLogLevel(tmp);
 						for (int i = 0; i < tmp.size(); ++i)
 						{
@@ -486,7 +486,7 @@ public class RaytraceCommandLine {
 							npc.addRay(rsd.endpoints, rsd.enddirs, k * 3);
 						}
 					}
-					npc.calculate();
+					assert(npc.calculate() == 3);
 					npc.get(focalPoint);
 
 					for (int k = 0; k < raycount; ++k)
@@ -527,7 +527,7 @@ public class RaytraceCommandLine {
 					final RayGenerator gen = new RayGenerator();
 					gen.setSource(source);
 					final int numRays = 10000;
-					
+
 					int bidirCount = numRays * (source.bidirectional ? 2 : 1);
 					final float endpos[] = new float[bidirCount * 3];
 					final float enddir[] = new float[bidirCount * 3];
@@ -553,7 +553,7 @@ public class RaytraceCommandLine {
 									npc.addRay(endpos, enddir, j * 3);
 								}
 							}
-							npc.calculate();
+							assert(npc.calculate() == 3);
 							npc.get(vec);
 							try {
 								out.write(value + "->" + destination.evaluate_inner_outer(vec) + "\t" + vec + "\t" + npc.getCount() + "\n");
@@ -624,7 +624,7 @@ public class RaytraceCommandLine {
 								return obj instanceof RaySimulationGui && ((RaySimulationGui)obj).scene == scene;
 							}
 						});
-	
+
 						int width = Integer.parseInt(split.get(2));
 						int height = Integer.parseInt(split.get(3));
 						File file = new File(split.get(4));
@@ -677,7 +677,7 @@ public class RaytraceCommandLine {
 					fc.raycount = Integer.parseInt(split.get(4));
 					fc.width = 512;
 					fc.height = 512;
-					fc.threeDim = Boolean.parseBoolean(split.get(5)); 
+					fc.threeDim = Boolean.parseBoolean(split.get(5));
 					fc.numElevations = Integer.parseInt(split.get(6));
 					fc.scene = scene;
 					fc.wait = true;
@@ -686,11 +686,11 @@ public class RaytraceCommandLine {
 					{
 						switch(split.get(i))
 						{
-							case "tableout" : 
+							case "tableout" :
 							{
 								FileWriter writer = new FileWriter(split.get(i + 1));
 								BufferedWriter outBuf = new BufferedWriter(writer);System.out.println("Elevation " + Arrays.toString(fc.sourceElevations));
-								IOUtil.writeColumnTable(new String[] 	{"elevation", 			"destination_elevation_average", "destination_elevation_variance", 	"destination_eucledean_variance", 	"accepted_ratio", 	"focal_distance", 	"hitpoint_distance"}, 
+								IOUtil.writeColumnTable(new String[] 	{"elevation", 			"destination_elevation_average", "destination_elevation_variance", 	"destination_eucledean_variance", 	"accepted_ratio", 	"focal_distance", 	"hitpoint_distance"},
 										new Object[] 					{fc.sourceElevations, 	fc.destinationElevationAveraged, fc.destinationElevationVariance, 	fc.destinationEucledeanVariance,	fc.acceptedRatio, 	fc.focusToDestinationDistances, 	fc.focusToHitpointDistances}, outBuf);
 								outBuf.close();
 								writer.close();
@@ -812,7 +812,7 @@ public class RaytraceCommandLine {
 		}
 		split.clear();
 	}
-	
+
 	public void exec(
 		String command,
 		BufferedWriter out,
@@ -835,7 +835,7 @@ public class RaytraceCommandLine {
 		command = command.replace("${sdir}", env.scriptDir.getAbsolutePath());
 		exec_impl(command, env, out, variables);
 	}
-	
+
 	public void run(InputStream in, BufferedWriter out, List<String> variables, ExecEnv env) throws IOException
 	{
 		InputStreamReader reader = new InputStreamReader(in);

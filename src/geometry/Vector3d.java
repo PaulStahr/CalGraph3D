@@ -1,16 +1,16 @@
 /*******************************************************************************
  * Copyright (c) 2019 Paul Stahr
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,7 +25,7 @@ import java.nio.IntBuffer;
 
 import util.data.DoubleList;
 
-/** 
+/**
 * @author  Paul Stahr
 * @version 04.02.2012
 */
@@ -50,7 +50,7 @@ public final class Vector3d implements Vectord
 	    	default: throw new ArrayIndexOutOfBoundsException(index);
     	}
     }
-    
+
     @Override
     public void setElem(int index, double value)
     {
@@ -73,7 +73,7 @@ public final class Vector3d implements Vectord
     	}
     	return false;
     }
-    
+
     public void sub(final Vector3f v){x -= v.x;y -= v.y;z -= v.z;}
     public void sub(final Vector3d v){x -= v.x;y -= v.y;z -= v.z;}
 
@@ -81,7 +81,7 @@ public final class Vector3d implements Vectord
 	public void divide(Vector3d v) 	 {x /= v.x;y /= v.y;z /= v.z;}
 
     public final boolean containsNaN(){return Double.isNaN(x) || Double.isNaN(y) || Double.isNaN(z);}
-    
+
      /**
      * erzeugt eine Normale
      */
@@ -95,7 +95,7 @@ public final class Vector3d implements Vectord
      * erzeugt eine Normale
      */
     public final void calcNormal(final Vector3f v0, final Vector3f v1, final Vector3f v2){
-        final double ax = v0.x-v1.x, ay = v0.y-v1.y, az = v0.z-v1.z; 
+        final double ax = v0.x-v1.x, ay = v0.y-v1.y, az = v0.z-v1.z;
         final double bx = v1.x-v2.x, by = v1.y-v2.y, bz = v1.z-v2.z;
         x = ay*bz - az*by;
         y = az*bx - ax*bz;
@@ -105,7 +105,7 @@ public final class Vector3d implements Vectord
     public final void normalize(){multiply(1/norm());}
     public final void setNorm(double length){multiply(length / norm());}
     public final double norm(){return Math.sqrt(dot());}
-    
+
     public final void multiply(final double m){x*=m;y*=m;z*=m;}
 	public final void multiply(Vector3d v) {x *= v.x;y *= v.y;z *= v.z;}
 
@@ -119,7 +119,7 @@ public final class Vector3d implements Vectord
     	else if (data instanceof DoubleList){set((DoubleList)data, pos);}
     	else{throw new IllegalArgumentException(data.getClass().toString());}
     }
-    
+
     public final void write(Object data, int pos)
     {
     	if 		(data instanceof float[])	{write((float[])data, pos);}
@@ -128,7 +128,7 @@ public final class Vector3d implements Vectord
     	else if (data instanceof IntBuffer)	{write((IntBuffer)data, pos);}
     	else{throw new IllegalArgumentException(data.getClass().toString());}
     }
-    
+
     public final void write(final double data[], final int pos){data[pos] = x;data[pos + 1] = y;data[pos + 2] = z;}
     public final void write(float data[], int pos){data[pos] = (float)x;data[pos + 1] = (float)y;data[pos + 2] = (float)z;}
     public final void write(DoubleList list, int index)
@@ -137,7 +137,7 @@ public final class Vector3d implements Vectord
     	list.setElem(index + 1, this.y);
     	list.setElem(index + 2, this.z);
     }
-    
+
     public final void write(IntBuffer list, int index)
     {
     	list.put(index, 	(int)this.x);
@@ -162,7 +162,7 @@ public final class Vector3d implements Vectord
     	rotateRadiansY(-r.getYRadians());
     	rotateRadiansX(-r.getXRadians());
     }
-    
+
     /**
      * Rotiert den Vektor.
      * @param x die Rotation um die x-Achse
@@ -200,7 +200,7 @@ public final class Vector3d implements Vectord
         y = sin*x+cos*y;
         x = tmp;
     }
-    
+
     @Override
 	public final double dot() {return x * x + y * y + z * z;}
     public final double dot(Vector3d v){return x * v.x + y * v.y + z * v.z;}
@@ -211,7 +211,7 @@ public final class Vector3d implements Vectord
 
     public final void set(final double x, final double y, final double z){this.x=x;this.y=y;this.z=z;}
     public final void set(DoubleList list, int index){this.x = list.getD(index);this.y = list.getD(index + 1);this.z = list.getD(index + 2);}
-    
+
     public final void set(final Vector3f v){x = v.x;y = v.y;z = v.z;}
     public final void set(final Vector2d v){x = v.x;y = v.y;}
     public final void set(final Vector3d v){x = v.x;y = v.y;z = v.z;}
@@ -265,9 +265,12 @@ public final class Vector3d implements Vectord
 
     public final void add(final Vector2d v){x += v.x;y += v.y;}
     public final void add(final Vector3f v){x += v.x;y += v.y;z += v.z;}
-    public final void add(final Vector3d v){x += v.x;y += v.y;z += v.z;}
+    public final Vector3d add(final Vector3d v){x += v.x;y += v.y;z += v.z;return this;}
     public final void add(final Vector3d v, double s){x += v.x * s;y += v.y * s;z += v.z * s;}
-    
+
+    public double[] toArrayD() {return new double[] {x,y,z};}
+    public float[] toArrayF() {return new float[] {(float)x,(float)y,(float)z};}
+
     /**
      * Addiert zum Vektor bestimmte Werte.
      * @param vektor der Vektor der addiert werden soll
