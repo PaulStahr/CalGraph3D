@@ -8,7 +8,7 @@ import geometry.Vector2d;
 import geometry.Vector3d;
 
 public abstract class AbstractRayGenerator {
-	public abstract void generate(int index, int numrays, Vector3d position, Vector3d direction, Vector2d textureCoordinate, int color[]);
+	public abstract void generate(int index, int numrays, Vector3d position, Vector3d direction, Vector2d textureCoordinate, float[] color);
 	
 	public OpticalObject getSource()
 	{

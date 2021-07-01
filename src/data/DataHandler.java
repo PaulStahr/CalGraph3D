@@ -1,16 +1,16 @@
 /*******************************************************************************
  * Copyright (c) 2019 Paul Stahr
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -69,7 +69,6 @@ import maths.exception.OperationParseException;
 import maths.variable.Variable;
 import maths.variable.VariableStack;
 import util.BufferedZipReader;
-import util.IOUtil;
 import util.JFrameUtils;
 import util.SaveLineCreator;
 import util.StringUtils;
@@ -77,10 +76,11 @@ import util.ThreadPool;
 import util.TimedUpdater;
 import util.data.UniqueObjects;
 import util.functional.BooleanFunction;
+import util.io.IOUtil;
 
 /**
  * Write a description of class DataHandler here.
- * 
+ *
  * @author  Paul Stahr
  * @version 04.02.2012
  */
@@ -93,10 +93,10 @@ public abstract class DataHandler
     public static final ThreadPool runnableRunner = new ThreadPool(5000);
     public static final TimedUpdater timedUpdater = new TimedUpdater(10);
     private static final String resourceFolder = "/resources/";
-    private static final ArrayList<WeakReference<JFrame> > updateUIList = new ArrayList<WeakReference<JFrame>>();
-    
+    private static final ArrayList<WeakReference<JFrame> > updateUIList = new ArrayList<>();
+
     public static AtomicInteger openWindows = new AtomicInteger();
-    
+
     public static final JFrame findJFrame(BooleanFunction<JFrame> func)
     {
     	for (int i = 0; i < updateUIList.size(); ++i)
@@ -125,11 +125,11 @@ public abstract class DataHandler
    				logger.error("Can't set UIManager:", e);
    			}catch (IllegalAccessException e) {
    				logger.error("Can't set UIManager:", e);
-   			}      			
-		}        			
+   			}
+		}
 	};
-	
-	
+
+
 	public static void loadLib(String file) throws IOException {
     	InputStream in = DataHandler.getResourceAsStream(file);
     	String name = file.substring(Math.max(0,file.lastIndexOf('/')));
@@ -141,7 +141,7 @@ public abstract class DataHandler
         out.close();
         System.load(fileOut.toString());
 	}
-	
+
 	private static final maths.ProgramFunction saveFunction = new maths.ProgramFunction("save") {
 		@Override
 		public void run(){
@@ -168,20 +168,20 @@ public abstract class DataHandler
     		}
     	});
         maths.OperationCompiler.addProgramFunction(saveFunction);
-	}    
+	}
 
     private DataHandler(){}
-    
+
     public static final URL getResource(String resource)
     {
     	return DataHandler.class.getResource(DataHandler.getResourceFolder().concat(resource));
     }
-    
+
     public static final InputStream getResourceAsStream(String file)
     {
     	return DataHandler.class.getResourceAsStream(getResourceFolder().concat(file));
     }
-    
+
     public static final String getResourceAsString(String file) throws IOException
     {
 		InputStream stream = DataHandler.getResourceAsStream(file);
@@ -193,7 +193,7 @@ public abstract class DataHandler
     public static final String getResourceFolder(){
     	return resourceFolder;
     }
-    
+
     public static final void setLookAndFeel(final Object lafi){
     	if (lafi instanceof LookAndFeelInfo){
     		if (UIManager.getLookAndFeel().getName().equals(((LookAndFeelInfo)lafi).getName()))
@@ -205,14 +205,14 @@ public abstract class DataHandler
     		throw new IllegalArgumentException();
     	}
     }
-    
+
     public static final void setLookAndFeel(String laf){
     	if (lookAndFeel.equals(laf))
     		return;
     	lookAndFeel = laf;
     	JFrameUtils.runByDispatcher(updateLookAndFeel);
     }
-    
+
     public static final void load (String file, Interface window){
 		final OperatingSystemMXBean bean =  ManagementFactory.getOperatingSystemMXBean();
 		final BigInteger THOUSAND = BigInteger.valueOf(1000);
@@ -250,7 +250,7 @@ public abstract class DataHandler
         try{
             final ZipInputStream zipInStream = new ZipInputStream(stream);
             final BufferedZipReader inBuffer = new BufferedZipReader(zipInStream, "UTF-16");
-            final ArrayList<String> ll = new ArrayList<String>();
+            final ArrayList<String> ll = new ArrayList<>();
             ZipEntry entry;
             while ((entry = inBuffer.getNextEntry())!=null){
                 final String name = entry.getName();
@@ -284,7 +284,7 @@ public abstract class DataHandler
 							} catch (OperationParseException e) {
 								logger.error("Error at reading variables", e);
 							}
-                    }                    
+                    }
                 }else if (name.equals("Graph")){
                     ll.clear();
                     while (null!=(line=inBuffer.readLine())){
@@ -304,7 +304,7 @@ public abstract class DataHandler
                         	ll.add(line);
                         }
                     }
-                }else if (name.startsWith("Graph")){                    
+                }else if (name.startsWith("Graph")){
                    	ll.clear();
                     while (null!=(line=inBuffer.readLine()))
                     	ll.add(line);
@@ -365,7 +365,7 @@ public abstract class DataHandler
         if (currentFile == null || currentFile.length()==0)
             return false;
         save (currentFile);
-        return true;    
+        return true;
     }
 
     public static final synchronized void save (String file){
@@ -457,25 +457,25 @@ public abstract class DataHandler
 	        JOptionPane.showConfirmDialog(null, "Fehler", "Kann Projekt nicht Speichern." , JOptionPane.DEFAULT_OPTION);
         }
     }
-    
+
     public static final List<String> getRecentFiles(ArrayList<String> list){
       	String value = Options.getString("recent_files");
       	if (value.length() <= 2 || value.charAt(0) != '{' || value.charAt(value.length()-1) != '}')
       		return list;
       	if (list == null)
-      		list = new ArrayList<String>();
+      		list = new ArrayList<>();
       	StringUtils.split(value, 1, value.length() - 1, ',', false, list);
     	return list;
-    	
+
     }
-    
+
     public static final String[] getRecentFiles(){
     	List<String> l = getRecentFiles(null);
     	if (l == null)
     		return UniqueObjects.EMPTY_STRING_ARRAY;
     	return l.toArray(new String[l.size()]);
     }
-    
+
     public synchronized static void addRecentFile (String file){
     	if (file == null)
     		throw new NullPointerException();
@@ -494,7 +494,7 @@ public abstract class DataHandler
  			else if (recentFiles.size() == 20)
 				recentFiles.remove(19);
      		recentFiles.add(0, file);
-	    	
+
      		StringBuilder strB = new StringBuilder();
 	        strB.append('{').append(recentFiles.get(0));
 	        for (int i=1;i<recentFiles.size();i++)
@@ -506,13 +506,13 @@ public abstract class DataHandler
     		logger.error("Error at adding recent file: ", e);
     	}
     }
-    
+
     public static final void reset(Interface window){
         load(DataHandler.getResource("/start.graph"), window);
     }
 
 
 	public static void addToUpdateTree(JFrame frame) {
-		updateUIList.add(new WeakReference<JFrame>(frame));
+		updateUIList.add(new WeakReference<>(frame));
 	}
 }

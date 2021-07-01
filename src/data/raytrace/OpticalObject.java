@@ -55,28 +55,28 @@ public abstract class OpticalObject {
 	private static final Logger logger = LoggerFactory.getLogger(OpticalObject.class);
 	private int oldModCount = 0;
 	private int modCount = 0;
-	
+
 	private final ArrayList<DataChangeListener> dataChangeListeners = new ArrayList<>();
 
 	public final void addDataChangeListener(DataChangeListener tcl) {
 		dataChangeListeners.add(tcl);
 	}
-	
+
 	public final void removeDataChangeListener(DataChangeListener tcl) {
 		dataChangeListeners.remove(tcl);
 	}
-	
+
 	public final void modified()
 	{
 		++modCount;
 	}
-	
+
 	public final int modCount()
 	{
 		return modCount;
 	}
-	
-	
+
+
 	protected final void updateIds(byte ordinal, Operation op)
 	{
 		removeType(ordinal);
@@ -87,8 +87,8 @@ public abstract class OpticalObject {
 			al.clear();
 		}
 	}
-	
-	public final void triggerModificationEvents() 
+
+	public final void triggerModificationEvents()
 	{
 		if (oldModCount  != modCount)
 		{
@@ -100,7 +100,7 @@ public abstract class OpticalObject {
 			//DataHandler.globalVariables.setGlobal(getId() + "_data", new ArrayOperation(data));
 		}
 	}
-	
+
 	public static class COLUMN_TYPES
 	{
 		SCENE_OBJECT_COLUMN_TYPE cols[];
@@ -126,38 +126,38 @@ public abstract class OpticalObject {
 		public int getVisibleColumnNumber(SCENE_OBJECT_COLUMN_TYPE col) {
 			return ArrayUtil.linearSearch(visibleCols, col);
 		}
-	    
+
 		public int getColumnNumber(SCENE_OBJECT_COLUMN_TYPE col) {
 			return ArrayUtil.linearSearch(cols, col);
 		}
-	    
+
 	    public final int colSize()
 	    {
 	    	return cols.length;
 	    }
-	    
+
 	    public final SCENE_OBJECT_COLUMN_TYPE getCol(int index)
 	    {
 	    	return cols[index];
 	    }
-	    
+
 	    public final int visibleColsSize()
 	    {
 	    	return visibleCols.length;
 	    }
-	    
+
 		public String[] getVisibleColumnNames() {
 			return visibleColumnNames.clone();
 		}
-	    
+
 	    public final SCENE_OBJECT_COLUMN_TYPE getVisibleCol(int index)
 	    {
 	    	return visibleCols[index];
-	    } 
+	    }
 	}
-	
+
 	public static final byte TYPE_TEXTFIELD = 0, TYPE_CHECKBOX = 1, TYPE_COMBOBOX = 2, TYPE_BUTTON = 3, TYPE_COLOR = 4;
-	
+
 	public enum SCENE_OBJECT_COLUMN_TYPE{
 		ID("Id", TYPE_TEXTFIELD, "Unnamed", null),
 		ACTIVE("Visible", TYPE_CHECKBOX, true, null),
@@ -198,26 +198,26 @@ public abstract class OpticalObject {
 		INNER_POINT_TRAJECTORY_COUNT("InnerPoints", TYPE_TEXTFIELD, 10, null),
 		DELETE("Delete", TYPE_BUTTON, "Delete", null),
 		ALPHA_TO_RADIUS("AlphaToRadius", TYPE_CHECKBOX, false, null);
-		
+
 	    private static final SCENE_OBJECT_COLUMN_TYPE ct[] = SCENE_OBJECT_COLUMN_TYPE.values();
 	    private static final String[] columnNames = new String[SCENE_OBJECT_COLUMN_TYPE.ct.length];
-	    
+
 	    public static final int size()
 	    {
 	    	return ct.length;
 	    }
-	    
+
 	    public static final SCENE_OBJECT_COLUMN_TYPE get(int index)
 	    {
 	    	return ct[index];
 	    }
-	    
+
 		public final String name;
 		public final Class<?> cl;
 		public final byte optionType;
 		public final Object defaultValue;
 		public final UnmodifiableArrayList<String> possibleValues;
-		
+
 		private SCENE_OBJECT_COLUMN_TYPE(String name, byte optionType, Object defaultValue, String possibleValues[]) {
 			this.name = name;
 			this.optionType = optionType;
@@ -244,7 +244,7 @@ public abstract class OpticalObject {
 	    		columnNames[i] = ct[i].name;
 	    	}
 		}
-		
+
 		public static SCENE_OBJECT_COLUMN_TYPE getByName(String name) {
 			for (int i = 0; i < columnNames.length; ++i)
 			{
@@ -255,8 +255,8 @@ public abstract class OpticalObject {
 			}
 			return null;
 		}
-	};
-	
+	}
+
 
 	protected void addId(int id, byte type)
 	{
@@ -269,7 +269,7 @@ public abstract class OpticalObject {
 		includedVariableIds[includedVariableCount] = id;
 		++includedVariableCount;
 	}
-	
+
 	protected void removeType(byte stt)
 	{
 		int write = 0;
@@ -284,7 +284,7 @@ public abstract class OpticalObject {
 		}
 		includedVariableCount = write;
 	}
-	
+
 	public final void setValues(List<SCENE_OBJECT_COLUMN_TYPE> ct, List<? extends Object> o, VariableAmount va, ParseUtil parser)
 	{
 		isUpdating = true;
@@ -301,16 +301,16 @@ public abstract class OpticalObject {
 			}catch (NullPointerException | IllegalArgumentException e){
 				logger.error("Can't set property " + SCENE_OBJECT_COLUMN_TYPE.get(i) + '-' + '>' + o.get(i), e);
 			}
-			
+
 		}
 		isUpdating = false;
 		valueChanged(null, parser);
 	}
-	
+
 	public abstract void setValue(SCENE_OBJECT_COLUMN_TYPE ct, Object o, VariableAmount va, ParseUtil parser) throws OperationParseException, NumberFormatException;
-	
+
 	public abstract void valueChanged(SCENE_OBJECT_COLUMN_TYPE ct, ParseUtil parser) ;
-	
+
 	protected void addIds(SortedIntegerArrayList id, byte type)
 	{
 		if (includedVariableCount + id.size() > includedVariableTypes.length)
@@ -325,13 +325,13 @@ public abstract class OpticalObject {
 			includedVariableIds[includedVariableCount] = id.getI(i);
 		}
 	}
-	
+
 	public final String getId(){return id;}
 
 	@Override
 	public String toString(){return id;}
-	
-	
+
+
 	public final void setValues(Object o[], VariableAmount va, ParseUtil parser)
 	{
 		isUpdating = true;
@@ -349,13 +349,13 @@ public abstract class OpticalObject {
 			}catch (NullPointerException e){
 				logger.error("Can't set property " + SCENE_OBJECT_COLUMN_TYPE.get(i) + '-' + '>' + o[i], e);
 			}
-		
+
 		}
 		isUpdating = false;
 		valueChanged(null, parser);
 	}
-	
-	
+
+
 	public final void setValues(SCENE_OBJECT_COLUMN_TYPE ct[], Object o[], VariableAmount va, ParseUtil parser)
 	{
 		isUpdating = true;
@@ -380,7 +380,7 @@ public abstract class OpticalObject {
 	public COLUMN_TYPES getTypes() {return null;}
 
 	public Object getValue(SCENE_OBJECT_COLUMN_TYPE ct) {return null;}
-	
+
 	public abstract void updateValue(SCENE_OBJECT_COLUMN_TYPE sct, VariableAmount variables, ParseUtil parser) throws OperationParseException;
 
 	public final void update(VariableObserver.PendendList pendend, VariableAmount variables, ParseUtil parser) {
@@ -395,11 +395,11 @@ public abstract class OpticalObject {
 					logger.error("Can't update Object Variable", e);
 				}
 			}
-		}				
+		}
 	}
 
 	public abstract OpticalObject copy(VariableAmount va, ParseUtil parser);
-	
+
 	public void read(OpticalObject in, VariableAmount va, ParseUtil parser) {
 
 		COLUMN_TYPES ct = in.getTypes();

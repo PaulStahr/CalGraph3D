@@ -15,7 +15,7 @@ public class ArrayRayGenerator extends AbstractRayGenerator{
 	}
 	
 	@Override
-	public void generate(int index, int numrays, Vector3d position, Vector3d direction, Vector2d textureCoordinate, int[] color) {
+	public void generate(int index, int numrays, Vector3d position, Vector3d direction, Vector2d textureCoordinate, float[] color) {
 		position.set(positions, index * 3);
 		direction.set(directions, index * 3);
 		textureCoordinate.set(textureCoordinates, index * 2);

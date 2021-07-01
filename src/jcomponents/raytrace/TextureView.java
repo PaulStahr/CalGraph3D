@@ -39,7 +39,6 @@ import maths.Operation;
 import maths.Operation.CalculationController;
 import maths.algorithm.Calculate;
 import maths.data.ArrayOperation;
-import maths.data.RealLongOperation;
 import maths.variable.Variable;
 import maths.variable.VariableStack;
 import util.ArrayTools;
@@ -49,7 +48,7 @@ import util.OperationGeometry;
 
 public class TextureView extends JFrame implements ActionListener, ItemListener{
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = -6300404180378123140L;
 	private ImageComponent imagePanel = new ImageComponent();
@@ -74,7 +73,7 @@ public class TextureView extends JFrame implements ActionListener, ItemListener{
 	private final JMenuBar menuBar = new JMenuBar();
 	private static final Logger logger = LoggerFactory.getLogger(TextureView.class);
 	private BufferedImage image;
-	
+
 	public TextureView(BufferedImage image)
 	{
 		this.image = image;
@@ -106,15 +105,15 @@ public class TextureView extends JFrame implements ActionListener, ItemListener{
 		menuMapping.add(mappingOutputTransformation);
 		menuFile.add(menuItemRecalculateMapping);
 		menuMapping.add(menuItemSaveMappedImage);
-		
+
 		JMenu menuMapColors = new JMenu("Color Mapping");
 		menuFile.add(menuMapColors);
 		menuMapping.add(menuMapColors);
 		menuMapColors.add(mapColors);
-		
+
 		menuFile.add(menuItemDrawFullCircle);
 		menuFile.add(menuItemDrawHalfCircle);
-		
+
 		menuItemOpen.addActionListener(this);
 		menuItemSaveMappedImage.addActionListener(this);
 		menuItemSave.addActionListener(this);
@@ -124,24 +123,24 @@ public class TextureView extends JFrame implements ActionListener, ItemListener{
 		menuItemDrawFullCircle.addItemListener(this);
 		menuItemDrawHalfCircle.addItemListener(this);
 		menuItemRecalculateMapping.addActionListener(this);
-		
+
 		setJMenuBar(menuBar);
         add(imagePanel);
         setSize(800, 400);
 		setVisible(true);
 	}
-	
+
 	public BufferedImage getImage()
 	{
 		return imagePanel.image;
 	}
-	
+
 	public void setImage(BufferedImage image)
 	{
 		this.image = image;
-		
+
 		BufferedImage bi = image;
-		
+
 		int pixel[] = new int[4];
 		if (inputTextureMapping != outputTextureMapping)
 		{
@@ -158,7 +157,7 @@ public class TextureView extends JFrame implements ActionListener, ItemListener{
 			double invOutHeight = 1. / outHeight;
 			double invOutWidth = 1. / outWidth;
 			maths.Operation op = mappingInputTransformation.get();
-			
+
 			if (op != null)
 			{
 				OperationGeometry.parseMatRowMajor(op.calculate(null, null), inputTransformation = new Matrix3d());
@@ -178,7 +177,7 @@ public class TextureView extends JFrame implements ActionListener, ItemListener{
 				for (int x = 0; x < outWidth; ++x)
 				{
 					double xd = x * invOutWidth;
-					double yd = y * invOutHeight; 
+					double yd = y * invOutHeight;
 					if (outputTransformation != null)
 					{
 						double tmpx = outputTransformation.ldotAffineX(xd, yd);
@@ -197,7 +196,7 @@ public class TextureView extends JFrame implements ActionListener, ItemListener{
 					}
 					v.x = Calculate.clamp(v.x, 0, 0.99999999);
 					v.y = Calculate.clamp(v.y, 0, 0.99999999);
-					
+
 					ImageUtil.getSmoothedPixel(v.x * r.getWidth(), v.y * r.getHeight(), pixel, tmp, r);
 					outR.setPixel(x, y, pixel);
 				}
@@ -208,7 +207,7 @@ public class TextureView extends JFrame implements ActionListener, ItemListener{
 		{
 			if (outputTextureMapping == TextureMapping.FISHEYE_EQUIDISTANT)
 			{
-				graphics.drawArc(0, 0, image.getWidth(), image.getHeight(), 0, 360);					
+				graphics.drawArc(0, 0, image.getWidth(), image.getHeight(), 0, 360);
 			}
 		}
 		if (menuItemDrawHalfCircle.isSelected())
@@ -223,7 +222,7 @@ public class TextureView extends JFrame implements ActionListener, ItemListener{
 			}
 			else
 			{
-				graphics.drawArc(0, 0, image.getWidth(), image.getHeight(), 0, 360);				
+				graphics.drawArc(0, 0, image.getWidth(), image.getHeight(), 0, 360);
 			}
 		}
 		Operation mapColorOp = mapColors.get();
@@ -245,6 +244,29 @@ public class TextureView extends JFrame implements ActionListener, ItemListener{
 			vs.add(alpha);
 			CalculationController controll = new Controller();
 			mapColorOp = mapColorOp.calculate(vs, controll);
+			float pixelf[] = new float[4];
+			for (int y = 0; y < outR.getHeight(); ++y)
+            {
+                for (int x = 0; x < outR.getWidth(); ++x)
+                {
+                    outR.getPixel(x, y, pixelf);
+                    red.setValue(pixelf[0]);
+                    green.setValue(pixelf[1]);
+                    blue.setValue(pixelf[2]);
+                    alpha.setValue(pixelf[3]);
+                    Operation result = mapColorOp.calculate(vs, null);
+                    if (result instanceof ArrayOperation)
+                    {
+                        pixelf[0] = (float)result.get(0).doubleValue();
+                        pixelf[1] = (float)result.get(1).doubleValue();
+                        pixelf[2] = (float)result.get(2).doubleValue();
+                        pixelf[3] = (float)result.get(3).doubleValue();
+                        outR.setPixel(x, y, pixelf);
+                    }
+                }
+            }
+			/*
+
 			RealLongOperation numbers[] = new RealLongOperation[256];
 			for (int i = 0; i < numbers.length; ++i)
 			{
@@ -269,11 +291,11 @@ public class TextureView extends JFrame implements ActionListener, ItemListener{
 						outR.setPixel(x, y, pixel);
 					}
 				}
-			}
+			}*/
 		}
 		imagePanel.setImage(bi);
 	}
-	
+
 	public void addMenu(JMenu menu)
 	{
 		menuBar.add(menu);
@@ -344,7 +366,7 @@ public class TextureView extends JFrame implements ActionListener, ItemListener{
 		{
 			setImage(image);
 		}
-		
+
 		if (ArrayTools.find(menuItemInputMapping, source) >= 0 || ArrayTools.find(menuItemOutputMapping, source) >= 0)
 		{
 			inputTextureMapping = TextureMapping.get(JFrameUtils.getFirstSelected(menuItemInputMapping));
@@ -352,9 +374,9 @@ public class TextureView extends JFrame implements ActionListener, ItemListener{
 			setImage(image);
 		}
 	}
-	
+
 	protected void updatePreview() {}
-	
+
 	@Override
 	public void itemStateChanged(ItemEvent arg0) {
 		updatePreview();

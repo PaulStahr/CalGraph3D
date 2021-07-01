@@ -21,12 +21,12 @@
  ******************************************************************************/
 package opengl.lwjgl;
 
+import geometry.FloatVectorObject;
 import geometry.Geometry;
 import geometry.Vector3f;
 
 import org.lwjgl.opengl.GL11;
 
-import scene.object.FloatVectorObject;
 import scene.object.SceneObject.DrawType;
 
 public class RenderGlObjectImmediateMode {

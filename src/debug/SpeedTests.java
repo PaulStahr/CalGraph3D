@@ -28,6 +28,7 @@ import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import geometry.FloatVectorObject;
 import geometry.Geometry;
 import maths.Armadillo;
 import maths.Controller;
@@ -41,7 +42,6 @@ import maths.data.StringId;
 import maths.exception.OperationParseException;
 import maths.functions.atomic.DivisionOperation;
 import opengl.BufferUtils;
-import scene.object.FloatVectorObject;
 import util.Buffers;
 
 

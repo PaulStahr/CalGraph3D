@@ -33,12 +33,12 @@ import maths.exception.OperationParseException;
 import maths.variable.Variable;
 import maths.variable.VariableStack;
 import util.ArrayUtil;
-import util.IOUtil;
 import util.ImageSaver;
 import util.JFrameUtils;
-import util.ThreadPool;
 import util.StringUtils;
+import util.ThreadPool;
 import util.data.DoubleArrayList;
+import util.io.IOUtil;
 
 public class StackPositionProcessor {
 	private static final Logger logger = LoggerFactory.getLogger(StackPositionProcessor.class);
@@ -46,7 +46,7 @@ public class StackPositionProcessor {
 	{
 		ARRAY, COMBINED_ARRAY, SINGLE, CAMERA_TRACK;
 	}
-	
+
 
 	public volatile boolean isRunning = false;
 	private int numIterations;
@@ -63,19 +63,19 @@ public class StackPositionProcessor {
 		float startdirs[];
 		float color[];
 	}
-	
+
 	public float getNormalizationFactor()
 	{
 		return normalizationFactor;
 	}
-	
+
 	public static Matrix4d getTransformation(double azimuth0, double elevation0, double distance0, double azimuth1, double elevation1, double distance1)
 	{
 		Matrix4d m = new Matrix4d();
 		setTransformation(m, azimuth0, elevation0, distance0, azimuth1, elevation1, distance1);
 		return m;
 	}
-	
+
 	public static void setTransformation(Matrix4d m, double azimuth0, double elevation0, double distance0, double azimuth1, double elevation1, double distance1)
 	{
 		Vector3d pos0 = new Vector3d();
@@ -137,7 +137,7 @@ public class StackPositionProcessor {
 		try {
 			final DoubleArrayList dal = positionFile.length() == 0 ? null : IOUtil.readPositionFile(positionFile);
 			Controller control = new Controller();
-			
+
 			int rangeBegin = 0;
 			int rangeEnd = dal == null ? 0 : mode == Mode.CAMERA_TRACK ? dal.size() / 6 : dal.size() / 2;
 			try
@@ -150,7 +150,7 @@ public class StackPositionProcessor {
 			numIterations = rangeEnd - rangeBegin;
 			progressMax = numIterations;
 			if (updateProgressBarRunnable != null) {JFrameUtils.runByDispatcher(updateProgressBarRunnable);}
-			
+
 			if (mode == Mode.CAMERA_TRACK)
 			{
 				Options.OptionTreeInnerNode raytrace = Options.getInnerNode("raytrace");
@@ -185,12 +185,12 @@ public class StackPositionProcessor {
 							System.out.println(Thread.currentThread().getId() + " woken " + scene.cameraViewRunnable);
 						}catch(InterruptedException e) {}
 					}
-					
+
 					DataHandler.runnableRunner.run(new ImageSaver(ImageUtil.deepCopy(gto.image), new File(new StringBuilder().append(outputFolder).append('/').append(num).append('.').append("png").toString())), "Image Saving");
 				}
 				return;
 			}
-			
+
 			final RayGenerator gen = new RayGenerator();
 			gen.threeDimensional = true;
 			gen.setSource(lightSource);
@@ -202,7 +202,7 @@ public class StackPositionProcessor {
 			OpticalObject source = gen.getSource();
 			final Matrix4d mat = gen.getSource() instanceof MeshObject ? ((MeshObject)source).meshToGlobal : null;
 			final ThreadPool.ThreadLocal<SingleThreadLocal> stl = DataHandler.runnableRunner.new ThreadLocal<>();
-			
+
 			if (outputResolution == null)
 			{
 				throw new NullPointerException("Invalid output Resolution");
@@ -265,7 +265,7 @@ public class StackPositionProcessor {
 										gen.setArcs(elevation, azimuth);
 									}
 								}
-								else if (source instanceof MeshObject)	
+								else if (source instanceof MeshObject)
 								{
 									MeshObject mesh = (MeshObject)source;
 									mesh.meshToGlobal.set(mat);
@@ -299,7 +299,7 @@ public class StackPositionProcessor {
 								if (updateProgressBarRunnable != null) {JFrameUtils.runByDispatcher(updateProgressBarRunnable);}
 							}
 						}
-						
+
 						@Override
 						public void finished() {}
 					}, "StackPositionProcessor", null, rangeBegin, rangeEnd, 1000, true);
@@ -311,7 +311,7 @@ public class StackPositionProcessor {
 					{
 						if (imageColorArray[i * 5 + 4] != 0)
 						{
-							ArrayUtil.mult(imageColorArray, i * 5, i * 5 + 4, 255f/imageColorArray[i * 5 + 4]);
+							ArrayUtil.mult(imageColorArray, i * 5, i * 5 + 4, 1f/imageColorArray[i * 5 + 4]);
 							imageColorArray[i * 5 + 4] = -imageColorArray[i * 5 + 4];
 						}
 					}
@@ -346,7 +346,7 @@ public class StackPositionProcessor {
 				case ARRAY:
 				{
 					final int imageColorArray[] = new int[trWidth * trHeight * 5];
-					
+
 					//BufferedImage bi = gto.image;
 					/*if (bi == null)
 					{
@@ -382,7 +382,7 @@ public class StackPositionProcessor {
 								gen.setArcs(elevation, azimuth);
 							}
 						}
-						else if (source instanceof MeshObject)	
+						else if (source instanceof MeshObject)
 						{
 							MeshObject mesh = (MeshObject)source;
 							mesh.meshToGlobal.set(mat);
@@ -423,14 +423,14 @@ public class StackPositionProcessor {
 								RaySimulationData rsd = threadLocal.rsd;
 								RaySimulationObject currentRay = threadLocal.rso;
 								OpticalObject lastObject[] = threadLocal.rsd.lastObject;
-	
+
 								if (rsd == null)
 								{
 									throw new NullPointerException();
 								}
 								int toCalculate = to - from;
 								scene.calculateRays(0, toCalculate, numRays, gen, 0, 0, threadLocal.startpoints, threadLocal.startdirs, rsd.endpoints, rsd.enddirs, rsd.endcolor, null, rsd.accepted, rsd.bounces, lastObject, 10, bidir, currentRay, RaytraceScene.UNACCEPTED_DELETE);
-								
+
 								Vector2d v2 = currentRay.v3;
 								for (int j = 0; j < toCalculate; ++j)
 								{
@@ -444,7 +444,7 @@ public class StackPositionProcessor {
 											currentRay.position.set(rsd.endpoints, j * 3);
 											currentRay.direction.set(rsd.enddirs, j * 3);
 											threadLocal.color[4] = 1;
-											ImageUtil.addToPixel(v2.x * trWidth, v2.y * trHeight, trWidth, trHeight, threadLocal.color, 0, 5, 1, imageColorArray);	
+											ImageUtil.addToPixel(v2.x * trWidth, v2.y * trHeight, trWidth, trHeight, threadLocal.color, 0, 5, 1, imageColorArray);
 										}
 										else
 										{
@@ -460,17 +460,17 @@ public class StackPositionProcessor {
 								progress.addAndGet(toCalculate);
 								if (updateProgressBarRunnable != null) {JFrameUtils.runByDispatcher(updateProgressBarRunnable);}
 							}
-							
+
 							@Override
 							public void finished() {}
 						}, "StackPositionProcessor", null, 0, numRays, blocksize, true);
-						
+
 						strB.setLength(0);
 						DataHandler.runnableRunner.run(new Runnable() {
 							final int imageColorArrayCopy[] = imageColorArray.clone();
 							final String filename = strB.append(outputFolder).append('/').append(index).append('c').append('.').append("png").toString();
 							final int pixel[] = new int[4];
-							
+
 							@Override
 							public void run()
 							{
@@ -489,10 +489,10 @@ public class StackPositionProcessor {
 									ImageIO.write(img2, "png", new File(filename));
 								} catch (IOException e) {
 									logger.error("Can't write image", e);
-								}			
+								}
 							}
 						}, "ImageSaving");
-						
+
 						//DataHandler.runnableRunner.run(new ImageSaver(ImageUtil.deepCopy(gto.image), new File(strB.append(outputFolder).append('/').append(index).append('.').append("png").toString())), "Image Saving");
 						//strB.setLength(0);
 					}
@@ -538,14 +538,14 @@ public class StackPositionProcessor {
 							RaySimulationData rsd = threadLocal.rsd;
 							RaySimulationObject currentRay = threadLocal.rso;
 							OpticalObject lastObject[] = threadLocal.rsd.lastObject;
-	
+
 							if (rsd == null)
 							{
 								throw new NullPointerException();
 							}
 							int toCalculate = to - from;
 							scene.calculateRays(0, toCalculate, numRays, gen, 0, 0, threadLocal.startpoints, threadLocal.startdirs, rsd.endpoints, rsd.enddirs, rsd.endcolor, null, rsd.accepted, rsd.bounces, lastObject, 10, bidir, currentRay, RaytraceScene.UNACCEPTED_DELETE);
-							
+
 							Vector2d v2 = currentRay.v3;
 							for (int j = 0; j < toCalculate; ++j)
 							{
@@ -553,7 +553,7 @@ public class StackPositionProcessor {
 								{
 									System.arraycopy(rsd.endpoints, j * 3, midPos, (from + j) * 3, 3);
 									System.arraycopy(rsd.enddirs, j * 3, midDir, (from + j) * 3, 3);
-									
+
 									currentRay.position.set(threadLocal.startpoints, j * 3);
 									currentRay.direction.write(threadLocal.startdirs, j * 3);
 									((SurfaceObject)source).getTextureCoordinates(currentRay.position, currentRay.direction, v2);
@@ -563,7 +563,7 @@ public class StackPositionProcessor {
 							progress.addAndGet(toCalculate);
 							if (updateProgressBarRunnable != null) {JFrameUtils.runByDispatcher(updateProgressBarRunnable);}
 						}
-						
+
 						@Override
 						public void finished() {}
 					}, "StackPositionProcessor", null, 0, numRays, blocksize, true);
@@ -616,19 +616,19 @@ public class StackPositionProcessor {
 									threadLocal.startdirs = new float[threadLocal.rsd.enddirs.length];
 									threadLocal.startpoints = new float[threadLocal.rsd.endpoints.length];
 									stl.set(threadLocal);
-										
+
 								}
 								RaySimulationData rsd = threadLocal.rsd;
 								RaySimulationObject currentRay = threadLocal.rso;
 								OpticalObject lastObject[] = threadLocal.rsd.lastObject;
-		
+
 								if (rsd == null)
 								{
 									throw new NullPointerException();
 								}
 								int toCalculate = to - from;
 								scene.calculateRays(0, toCalculate, numRays, arrayGen, from, 0, threadLocal.startpoints, threadLocal.startdirs, rsd.endpoints, rsd.enddirs, rsd.endcolor, null, rsd.accepted, rsd.bounces, lastObject, 10, bidir, currentRay, RaytraceScene.UNACCEPTED_DELETE);
-								
+
 								Vector2d v2 = currentRay.v3;
 								for (int j = 0; j < toCalculate; ++j)
 								{
@@ -645,12 +645,12 @@ public class StackPositionProcessor {
 								progress.addAndGet(toCalculate);
 								if (updateProgressBarRunnable != null) {JFrameUtils.runByDispatcher(updateProgressBarRunnable);}
 							}
-							
+
 							@Override
 							public void finished() {}
 						}, "StackPositionProcessor", null, 0, numAcceptedRays, blocksize, true);
-						
-						
+
+
 					}
 					final float imageColorArray[] = new float[trWidth * trHeight * 5];
 					for (int j = 0; j < numAcceptedRays; ++j)
@@ -689,7 +689,7 @@ public class StackPositionProcessor {
 			logger.error("Input Output error", e1);
 		} catch (OutOfMemoryError e1) {
 			logger.error("Not enough memory", e1);
-		}	
+		}
 	}
 
 	public int getProgressMax() {

@@ -16,6 +16,7 @@ import data.VideoImageSupplier;
 import geometry.Matrix3d;
 import geometry.Vector3d;
 import ij.ImagePlus;
+import io.OpenExr;
 import maths.Controller;
 import maths.exception.OperationParseException;
 import maths.variable.VariableAmount;
@@ -24,18 +25,18 @@ import util.StringUtils;
 public class GuiTextureObject extends OpticalObject{
 
     public static final COLUMN_TYPES TYPES = new COLUMN_TYPES(new SCENE_OBJECT_COLUMN_TYPE[]{SCENE_OBJECT_COLUMN_TYPE.ID,SCENE_OBJECT_COLUMN_TYPE.ACTIVE,SCENE_OBJECT_COLUMN_TYPE.PATH,SCENE_OBJECT_COLUMN_TYPE.POSITION,SCENE_OBJECT_COLUMN_TYPE.DIRECTION,SCENE_OBJECT_COLUMN_TYPE.FRAME,SCENE_OBJECT_COLUMN_TYPE.OPEN,SCENE_OBJECT_COLUMN_TYPE.LOAD,SCENE_OBJECT_COLUMN_TYPE.SAVE,SCENE_OBJECT_COLUMN_TYPE.SAVE_TO,SCENE_OBJECT_COLUMN_TYPE.VIEW,SCENE_OBJECT_COLUMN_TYPE.DELETE}, new SCENE_OBJECT_COLUMN_TYPE[]{SCENE_OBJECT_COLUMN_TYPE.ID, SCENE_OBJECT_COLUMN_TYPE.ACTIVE, SCENE_OBJECT_COLUMN_TYPE.POSITION, SCENE_OBJECT_COLUMN_TYPE.DIRECTION, SCENE_OBJECT_COLUMN_TYPE.TRANSFORMATION, SCENE_OBJECT_COLUMN_TYPE.FRAME, SCENE_OBJECT_COLUMN_TYPE.PATH, SCENE_OBJECT_COLUMN_TYPE.OPEN, SCENE_OBJECT_COLUMN_TYPE.LOAD, SCENE_OBJECT_COLUMN_TYPE.SAVE, SCENE_OBJECT_COLUMN_TYPE.SAVE_TO, SCENE_OBJECT_COLUMN_TYPE.VIEW, SCENE_OBJECT_COLUMN_TYPE.DELETE});
-    
+
     @Override
     public final COLUMN_TYPES getTypes()
     {
     	return TYPES;
     }
-    
+
     public static interface TextureObjectChangeListener
 	{
 		public void valueChanged(GuiTextureObject object, SCENE_OBJECT_COLUMN_TYPE ct);
 	}
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(GuiTextureObject.class);
 	private static final Object defaultValues[] = new Object[TYPES.colSize()];
 	public static final GuiTextureObject[] EMPTY_TEXTTURE_ARRAY = new GuiTextureObject[0];
@@ -64,7 +65,7 @@ public class GuiTextureObject extends OpticalObject{
 	public GuiTextureObject(Object[] content, VariableAmount va, ParseUtil parser) {
 		setValues(content, va, parser);
 	}
-	
+
 	public GuiTextureObject(VariableAmount va, ParseUtil parser) {
 		setValues(defaultValues, va, parser);
 	}
@@ -73,10 +74,10 @@ public class GuiTextureObject extends OpticalObject{
 		setValues(defaultValues, va, parser);
 		setValues(tctList, valueList, va, parser);
 	}
-	
-	public void getColor(double x, double y, int result[]) 
+
+	public void getColor(double x, double y, int result[])
 	{
-		
+
 		int xi = (int)(mat.ldotAffineX(x,y) * raster.getWidth());
 		int yi = (int)(mat.ldotAffineY(x,y) * raster.getHeight());
 		if (xi < 0 || xi >= raster.getWidth() || yi < 0 || yi >= raster.getHeight())
@@ -88,9 +89,9 @@ public class GuiTextureObject extends OpticalObject{
 			raster.getPixel(xi, yi, result);
 		}
 	}
-	
-	
-	public void getColor(double x, double y, float result[]) 
+
+
+	public void getColor(double x, double y, float result[])
 	{
 		//TODO interpolate
 		int xi = (int)(mat.ldotAffineX(x,y) * raster.getWidth());
@@ -104,7 +105,7 @@ public class GuiTextureObject extends OpticalObject{
 			raster.getPixel(xi, yi, result);
 		}
 	}
-	
+
 	@Override
 	public void valueChanged(SCENE_OBJECT_COLUMN_TYPE ct, ParseUtil parser)
 	{
@@ -123,7 +124,7 @@ public class GuiTextureObject extends OpticalObject{
 			isUpdating = false;
 		}
 	}
-	
+
 	@Override
 	public void updateValue(SCENE_OBJECT_COLUMN_TYPE ct, VariableAmount variables, ParseUtil parser) throws OperationParseException
 	{
@@ -173,7 +174,7 @@ public class GuiTextureObject extends OpticalObject{
 			case ACTIVE:break;
 			default:break;
 		}
-		
+
 		valueChanged(ct, parser);
 		parser.reset();
 		if (reload)
@@ -182,10 +183,10 @@ public class GuiTextureObject extends OpticalObject{
 				load(variables, parser);
 			} catch (IOException e) {
 				logger.error("Can't load image \"" + filepath + '\"', e);
-			} 
+			}
 		}
-	}	
-	
+	}
+
 	@Override
 	public void setValue(SCENE_OBJECT_COLUMN_TYPE ct, Object o, VariableAmount variables, ParseUtil parser) throws OperationParseException
 	{
@@ -194,7 +195,7 @@ public class GuiTextureObject extends OpticalObject{
 		{
 			case DELETE:break;
 			case ID:id = ParseUtil.parseString(o);break;
-			case DIRECTION: 
+			case DIRECTION:
 				parser.parsePositionString(o, this.direction, variables, controll);
 				this.directionStr = parser.str;
 				break;
@@ -236,7 +237,7 @@ public class GuiTextureObject extends OpticalObject{
 			case ACTIVE:active = ParseUtil.parseBoolean(o);break;
 			default:break;
 		}
-		
+
 		updateIds((byte)ct.ordinal(), parser.op);
 		valueChanged(ct, parser);
 		parser.reset();
@@ -246,7 +247,7 @@ public class GuiTextureObject extends OpticalObject{
 				load(variables, parser);
 			} catch (IOException e) {
 				logger.error("Can't load image \"" + filepath + '\"', e);
-			} 
+			}
 		}
 	}
 
@@ -274,7 +275,7 @@ public class GuiTextureObject extends OpticalObject{
 	public void removeChangeListener(TextureObjectChangeListener toc) {
 		changeListeners.remove(toc);
 	}
-	
+
 	public void addChangeListener(TextureObjectChangeListener tcl) {
 		changeListeners.add(tcl);
 	}
@@ -283,7 +284,7 @@ public class GuiTextureObject extends OpticalObject{
 	public void load(VariableAmount variable, ParseUtil parser) throws IOException, OperationParseException {
 		load(filepath == null ? null : filepath, variable, parser);
 	}
-	
+
 	public void load(File file, VariableAmount variables, ParseUtil parser) throws IOException, OperationParseException{
 		if (file == null)
 		{
@@ -293,7 +294,7 @@ public class GuiTextureObject extends OpticalObject{
 		else if (file.isFile())
 		{
 			String fileType = StringUtils.getFileType(file.getName());
-			
+
 			if (fileType.equals("avi") || fileType.equals("mjpeg"))
 			{
 				ImagePlus ip = ij.plugin.AVI_Reader.open(file.getPath(), true);
@@ -303,6 +304,10 @@ public class GuiTextureObject extends OpticalObject{
 					throw new NullPointerException();
 				}
 				imageObject = new VideoImageSupplier.ImagePlusVideo(ip);
+			}
+			else if (fileType.equals("exr"))
+			{
+			    imageObject = new VideoImageSupplier.StaticImage(OpenExr.read(file));
 			}
 			else
 			{
@@ -332,7 +337,7 @@ public class GuiTextureObject extends OpticalObject{
 		frameNumber = -1;
 		updateValue(SCENE_OBJECT_COLUMN_TYPE.FRAME, variables, parser);
 		modified();
-		triggerModificationEvents();		
+		triggerModificationEvents();
 	}
 
 	public void save() throws IOException
@@ -364,7 +369,7 @@ public class GuiTextureObject extends OpticalObject{
 			logger.error("Image write returned false");
 		}
 	}
-	
+
 	@Override
 	public final OpticalObject copy(VariableAmount va, ParseUtil parser) {
 		GuiTextureObject res = new GuiTextureObject(va, parser);

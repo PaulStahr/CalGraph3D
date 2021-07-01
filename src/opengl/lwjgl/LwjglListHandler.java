@@ -1,16 +1,16 @@
 /*******************************************************************************
  * Copyright (c) 2019 Paul Stahr
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -33,16 +33,16 @@ import util.data.UniqueObjects;
 public class LwjglListHandler {
 	private int freeLists[] = UniqueObjects.EMPTY_INT_ARRAY;
 	private int freeListCount = 0;
-	private final ReferenceQueue<GlList> queue = new ReferenceQueue<GlList>();
-	
+	private final ReferenceQueue<GlList> queue = new ReferenceQueue<>();
+
 	public LwjglListHandler(){
 		this(10);
 	}
-	
+
 	public LwjglListHandler(int initalLists){
 		 allocateLists(initalLists);
 	}
-	
+
 	public final void allocateLists(final int count){
 		int id = GL11.glGenLists(count);
 		if (freeLists.length < freeListCount + count)
@@ -50,7 +50,7 @@ public class LwjglListHandler {
 		for (int i=0;i<count;++i,freeListCount++)
 			freeLists[freeListCount] = id + i;
 	}
-	
+
 	public final void removeUnused(){
 		while(true){
 			Reference<? extends GlList> list = queue.poll();
@@ -64,7 +64,7 @@ public class LwjglListHandler {
 			}
 		}
 	}
-	
+
 	public final GlList getFreeList(){
 		if (freeListCount == 0)
 			removeUnused();
@@ -75,7 +75,7 @@ public class LwjglListHandler {
 		glList.lc = new ListContainer(glList, queue);
 		return glList;
 	}
-	
+
 	private static final class ListContainer extends WeakReference<GlList>{
 		final int id;
 		boolean isDestroyed = false;
@@ -84,7 +84,7 @@ public class LwjglListHandler {
 			this.id = glList.id;
 		}
 	}
-	
+
 	public static final class GlList{
 		private final int id;
 		private ListContainer lc;
@@ -93,11 +93,11 @@ public class LwjglListHandler {
 		private boolean isDestroyed;
 		private boolean isProtected;
 		private boolean shouldBeDestroyed;
-		
+
 		private GlList(int id){
 			this.id = id;
 		}
-		
+
 		public final void startRecord(int mode){
 			if (isDestroyed)
 				throw new RuntimeException("List was destryed");
@@ -106,7 +106,7 @@ public class LwjglListHandler {
 			GL11.glNewList(id, mode);
 			isRecording = true;
 		}
-		
+
 		public final void stopRecord(){
 			if (isDestroyed)
 				throw new RuntimeException("List was destroyed");
@@ -116,15 +116,15 @@ public class LwjglListHandler {
 			isFilled = true;
 			isRecording = false;
 		}
-		
+
 		public final boolean isRecording(){
 			return isRecording;
 		}
-		
+
 		public final boolean isFilled(){
 			return isFilled;
 		}
-		
+
 		public final boolean call(){
 			if (isDestroyed)
 				throw new RuntimeException("List was destroyed");
@@ -133,7 +133,7 @@ public class LwjglListHandler {
 	        GL11.glCallList(id);
 	        return true;
 		}
-		
+
 		public final void destroy(){
 			if (isRecording)
 			{
@@ -146,11 +146,11 @@ public class LwjglListHandler {
 			}else
 				shouldBeDestroyed = true;
 		}
-		
+
 		public final boolean isDestroyed(){
 			return isDestroyed;
 		}
-		
+
 		/**
 		 * Sorgt daf\u00FCr, dass eine Liste nicht als destroyed markiert werden kann
 		 * @param isProtected
@@ -158,9 +158,9 @@ public class LwjglListHandler {
 		public final void setProtected(boolean isProtected){
 			this.isProtected = isProtected;
 			if (!isProtected && shouldBeDestroyed)
-				destroy();				
+				destroy();
 		}
-		
+
 		public final boolean isProtected(){
 			return isProtected;
 		}

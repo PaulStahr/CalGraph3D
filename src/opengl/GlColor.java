@@ -1,18 +1,18 @@
 /*******************************************************************************
  * MIT License
- * 
+ *
  * Copyright (c) 2019 Paul Stahr
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURbufferPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,10 +24,10 @@
 package opengl;
 
 import java.awt.Color;
-import java.nio.*;
+import java.nio.FloatBuffer;
 
 import util.Buffers;
-/** 
+/**
 * @author  Paul Stahr
 * @version 04.02.2012
 */
@@ -53,14 +53,14 @@ public final class GlColor
         COLOR_GREEN =  Buffers.fillFloatBuffer(fb[5], 0.0f, 1.0f, 0.0f, 1.0f).asReadOnlyBuffer();
         COLOR_BLUE =   Buffers.fillFloatBuffer(fb[6], 0.0f, 0.0f, 1.0f, 1.0f).asReadOnlyBuffer();
     }
-    
+
     private GlColor(){}
-    
+
     public static final FloatBuffer getReadOnlyColor(float ...data)
     {
     	return Buffers.createFloatBuffer(data).asReadOnlyBuffer();
     }
-    
+
     public static final void fill(float f[], Color col){
     	final int c = col.getRGB();
     	if (f.length >= 3){
@@ -69,6 +69,6 @@ public final class GlColor
         	f[2] = (c&0xFF)*MULT_TO_FCOL;
     	}
     	if (f.length >= 4)
-    		f[3] = ((c>>24)&0xFF)*MULT_TO_FCOL;    	
+    		f[3] = ((c>>24)&0xFF)*MULT_TO_FCOL;
     }
 }

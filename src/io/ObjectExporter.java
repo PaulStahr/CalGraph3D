@@ -64,8 +64,27 @@ public class ObjectExporter {
 	                for (int i=0;i<sizeX-1;i++){
 	                    for (int j=0;j<sizeY-1;j++){
 	                        outBuffer.newLine();
-	                        chBuf = StringUtils.writeAndReset(outBuffer, strBuilder.append('4').append(' ').append(i*sizeY+j).append(' ').append(i*sizeY+j+1).append(' ').append((i+1)*sizeY+j+1).append(' ').append((i+1)*sizeY+j), chBuf);
+	                        chBuf = StringUtils.writeAndReset(outBuffer, strBuilder.append('4').append(' ')
+	                        		.append(i*sizeY+j).append(' ')
+	                        		.append(i*sizeY+j+1).append(' ')
+	                        		.append((i+1)*sizeY+j+1).append(' ')
+	                        		.append((i+1)*sizeY+j), chBuf);
 	                    }
+		                if (plane.isYCyclic())
+		                {
+		                	chBuf = StringUtils.writeAndReset(outBuffer, strBuilder.append('4').append(' ')
+	                        		.append(i*sizeY+sizeY-1).append(' ')
+	                        		.append(i*sizeY+sizeY).append(' ')
+	                        		.append((i+1)*sizeY+1).append(' ')
+	                        		.append((i+1)*sizeY), chBuf);
+		                }
+	                }
+	                if (plane.isXCyclic())
+	                {
+	                	if (plane.isYCyclic())
+	                	{
+	                		
+	                	}
 	                }
 	                outBuffer.flush();
 	                outBuffer.close();

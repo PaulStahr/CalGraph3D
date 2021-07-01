@@ -26,7 +26,7 @@ public class ImageRayGenerator extends AbstractRayGenerator{
 	public ImageRayGenerator() {}
 	
 	@Override
-	public void generate(int index, int numrays, Vector3d position, Vector3d direction, Vector2d textureCoordinate, int color[])
+	public void generate(int index, int numrays, Vector3d position, Vector3d direction, Vector2d textureCoordinate, float[] color)
 	{
 		//index /= 3;
 		int y = index / width;

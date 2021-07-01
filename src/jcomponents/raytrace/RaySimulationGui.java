@@ -1012,7 +1012,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 			final Vector3d startpos = new Vector3d();
 			final Vector3d startdir = new Vector3d();
 			final RaySimulationObject rayObject = new RaySimulationObject();
-			final int color[] = new int[4];
+			final float color[] = new float[4];
 			long time = 0;
 			for (int run = -100; run < 100000; ++run)
 			{

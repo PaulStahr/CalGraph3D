@@ -9,12 +9,12 @@ public class ObjectAttachmentContainer {
 	private Object objects[] = UniqueObjects.EMPTY_OJECT_ARRAY;
 	private int ids[] = UniqueObjects.EMPTY_INT_ARRAY;
 	private static int id = 0;
-	
+
 	public static int getId()
 	{
 		return id++;
 	}
-	
+
 	public int attachObject(Object obj, int id)
 	{
 		int index = Arrays.binarySearch(ids, id);
@@ -36,7 +36,7 @@ public class ObjectAttachmentContainer {
 		ArrayTools.push_back(ids, id);
 		return id++;
 	}
-	
+
 	public Object get(int id)
 	{
 		int index = Arrays.binarySearch(ids, id);

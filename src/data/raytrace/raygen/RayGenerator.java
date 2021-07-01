@@ -23,7 +23,7 @@ public class RayGenerator extends AbstractRayGenerator{
 	double elevation = Double.NaN, azimuth = Double.NaN;
 	public Random rand;
 	boolean ignoreRandom = false;
-	
+
 	public RayGenerator(RayGenerator gen) {
 		this.source = gen.source;
 		this.threeDimensional = gen.threeDimensional;
@@ -41,7 +41,7 @@ public class RayGenerator extends AbstractRayGenerator{
 	{
 		return source;
 	}
-	
+
 	private synchronized void init()
 	{
 		if (source instanceof OpticalSurfaceObject)
@@ -74,7 +74,7 @@ public class RayGenerator extends AbstractRayGenerator{
 				case SPHERICAL:
 					if (surf.maxRadiusGeometric / radius < 1)
 					{
-						arcOpen = Math.asin(surf.maxRadiusGeometric / radius);	
+						arcOpen = Math.asin(surf.maxRadiusGeometric / radius);
 					}
 					else
 					{
@@ -82,7 +82,7 @@ public class RayGenerator extends AbstractRayGenerator{
 					}
 					//radius *= scale;
 					//g.drawArc((int)(x - radius), (int)(y - radius), (int)(radius *2), (int)(radius *2), (int)(arcDir - arcOpen), (int)(arcOpen * 2));
-					
+
 					if (threeDimensional)
 					{
 						Geometry.getOrthorgonalVector(direction, v0);
@@ -100,19 +100,19 @@ public class RayGenerator extends AbstractRayGenerator{
 			case CYLINDER:
 				break;
 			default:
-				break;	 
+				break;
 			}
 			cosArcOpen = (1 - Math.cos(arcOpen));
 		}
 	}
-	
+
 	private double rand()
 	{
 		return ignoreRandom ? 0.5 : rand == null ? Math.random() : rand.nextDouble();
 	}
-	
+
 	@Override
-	public void generate(int index, int numrays, Vector3d position, Vector3d direction, Vector2d textureCoordinate, int color[])
+	public void generate(int index, int numrays, Vector3d position, Vector3d direction, Vector2d textureCoordinate, float[] color)
 	{
 		if (source.modCount() != modCount)
 		{
@@ -173,7 +173,7 @@ public class RayGenerator extends AbstractRayGenerator{
 						{
 							double alpha = numrays <= 1 ? 0 : (((double) (index * 2 - numrays + 1) / (numrays - 1))* arcOpen);
 							direction.set(surf.direction, Math.cos(alpha), v0, Math.sin(alpha));
-						}	
+						}
 						position.setAdd(surf.midpoint, direction);
 						RaytraceScene.readColor(surf, position, direction, textureCoordinate, color);
 						/*if (surf.alphaAsMask || true)//TODO
@@ -185,8 +185,9 @@ public class RayGenerator extends AbstractRayGenerator{
 						}*/
 						if (surf.alphaAsRadius)
 						{
-							diffuse *= Math.sqrt(255d / color[3]);
-							position.set(surf.midpoint, direction, color[3] / 255.);
+						    float dist = color[3]*10;
+							diffuse *= Math.sqrt(1 / dist);
+							position.set(surf.midpoint, direction, dist);
 						}
 						break;
 					}
@@ -231,7 +232,7 @@ public class RayGenerator extends AbstractRayGenerator{
 			direction.normalize();
 			/*Use Householder transformation H=I-2/(v^t*v)*v*v^t with v=dir-e_3 mirror the distribution from the x-y-plane to the v-orthorgonal plane*/
 			if (threeDimensional || source instanceof MeshObject)
-			{	
+			{
 				double w = rand() * diffuse * diffuse;
 				double rho = rand() * (Math.PI * 2);
 				double xf = Math.sqrt(w)*Math.cos(rho);
@@ -255,8 +256,8 @@ public class RayGenerator extends AbstractRayGenerator{
 			}
 		}
 	}
-	
-    public void generate(int beginIndex, int endIndex, int numrays, double startpoints[], double startdirs[], double textureCoordinates[], Vector3d position, Vector3d direction, Vector2d textureCoordinate, int color[])
+
+    public void generate(int beginIndex, int endIndex, int numrays, double startpoints[], double startdirs[], double textureCoordinates[], Vector3d position, Vector3d direction, Vector2d textureCoordinate, float color[])
     {
 		for (int j = beginIndex; j < endIndex; ++j)
 		{

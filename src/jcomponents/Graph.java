@@ -1,16 +1,16 @@
 /*******************************************************************************
  * Copyright (c) 2019 Paul Stahr
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -83,7 +83,7 @@ import util.ThreadPool;
 import util.data.SortedIntegerArrayList;
 import util.data.SortedIntegerArrayList.ReadOnlySortedIntegerArrayList;
 import util.data.UniqueObjects;
-/** 
+/**
 * @author  Paul Stahr
 * @version 04.02.2012
 */
@@ -92,7 +92,7 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
 {
     private static final long serialVersionUID  = -1588581083839003784L;
 
-    private static final GraphKind graphKinds[] = GraphKind.values();    
+    private static final GraphKind graphKinds[] = GraphKind.values();
     private static final byte drawTypeArray[]	= DrawType.values();
 	private static final Logger logger = LoggerFactory.getLogger(Graph.class);
     private static final StringBuilder stringBuilder = new StringBuilder();
@@ -110,7 +110,7 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
     	GRAPH_3D_VEKTOR(	9,	"3D Vektor",		1,	"v start=",	"v ende=",	null, 		null,		null,		null,		null,		null,		null,		UniqueObjects.EMPTY_STRING_ARRAY),
     	GRAPH_3D_CARTESIAN(10,	"3D Kartesisch",	1,	"Gleichung:",null,		null, 		"a\u2265",	"a\u2264",	"Step a",	"b\u2265",	"b\u2264",	"Step b",	new String[]{"x","y","z"}),
     	GRAPH_3D_VECTORFIELD(11,"3d Vectorfeld",    2,  "x(x,y,z)" , "y(x,y,z)","z(x,y,z)", "x\u2265","x\u2264",	"Step x",	"y\u2265",	"y\u2264",	"Step y",	GRAPH_3D_CARTESIAN.variable);
-    	
+
     	public final int id;
     	public final String name, function0, function1, function2, min0, max0, step0, min1, max1, step1;
     	public final int gLObjectType;
@@ -157,7 +157,7 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
     		{
     			throw new IllegalArgumentException();
     		}
-    	}  
+    	}
     }
     public static interface GraphListener{
     	public void clickedUp(Graph graph);
@@ -188,11 +188,11 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
     private final JLabel labelDelete                = new JLabel(ProgramIcons.iconDelete);
     private final JLabel labelSummary               = new JLabel();
     private final Graph graph = this;
-    private final ArrayList<GraphListener> graphListener = new ArrayList<Graph.GraphListener>(2);
+    private final ArrayList<GraphListener> graphListener = new ArrayList<>(2);
     private final Controller controller = new Controller();
 	private DoubleLine line0, line1;
     private WeakReference<GraphWindow> window = null;
-    
+
     private final ThreadPool.RunnableObject runnable = new ThreadPool.RunnableObject("Graph", null){
         @Override
 		public void run(){
@@ -207,7 +207,7 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
     static{
     	updateActivation();
     }
-    
+
     public final void updateGraph(){
 		DataHandler.runnableRunner.run(runnable, false);
     }
@@ -227,13 +227,13 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
 				.multiply(THOUSAND)
 				.add(BigInteger.valueOf(bean.getName().hashCode()))
 				.abs()
-				.equals(Options.getBigInteger("product_key", BigInteger.ZERO).modPow(new BigInteger("21f3076c0b61cb3a1a5e71609a3297b11c7750cc9c1b6a30a89b22aa3925b0f495c49a6a0411de8dcb801c8459966496150d77f80173567cda5ba057f210744a3e6bbfe1f98c581cfda68f0cc8076473563d3bfc25937ba445b7a898d3b3acfd2f76e4ad94640b47b522be2cd317a0faf12c1113162adf7f0d2b8277f2f203cb71f071b69bb2345195eec5627bffdc147157b047c0bb223af0cec1545138a199297c948b413fecfe64e6d6f872499506473b99b895d4e2dfd98247a426e1a11aecbf402a3b44d147786561eadc057bc8df85d717e42f8b68afccfac3a036599459d495c874afab1590d0091853fe1357", 16), new BigInteger("4852dabb7b4fb62a131811b43fd58143fa4087cd04cadd1f24827f0d76083807d4bd691c4200fce6e73713b40291f2715cfd202723956ee8e47ab4852861d31def18561c128b22c80e333432a96cebd98c5c32820a39a86a5dd6cedbca527aba875299b60b3219faec366ec6af884e1801b864ac4fb3cec7d116381231641115be48decb59ca5f1bdf8b5014a2e96edb15ad1e5731e546ad29914efcf7e40f2474309dbddd2d9202d0a007698e791c7e1919110d9091b1201d32e7d98c26088c74d25886da4117d83cc1fb6237d941a0b8e2df1332683912ec0623e15f0ef98571dd4daeceb2fc82949681454373f9cb998c8369b1324ed4b7c94815e2f03e7", 16)));	
+				.equals(Options.getBigInteger("product_key", BigInteger.ZERO).modPow(new BigInteger("21f3076c0b61cb3a1a5e71609a3297b11c7750cc9c1b6a30a89b22aa3925b0f495c49a6a0411de8dcb801c8459966496150d77f80173567cda5ba057f210744a3e6bbfe1f98c581cfda68f0cc8076473563d3bfc25937ba445b7a898d3b3acfd2f76e4ad94640b47b522be2cd317a0faf12c1113162adf7f0d2b8277f2f203cb71f071b69bb2345195eec5627bffdc147157b047c0bb223af0cec1545138a199297c948b413fecfe64e6d6f872499506473b99b895d4e2dfd98247a426e1a11aecbf402a3b44d147786561eadc057bc8df85d717e42f8b68afccfac3a036599459d495c874afab1590d0091853fe1357", 16), new BigInteger("4852dabb7b4fb62a131811b43fd58143fa4087cd04cadd1f24827f0d76083807d4bd691c4200fce6e73713b40291f2715cfd202723956ee8e47ab4852861d31def18561c128b22c80e333432a96cebd98c5c32820a39a86a5dd6cedbca527aba875299b60b3219faec366ec6af884e1801b864ac4fb3cec7d116381231641115be48decb59ca5f1bdf8b5014a2e96edb15ad1e5731e546ad29914efcf7e40f2474309dbddd2d9202d0a007698e791c7e1919110d9091b1201d32e7d98c26088c74d25886da4117d83cc1fb6237d941a0b8e2df1332683912ec0623e15f0ef98571dd4daeceb2fc82949681454373f9cb998c8369b1324ed4b7c94815e2f03e7", 16)));
     }
-    
+
     public boolean isRunning(){
     	return runnable.getState() == ThreadPool.STATE_RUNNING;
     }
-    
+
     public final GraphWindow getWindow(){
     	WeakReference<GraphWindow> window = this.window;
     	if (window == null)
@@ -243,7 +243,7 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
     		this.window = null;
     	return w;
     }
-    
+
 	@Override
 	public void mouseClicked(MouseEvent arg0) {}
 
@@ -269,13 +269,13 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
 			int add = me.getButton() == 1 ? 1 : -1;
 			int tmp = drawType;
 			do{
-				tmp = (tmp + add + drawTypeArray.length) % drawTypeArray.length; 
+				tmp = (tmp + add + drawTypeArray.length) % drawTypeArray.length;
 			}while (!drawTypeAllowed(drawTypeArray[tmp]));
             setDrawType(drawTypeArray[tmp]);
 		}
 		else if (source == labelChooseVisibility)
 		{
-            setGraphVisible(!isGraphVisible());        			
+            setGraphVisible(!isGraphVisible());
 		}
 		else if (source == labelCalculating)
 		{
@@ -305,15 +305,15 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
         	}
 		}
     }
-	
+
 	@Override
 	public void mouseReleased(MouseEvent arg0) {}
 
 	@Override
 	public void stateChanged(ChangeEvent e) {
         setColor(panelChooseColor.getBackground());
-    }           
-    
+    }
+
 	private static final Dimension maximumSize = new Dimension(15,15);
 	private static final Dimension preferredSize = new Dimension(100,15);
     public Graph(){
@@ -325,7 +325,7 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
         panelChooseColor.addChangeListener(this);
         add(panelChooseColor);
 
-        labelChooseDrawType.addMouseListener(this);      
+        labelChooseDrawType.addMouseListener(this);
         add(labelChooseDrawType);
         labelChooseVisibility.addMouseListener(this);
         add(labelChooseVisibility);
@@ -336,15 +336,15 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
         labelDown.addMouseListener(this);
         add(labelDown);
         labelDelete.addMouseListener(this);
-        add(labelDelete);      
+        add(labelDelete);
         add(labelSummary);
         addMouseListener(this);
-               
+
         setPreferredSize(preferredSize);
         updateOperations();
         setGraphVisible(true);
     }
-    
+
     public void addGraphListener(GraphListener gl)      {graphListener.add(gl);}
     public void removeGraphListener(GraphListener gl)   {graphListener.remove(gl);}
     public SceneObject getGlObject()                    {return glObject;}
@@ -355,12 +355,12 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
             return;
         if (selected)
         	for (Graph graph : Interface.getGraphs())
-        		graph.setSelected(false);  
+        		graph.setSelected(false);
         isSelected = selected;
         final Color uic = UIManager.getColor(selected ? "List.selectionBackground" : "List.background");
         setBackground(uic != null ? uic : selected ? Color.BLUE : Color.WHITE);
     }
-    
+
     private static final Operation compile(String str){
     	try {
 			 return OperationCompiler.compile(str);
@@ -368,7 +368,7 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
 			return RealDoubleOperation.NaN;
 		}
     }
-    
+
     private final void updateOperations(){
    		function0Op=kind.function0 == null	? RealDoubleOperation.NaN : compile(function0).calculate(null, controller);
  		function1Op=kind.function1 == null	? RealDoubleOperation.NaN : compile(function1).calculate(null, controller);
@@ -381,7 +381,7 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
 		min1Op=		kind.min1 == null		? RealDoubleOperation.NaN : compile(min1).calculate(null, controller);
 		max1Op=		kind.max1 == null		? RealDoubleOperation.NaN : compile(max1).calculate(null, controller);
 		transformationOp=												compile(transformation).calculate(null, controller);
-		
+
 		SortedIntegerArrayList list = new SortedIntegerArrayList();
 		OperationCalculate.getVariables(function0Op, list);
 		OperationCalculate.getVariables(function1Op, list);
@@ -400,7 +400,7 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
        	labelSummary.setText(getSummary());
         updateGraph();
     }
-    
+
     public final void setContent(Iterable<String> content){
     	SaveLineCreator saveLineCreator = new SaveLineCreator();
     	for (String line : content){
@@ -415,14 +415,14 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
     	}
     	updateOperations();
     }
-    
+
     public int getDrawTypeIndex(int id){
     	for (int i=0;i<drawTypeArray.length;i++)
     		if (drawTypeArray[i] == id)
     			return i;
     	return -1;
     }
-    
+
     private final void setVariable(String variable, String value){
     	if (variable.length()==0)
     		return;
@@ -450,7 +450,7 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
 	            break;
 	    	}case 'm':{
 	    		if 		(variable.equals("min0"))min0 = value;
-	            else if (variable.equals("max0"))max0 = value;	                		
+	            else if (variable.equals("max0"))max0 = value;
 	            else if (variable.equals("min1"))min1 = value;
 	            else if (variable.equals("max1"))max1 = value;
 	    		break;
@@ -472,7 +472,7 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
 	    	}
 		}
     }
-    
+
     public final void setContent(String content){
     	SaveLineCreator saveLineCreator = new SaveLineCreator();
     	int index=-1;
@@ -509,13 +509,13 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
 	        SaveLineCreator.appendSaveLine("visible", isGraphVisible(), erg);
 	        SaveLineCreator.appendSaveLine("transformation", transformation, erg);
     	}
-        return erg;    	
+        return erg;
     }
-    
+
     public final String getContent(){
     	synchronized (stringBuilder) {
     		stringBuilder.setLength(0);
-    	  	return getContent(stringBuilder).toString();		
+    	  	return getContent(stringBuilder).toString();
 		}
     }
 
@@ -525,7 +525,7 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
     		window.dispose();
     	}
     }
-    
+
     public final boolean drawTypeAllowed(byte drawType){
     	if (kind.gLObjectType == 0 || kind.gLObjectType == 2)
     	{
@@ -547,14 +547,14 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
         ImageIcon icon;
         if (!drawTypeAllowed(drawType))
         {
-        	throw new IllegalArgumentException();	
+        	throw new IllegalArgumentException();
         }
         switch (drawType){
             case DrawType.DOTS:		icon = ProgramIcons.iconDots;break;
             case DrawType.LINES:		icon = ProgramIcons.iconLines;break;
             case DrawType.LINE_STRICLES:icon = ProgramIcons.iconLines;break;
             case DrawType.SOLID:		icon = ProgramIcons.iconSolid;break;
-            case DrawType.SOLID_SMOOTH:icon = ProgramIcons.iconSmooth;break;    
+            case DrawType.SOLID_SMOOTH:icon = ProgramIcons.iconSmooth;break;
             default:throw new IllegalArgumentException();
         }
         labelChooseDrawType.setIcon(icon);
@@ -572,7 +572,7 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
     public final byte getDrawType (){
         return drawType;
     }
-    
+
     private final void setKind (GraphKind kind){
         this.kind = kind;
        	vars = new Variable[kind.variable.size()];
@@ -591,7 +591,7 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
    			labelChooseVisibility.setIcon(icon);
    		if (glObject != null)
    		{
-   	        glObject.setVisible(visible);   			
+   	        glObject.setVisible(visible);
    		}
    		isVisible = visible;
     	GraphWindow window = getWindow();
@@ -621,7 +621,7 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
             glObject.lightMaterial.set(false, false, false, true, Color.BLACK);
             break;
             default:
-            	throw new RuntimeException();            	
+            	throw new RuntimeException();
        	}
         glObject.reflectionMaterial.set(true, true, true, false, Color.BLACK);
         glObject.reflectionMaterial.set(false, false, false, true, color);
@@ -632,7 +632,7 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
         	window.buttonColor.setBackground(color);
         glObject.update(UpdateKind.MATERIAL);
     }
-    
+
     /**
      * Gibt Alle Variablennamen zur\u00FCck, die den Graphen ver\u00E4ndern k\u00F6nnen. Die Sortierung ist Alphabetisch und kein Name kommt doppelt vor
      * @return List<String> Unmodifizierbare List mit Variablen
@@ -640,7 +640,7 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
     public final ReadOnlySortedIntegerArrayList getPendentVariables(){
     	return variables;
     }
-    
+
     private final boolean calcGraph(Controller control) throws OperationParseException{
     	//final long t0 = System.nanoTime();
     	control.calculateLoop(true);
@@ -652,17 +652,17 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
         final double max1 = max1Op.calculate(DataHandler.globalVariables, control).doubleValue();
         final int steps1 =(int)steps1Op.calculate(DataHandler.globalVariables, control).longValue();
         final boolean useMatrix = OperationGeometry.parseMatRowMajor(transformationOp.calculate(DataHandler.globalVariables, control), graphToGlobal);
-        
+
         final GraphKind kind = this.kind;
     	control.calculateLoop(false);
     	control.calculateRandom(false);
-        
+
         SceneObjectLine glObjectLine = null;
         SceneObjectPlane glObjectPlane = null;
         SceneObjectVektor glObjectVektor = null;
         SceneObjectPointCloud glObjectPointCloud = null;
         boolean updateCoordinates = false;
-        
+
     	RealDoubleOperation opsVar0[] = null, opsVar1[] = null;
         if (kind == GraphKind.GRAPH_2D_FUNCTION || kind == GraphKind.GRAPH_2D_PARAMETRIC || kind == GraphKind.GRAPH_2D_POLAR || kind == GraphKind.GRAPH_3D_LINE || kind == GraphKind.GRAPH_3D_FUNCTION || kind == GraphKind.GRAPH_3D_PARAMETRIC || kind == GraphKind.GRAPH_3D_CARTESIAN || kind == GraphKind.GRAPH_3D_POLAR || kind == GraphKind.GRAPH_3D_VECTORFIELD){
         	if (steps0 < 1)
@@ -827,7 +827,7 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
                     for (int i=0;i<steps0;i++){
                         v0.setValue(opsVar0[i]);
                         final double tmp0 =operation0.calculate(variableStack, control).doubleValue(), tmp1 = operation1.calculate(variableStack, control).doubleValue();
-                        graphToGlobal.rdotAffine(tmp0, tmp1, 0, vertices, i * 3);                    }            		
+                        graphToGlobal.rdotAffine(tmp0, tmp1, 0, vertices, i * 3);                    }
                 }else{
                     for (int i=0;i<steps0;i++){
                         v0.setValue(opsVar0[i]);
@@ -872,18 +872,18 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
                 	if (operation0.size() == operation1.size()){
                 		final float vertices[] = glObjectLine.getVertices();
                         final int length = operation0.size();
-                		glObjectLine.setSize(length);        	
+                		glObjectLine.setSize(length);
                 		if (useMatrix){
                 			for (int i=0;i<length;i++){
                 				final double x = operation0.get(i).doubleValue(), y = operation1.get(i).doubleValue();
-                                graphToGlobal.rdotAffine(x, y, 0, vertices, i * 3);                        
+                                graphToGlobal.rdotAffine(x, y, 0, vertices, i * 3);
                             }
                 		}else{
                 			for (int i=0;i<length;i++){
                                 vertices[i * 3]=(float)operation0.get(i).doubleValue();
                                 vertices[i * 3 + 1]=(float)operation1.get(i).doubleValue();
                                 vertices[i * 3 + 2]=0f;
-                			}                			
+                			}
                 		}
                 	}
                 }
@@ -905,7 +905,7 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
                         v0.setValue(opsVar0[i]);
                         vertices[i * 3] = (float)operation0.calculate(variableStack, control).doubleValue();
                         vertices[i * 3 + 1] = (float)operation1.calculate(variableStack, control).doubleValue();
-                        vertices[i * 3 + 2] = (float)operation2.calculate(variableStack, control).doubleValue();                	
+                        vertices[i * 3 + 2] = (float)operation2.calculate(variableStack, control).doubleValue();
                     }
                 }
             	control.calculateLoop(false);
@@ -928,7 +928,7 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
                         for (int j=0;j<steps1;j++, index++){
                           	final RealDoubleOperation op = opsVar1[j];
                             final double y = op.doubleValue();
-                            v1.setValue(op);                            
+                            v1.setValue(op);
                             final double z = tmp0.calculate(variableStack, control).doubleValue();
                             vertexX[index]=(float)graphToGlobal.rdotAffineX(x, y, z);
                             vertexY[index]=(float)graphToGlobal.rdotAffineY(x, y, z);
@@ -942,7 +942,7 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
                             //vertexY[index]=(float)op.doubleValue();
                             vertexZ[index]=(float)tmp0.calculate(variableStack, control).doubleValue();
                         }
-                    }              
+                    }
                 	control.calculateLoop(false);
                 	control.calculateRandom(false);
                }
@@ -990,21 +990,21 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
                 colorOp = colorOp.calculate(variableStack, control);
                 if (operation0.isArray() && operation1.isArray() && operation0.size() == operation1.size() && operation1.size() == operation2.size()){
                		final int length = operation0.size();
-               		glObjectLine.setSize(length);        	
+               		glObjectLine.setSize(length);
                     final float vertices[] = glObjectLine.getVertices();
                 	control.calculateLoop(true);
                 	control.calculateRandom(true);
                     if (useMatrix){
-            			for (int i=0;i<length;i++){         				
+            			for (int i=0;i<length;i++){
                             final double x = operation0.get(i).doubleValue(), y = operation1.get(i).doubleValue(), z = operation2.get(i).doubleValue();
-                            graphToGlobal.rdotAffine(x, y, z, vertices, i * 3);                        
+                            graphToGlobal.rdotAffine(x, y, z, vertices, i * 3);
                         }
             		}else{
             			for (int i=0;i<length;i++){
         				    vertices[i * 3]=(float)operation0.get(i).doubleValue();
                             vertices[i * 3 + 1]=(float)operation1.get(i).doubleValue();
                             vertices[i * 3 + 2]=(float)operation2.get(i).doubleValue();
-            			}                			
+            			}
             		}
                 	control.calculateLoop(false);
                 	control.calculateRandom(false);
@@ -1093,7 +1093,7 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
                 			}
                 		}
                 		glObject.update(UpdateKind.DATA);
-                		return true;        	                		
+                		return true;
                 	}
                 	solved = SolveOperation.calculate(operation0, new UserVariableOperation(hitString = kind.variable.get(hit)), control);
                 }while (!(solved instanceof EqualsOperation && solved.get(0) instanceof UserVariableOperation && ((UserVariableOperation)(solved.get(0))).nameObject == hitString));
@@ -1101,14 +1101,14 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
                 final Variable variable1 = hit == 2 ? vars[1] : vars[2];
                 solved = solved.get(1);
                 int index = 0;
-                               
+
                 for (int i=0;i<steps0;i++){
                     final double vl0 = opsVar0[i].value;
                 	variable0.setValue(opsVar0[i]);
                     variable1.setValue((Operation)null);
                     final float vl0f = (float)vl0;
                     final Operation tmp0 = solved.calculate(variableStack, control);
-                    
+
                 	control.calculateLoop(true);
                 	control.calculateRandom(true);
                     if (!useMatrix){
@@ -1176,7 +1176,7 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
                         for (int j=0;j<steps1;j++, index++){
                          	final RealDoubleOperation op = opsVar1[i];
                             final double value1 = op.value;
-                            v1.setValue(op);                            
+                            v1.setValue(op);
                             final double x = Math.cos(value0)*value1;
                             final double y = Math.sin(value0)*value1;
                             final double z = tmp0.calculate(variableStack, control).doubleValue();
@@ -1250,20 +1250,20 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
         glObject.update(UpdateKind.DATA);
         return true;
     }
-    
+
     private static final class DoubleLine{
     	private final double min, max, step, dist;
     	private final int size;
     	private final RealDoubleOperation data[];
-    	private static final ArrayList<WeakReference<DoubleLine>> doubleLines = new ArrayList<WeakReference<DoubleLine>>();
-    	
+    	private static final ArrayList<WeakReference<DoubleLine>> doubleLines = new ArrayList<>();
+
     	public final RealDoubleOperation getNearest(double d)
     	{
     		if (d <= min){return data[0];}
     		if (d >= max){return data[data.length - 1];}
     		return data[(int)(data.length * (d - min) / dist)];
     	}
-    	
+
     	private DoubleLine(double min, double max, int size, boolean reuse){
         	this.step = (dist = ((this.max = max) - (this.min = min))) / ((this.size = size) - 1);
         	data = new RealDoubleOperation[size];
@@ -1302,7 +1302,7 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
         			data[i] = new RealDoubleOperation(step*i+min);
         	}
     	}
-    	
+
     	public static final synchronized DoubleLine get(double min, double max, int size){
     		for (int i=0;i<doubleLines.size();++i){
     			DoubleLine line = doubleLines.get(i).get();
@@ -1314,22 +1314,22 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
     			}
     		}
     		DoubleLine line = new DoubleLine(min, max, size, true);
-    		doubleLines.add(new WeakReference<Graph.DoubleLine>(line));
+    		doubleLines.add(new WeakReference<>(line));
     		return line;
     	}
     }
-    
+
     private static final GraphKind getGraphKind(int id){
     	for (GraphKind gKind:graphKinds)
     		if (gKind.id == id)
     			return gKind;
     	throw new IllegalArgumentException();
     }
-          
+
     public String getSummary(){
     	return getSummary(new StringBuilder()).toString();
     }
-    
+
     public final StringBuilder getSummary(StringBuilder strB){
     	if (kind.function0 != null)
     		strB.append(kind.function0).append(function0).append(' ');
@@ -1348,12 +1348,12 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
         	control.setStopFlag(true);
         glObject = null;
     }
-    
+
     public void openWindow(){
     	GraphWindow window = getWindow();
     	if (window == null){
     		window = new GraphWindow();
-    		this.window = new WeakReference<GraphWindow>(window);
+    		this.window = new WeakReference<>(window);
     		final GraphWindow tmp = window;
     		ActionListener al = new ActionListener()
 			{
@@ -1376,10 +1376,10 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
                      @Override
     				public void stateChanged(ChangeEvent e) {
                         setColor(tmp.buttonColor.getBackground());
-                    }           
+                    }
                 }
             );
-            
+
             window.buttonOkay.addActionListener(al);
             window.buttonAccept.addActionListener(al);
         	window.buttonAbort.addActionListener(JFrameUtils.closeParentWindowListener);
@@ -1404,7 +1404,7 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
     	window.listDrawType.setSelectedIndex(getDrawTypeIndex(drawType));
     	window.openWindow();
     }
-    
+
     public void saveWindow(){
     	GraphWindow window = getWindow();
     	if (window == null)
@@ -1419,7 +1419,7 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
         steps0 = window.textFieldStep0.getText();
         min1 = window.textFieldMin1.getText();
         max1 = window.textFieldMax1.getText();
-        steps1 = window.textFieldStep1.getText(); 
+        steps1 = window.textFieldStep1.getText();
         transformation = window.textFieldTransformation.getText();
         setDrawType(drawTypeArray[window.listDrawType.getSelectedIndex()]);
         setGraphVisible(window.checkBoxVisible.isSelected());

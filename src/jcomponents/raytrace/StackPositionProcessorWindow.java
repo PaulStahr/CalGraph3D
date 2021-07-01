@@ -37,11 +37,11 @@ import geometry.Vector3f;
 import jcomponents.Interface;
 import jcomponents.util.JMathTextField;
 import maths.exception.OperationParseException;
-import util.IOUtil;
 import util.JFrameUtils;
 import util.StringUtils;
 import util.TimedUpdateHandler;
 import util.data.DoubleArrayList;
+import util.io.IOUtil;
 
 public class StackPositionProcessorWindow extends JFrame implements ActionListener, TimedUpdateHandler{
 	/**

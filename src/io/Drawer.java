@@ -19,41 +19,41 @@ public abstract class Drawer {
     private static final double GRAD_TO_RADIANS = Math.PI / 180;
 
     public abstract void fillCircle(double x, double y, double radius) throws IOException;
-    
+
 	public abstract int numQueuedPoints();
 
 	public abstract void getClipBounds(Rectangle bounds);
 
 	public abstract void drawLine(double x0, double y0, double x1, double y1) throws IOException;
-	
+
 	public abstract void pushPoint(double x, double y);
-	
+
 	public abstract void drawPolyLine() throws IOException;
-	
+
 	public abstract void drawArc(double x, double y, double width, double height, double startAngle, double arcAngle) throws IOException;
-	
+
 	public abstract void setPointNumber(int i);
 
 	public abstract void setPoint(double d, double e, int i);
-	
+
 	public abstract void setColor(Color c);
-	
+
 	public abstract void drawChars(char data[], int offset, int length, double x, double y) throws IOException;
 
 	public abstract void drawChars(CharSequence data, int offset, int length, double x, double y) throws IOException;
 
 	public abstract void drawChar(char data, double x, double y) throws IOException;
-	
+
 	public void drawString(String str, int offset, int length, double x, double y) throws IOException
 	{
 		drawChars(str.toCharArray(), offset, length, x, y);
 	}
-	
+
 	public void drawString(String str, double x, double y) throws IOException
 	{
 		drawString(str, 0, str.length(), x, y);
 	}
-	
+
     public static class SvgDrawer extends Drawer
     {
     	final private StringBuilder strB = new StringBuilder();
@@ -64,17 +64,17 @@ public abstract class Drawer {
     	private int width, height;
     	private Line2d line = new Line2d();
 		private boolean clip = true;
-    	
+
     	public SvgDrawer(BufferedWriter outBuf)
     	{
     		this.outBuf = outBuf;
     	}
-    	
+
     	public void setOutput(BufferedWriter outBuf)
     	{
     		this.outBuf = outBuf;
     	}
-    	
+
     	public void beginDocument(int width, int height) throws IOException
     	{
     		chBuf = StringUtils.writeAndReset(outBuf, strB.append("<svg width=\"").append(width).append("\" height=\"").append(height).append("\" xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">"), chBuf);
@@ -82,13 +82,13 @@ public abstract class Drawer {
     		this.width = width;
     		this.height = height;
     	}
-    	
+
     	public void endDocument() throws IOException
     	{
     		outBuf.write("</svg>");
     		outBuf.newLine();
     	}
-    	
+
 		@Override
     	public void drawChars(char data[], int offset, int length, double x, double y) throws IOException
     	{
@@ -97,7 +97,7 @@ public abstract class Drawer {
 			outBuf.write(data, offset, length);
 		    outBuf.write("</text>");
     	}
-		
+
 		@Override
     	public void drawChars(CharSequence data, int offset, int length, double x, double y) throws IOException
     	{
@@ -109,7 +109,7 @@ public abstract class Drawer {
 			}
 		    outBuf.write("</text>");
     	}
-		
+
 		@Override
     	public void drawChar(char data, double x, double y) throws IOException
     	{
@@ -118,7 +118,7 @@ public abstract class Drawer {
 			outBuf.write(data);
 		    outBuf.write("</text>");
     	}
-    	
+
     	@Override
 		public void fillCircle(double x, double y, double radius) throws IOException
     	{
@@ -138,35 +138,35 @@ public abstract class Drawer {
        			outBuf.newLine();
        		}
        	}
-       	
+
        	@Override
 		public void pushPoint(double x, double y)
        	{
        		dal.add(x);
        		dal.add(y);
        	}
-       	
+
        	@Override
        	public final int numQueuedPoints()
        	{
        		return dal.size() / 2;
        	}
-       	
+
        	/*private static final void putValue(char tmp[], int pos, int col)
        	{
        		tmp[pos] = Character.forDigit(col / 16, 16);
        		tmp[pos + 1] = Character.forDigit(col % 16, 16);
-       		
+
        	}*/
-       	
+
        	private static final StringBuilder putValue(StringBuilder strB, int col)
        	{
        		return strB.append(Character.forDigit(col / 16, 16)).append(Character.forDigit(col % 16, 16));
-       		
+
        	}
-       	
+
        	/*private static final char[] toString(Color col, char tmp[])
-       	{	
+       	{
        		if (tmp.length < 7)
    			{
        			tmp = new char[7];
@@ -179,7 +179,7 @@ public abstract class Drawer {
        	}*/
 
        	private static final StringBuilder toString(StringBuilder strB, Color col)
-       	{	
+       	{
        		strB.append('#');
        		putValue(strB, col.getRed());
        		putValue(strB, col.getGreen());
@@ -245,7 +245,7 @@ public abstract class Drawer {
 			{
 				strB.setLength(0);
 			}
-			dal.clear();				
+			dal.clear();
 		}
 
 		@Override
@@ -257,7 +257,7 @@ public abstract class Drawer {
 			startAngle *= GRAD_TO_RADIANS;
 			width *= 0.5;
 			height *= 0.5;
-			
+
 			strB.append("<path d=\"");
 			if (clip)
 			{
@@ -332,7 +332,7 @@ public abstract class Drawer {
 		public void getClipBounds(Rectangle bounds) {
 			bounds.setBounds(0, 0, width, height);
 		}
-		
+
 		@Override
 		public int getWidth() {
 			return width;
@@ -344,7 +344,7 @@ public abstract class Drawer {
 		}
     }
 
-	
+
     public static class GraphicsDrawer extends Drawer
     {
     	Graphics g;
@@ -357,17 +357,17 @@ public abstract class Drawer {
     	double points[] = UniqueObjects.EMPTY_DOUBLE_ARRAY;
 		Path2D path = new Path2D.Double();
     	int width, height;
-    	
+
     	public GraphicsDrawer(Graphics g)
     	{
     		this(g, 0);
     	}
-    	
+
     	public Graphics getOutput()
     	{
     		return g;
     	}
-    	
+
     	public GraphicsDrawer(Graphics g, int initArrayLength)
     	{
     		this.g = g;
@@ -380,7 +380,7 @@ public abstract class Drawer {
     			height = rect.height;
     		}
     	}
-    	
+
     	public void setOutput(Graphics g)
     	{
     		this.g = g;
@@ -388,7 +388,7 @@ public abstract class Drawer {
 			width = rect.width;
 			height = rect.height;
     	}
-    	
+
 		@Override
     	public void drawChars(char data[], int offset, int length, double x, double y)
     	{
@@ -421,7 +421,7 @@ public abstract class Drawer {
     	{
     		g.fillArc((int)(x-radius), (int)(y-radius), (int)(radius * 2), (int)(radius * 2), 0, 360);
     	}
-    	
+
 		private final Line2D line2d = new Line2D.Double();
 		@Override
     	public void drawLine(double x0, double y0, double x1, double y1) throws IOException
@@ -446,7 +446,7 @@ public abstract class Drawer {
 			points[index * 2 + 1] = y;
 			++index;
 		}
-		
+
 		@Override
 		public final int numQueuedPoints()
 		{
@@ -555,7 +555,7 @@ public abstract class Drawer {
 		public void getClipBounds(Rectangle bounds) {
 			g.getClipBounds(bounds);
 		}
-		
+
 		@Override
 		public int getWidth() {
 			return width;
@@ -568,6 +568,6 @@ public abstract class Drawer {
     }
 
     public abstract int getWidth();
-    
+
 	public abstract int getHeight();
 }

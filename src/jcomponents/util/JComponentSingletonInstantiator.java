@@ -19,12 +19,12 @@ public class JComponentSingletonInstantiator<T> implements Supplier<T>, ActionLi
 	private static final Logger logger = LoggerFactory.getLogger(JComponentSingletonInstantiator.class);
 	private WeakReference<T> ref;
 	private final Class<?> cl;
-	
+
 	public JComponentSingletonInstantiator(Class<?> cl)
 	{
 		this.cl = cl;
 	}
-	
+
 	@Override
 	@SuppressWarnings("unchecked")
 	public final T get()
@@ -60,7 +60,7 @@ public class JComponentSingletonInstantiator<T> implements Supplier<T>, ActionLi
 		};
 		JFrameUtils.runByDispatcherAndWait(sup);
 		T o = sup.get();
-		ref = new WeakReference<T>(o);
+		ref = new WeakReference<>(o);
     	return o;
 	}
 

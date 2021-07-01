@@ -19,8 +19,8 @@ import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
+import data.raytrace.FitCircle;
 import data.raytrace.TextureMapping;
-import geometry.FitCircle;
 import geometry.Geometry;
 import geometry.Vector2d;
 import geometry.Vector3d;
@@ -28,10 +28,10 @@ import jcomponents.util.ImageUtil;
 import jcomponents.util.JMathTextField;
 import maths.Operation;
 import util.ArrayUtil;
-import util.IOUtil;
 import util.JFrameUtils;
 import util.StringUtils;
 import util.data.DoubleArrayList;
+import util.io.IOUtil;
 
 public class PointCloudVisualization extends TextureView implements ItemListener
 {
@@ -51,10 +51,10 @@ public class PointCloudVisualization extends TextureView implements ItemListener
 	private final JMathTextField textFieldFraction = new JMathTextField(0.5);
 	private TextureMapping mapping;
 	private final Raster raster;
-	
+
 	@Override
     protected void updatePreview()
-	{	
+	{
 		mapping = TextureMapping.get(JFrameUtils.getFirstSelected(parametrizations));
 		boolean printTrajectory = menuItemTrajectory.isSelected() && dal != null;
 		Operation op = textFieldResolution.get();
@@ -82,14 +82,14 @@ public class PointCloudVisualization extends TextureView implements ItemListener
 		graphics.fillRect(0, 0, width, height);
 		int color[] = new int[4];
 		ImageUtil.fill(outRaster, color);
-		
+
 		if (dal != null)
 		{
 			if (printTrajectory)
 			{
 				Vector2d v1 = new Vector2d();
 				Rectangle2D rect = new Rectangle2D.Double(0, 0, width, height);
-				Color col = new Color(0, 255,0,64);;
+				Color col = new Color(0, 255,0,64);
 				for (int i = 0; i < dal.size() / 2; ++i)
 				{
 					double azimuth = dal.getD(i * 2);
@@ -125,7 +125,7 @@ public class PointCloudVisualization extends TextureView implements ItemListener
 					double density = mapping.mapSphericalToTex(azimuth, elevation, v0);
 					int add = menuItemDensityCorrection.isSelected() ? (int)(0x100 * density) : 0x100;
 					ImageUtil.addToPixel(v0.x * width, v0.y * height, width, height, add, count);
-					
+
 				}
 			}
 		}
@@ -141,9 +141,9 @@ public class PointCloudVisualization extends TextureView implements ItemListener
 				ArrayUtil.normalizeTo(count, 0, count.length, 255);
 			}
 			ImageUtil.setChannel(outRaster,(byte)3, count, color);
-			
+
 		}
-		
+
 		if (menuItemShowMaximumDensity.isSelected())
 		{
 			FitCircle fc;
@@ -161,13 +161,13 @@ public class PointCloudVisualization extends TextureView implements ItemListener
 			{
 				throw new NullPointerException();
 			}
-			
+
 			fc.surfaceDist = menuItemMaxDensitySurface.isSelected();
 			if     (menuItemMaxDensityLinear.isSelected())       {fc.method = FitCircle.LINEAR;}
 			else if(menuItemMaxDensityQuadratic.isSelected())    {fc.method = FitCircle.QUADRATIC;}
 			else if(menuItemMaxDensityGauss.isSelected())        {fc.method = FitCircle.GAUSS;}
 			fc.sigma = textFieldSigma.get().doubleValue();
-			
+
 			fc.run();
 			double azimuth = fc.getD(0), elevation =  fc.getD(1);
 			System.out.println(azimuth + " " + elevation);
@@ -181,7 +181,7 @@ public class PointCloudVisualization extends TextureView implements ItemListener
 			graphics.drawLine((int)v0.x - 10, (int)v0.y, (int)v0.x + 10, (int)v0.y);
 			op = textFieldFraction.get();
 			if (op != null && op.isRealFloatingNumber())
-			{	
+			{
 				double circleSize = fc.getIncludingCircleSize(op.doubleValue());
 				Vector3d v3 = new Vector3d();
 				TextureMapping.SPHERICAL.mapSphericalToCart(azimuth, elevation, v3);
@@ -205,7 +205,7 @@ public class PointCloudVisualization extends TextureView implements ItemListener
 		}
 		setImage(image);
 	}
-	
+
 	private void init()
 	{
 		JMenu menu = new JMenu("Edit");
@@ -257,7 +257,7 @@ public class PointCloudVisualization extends TextureView implements ItemListener
 			menuItemTrajectory.setEnabled(false);
 		}
 	}
-	
+
 	public PointCloudVisualization(Raster r)
 	{
 		super(null);
@@ -265,14 +265,14 @@ public class PointCloudVisualization extends TextureView implements ItemListener
 		this.dal = null;
 		this.raster = r;
 	}
-	
+
 	public PointCloudVisualization(DoubleArrayList dal) {
 		super(null);
 		this.dal = dal;
 		this.raster = null;
 		init();
 	}
-	
+
 	public PointCloudVisualization(File f) throws IOException {
 		super(null);
 		String type = StringUtils.getFileType(f.getName());
@@ -299,16 +299,16 @@ public class PointCloudVisualization extends TextureView implements ItemListener
 		if (source == menuItemRecalculate)
 		{
 			updatePreview();
-		}	
+		}
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = 5514312621563618301L;
 	@Override
 	public void itemStateChanged(ItemEvent arg0) {
 		updatePreview();
 	}
-	
+
 }

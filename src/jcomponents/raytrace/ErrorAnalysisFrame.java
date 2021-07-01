@@ -55,7 +55,7 @@ import util.data.UniqueObjects;
 
 public class ErrorAnalysisFrame extends JFrame implements SceneChangeListener, ActionListener, DocumentListener,ItemListener, OpticalSurfaceObjectChangeListener, Runnable, WindowListener{
 	private static final long serialVersionUID = -6872553544701310740L;
-	
+
 	private static class ArrowWindow extends JComponent
 	{
 		private static final long serialVersionUID = 8731322375600136675L;
@@ -63,12 +63,12 @@ public class ErrorAnalysisFrame extends JFrame implements SceneChangeListener, A
 		private float positions[] = UniqueObjects.EMPTY_FLOAT_ARRAY;
 		private static final BasicStroke stroke = new BasicStroke(2);
 		public double visualizationScale = Double.NaN;
-		
+
 		public ArrowWindow()
 		{
 			setBorder(lineBorder);
 		}
-		
+
 		@Override
 		public void paintComponent(Graphics gr)
 		{
@@ -80,12 +80,12 @@ public class ErrorAnalysisFrame extends JFrame implements SceneChangeListener, A
 			double centerX = clipBounds.getCenterX();
 			double centerY = clipBounds.getCenterY();
 			g.setStroke(stroke);
-			
+
 			double mult = visualizationScale;
 			if (Double.isNaN(visualizationScale))
 			{
-				float min= positions[Calculate.min(positions)];
-				float max = positions[Calculate.max(positions)];
+				float min= positions[Calculate.argMin(positions)];
+				float max = positions[Calculate.argMax(positions)];
 				float range = Math.max(max, -min);
 				float compRange = Math.min(clipBounds.width, clipBounds.height);
 				mult = (compRange - 10) / range;
@@ -101,8 +101,8 @@ public class ErrorAnalysisFrame extends JFrame implements SceneChangeListener, A
 			}
 		}
 	}
-	
-	
+
+
 	private final JLabel labelChooseSource = new JLabel("Source");
 	private final JComboBox<GuiOpticalSurfaceObject> comboBoxSource = new JComboBox<>();
 	private final JLabel labelEpsilon = new JLabel("Epsilon");
@@ -116,7 +116,7 @@ public class ErrorAnalysisFrame extends JFrame implements SceneChangeListener, A
 	private final JToggleButton toggleButtonRelative = new JToggleButton("Relative");
 	private final JToggleButton toggleButtonLogarithmicPlot = new JToggleButton("Logarithmic");
 	private final JLabel labelEvaluationMethod = new JLabel("Evaluation Method");
-	private final JComboBox<String> comboBoxEvaluationMethod = new JComboBox<String>(new String[] {"One", "Avarage", "Maximum"});
+	private final JComboBox<String> comboBoxEvaluationMethod = new JComboBox<>(new String[] {"One", "Avarage", "Maximum"});
 	private final JLabel labelVisualizationScale = new JLabel("Scale");
 	private final JMathTextField textFieldVisualizationScale = new JMathTextField("1");
 	private RaySimulationObject rso = new RaySimulationObject();
@@ -126,14 +126,14 @@ public class ErrorAnalysisFrame extends JFrame implements SceneChangeListener, A
 	private final JPanel panelArrowWindows = new JPanel();
 	private static final Border lineBorder = BorderFactory.createLineBorder(Color.WHITE);
 	private static final Color colors[] = new Color[] {Color.RED, Color.BLUE, Color.GREEN, Color.CYAN, Color.ORANGE, Color.MAGENTA, Color.PINK, Color.YELLOW, Color.WHITE, Color.GRAY};
-	
+
 	public ErrorAnalysisFrame(final RaytraceScene scene)
 	{
 		super("Error Analysis");
 		panelArrowWindows.setLayout(new GridLayout(3,0));
 		GroupLayout layout = new GroupLayout(getContentPane());
 		getContentPane().setLayout(layout);
-		
+
 		layout.setHorizontalGroup(
 			layout.createParallelGroup().addGroup(
 				layout.createSequentialGroup()
@@ -143,7 +143,7 @@ public class ErrorAnalysisFrame extends JFrame implements SceneChangeListener, A
 				.addGroup(layout.createParallelGroup().addComponent(comboBoxEvaluationMethod).addComponent(textFieldVisualizationScale)))
 			.addGroup(layout.createSequentialGroup().addComponent(toggleButtonAbsoluteDastances).addComponent(toggleButtonRelative).addComponent(toggleButtonUseSurfaceCoordinates).addComponent(toggleButtonLogarithmicPlot).addComponent(toggleButtonAutoUpdate).addComponent(buttonUpdate))
 			.addComponent(scrollPanelValues).addComponent(panelArrowWindows));
-		
+
 		layout.setVerticalGroup(
 			layout.createSequentialGroup()
 			.addGroup(layout.createParallelGroup().addComponent(labelChooseSource).addComponent(comboBoxSource, 20, 20, 20).addComponent(labelEvaluationMethod).addComponent(comboBoxEvaluationMethod, 20, 20, 20))
@@ -167,10 +167,10 @@ public class ErrorAnalysisFrame extends JFrame implements SceneChangeListener, A
 		toggleButtonRelative.addActionListener(this);
 		toggleButtonAbsoluteDastances.addActionListener(this);
 		gen.rand = new Random();
-		
-		
+
+
 	}
-	
+
 	private static class CellRenderer extends DefaultTableCellRenderer{
 		private static final long serialVersionUID = 1730863456952577338L;
 
@@ -193,7 +193,7 @@ public class ErrorAnalysisFrame extends JFrame implements SceneChangeListener, A
 			return tmp;
 		  }
 	}
-	
+
 	@Override
 	public void run()
 	{
@@ -237,7 +237,7 @@ public class ErrorAnalysisFrame extends JFrame implements SceneChangeListener, A
 			endpoint.set(rso.position);
 		}
 		Vector3d tmpEndpoint = new Vector3d();
-		
+
 		Operation op = textFieldEpsilon.get();
 		if (op == null)
 		{
@@ -283,7 +283,7 @@ public class ErrorAnalysisFrame extends JFrame implements SceneChangeListener, A
 				case 10:originalValue = current.ior1;current.ior1 = new RealDoubleOperation(current.ior1.doubleValue() + (relative ? current.ior1.doubleValue() * epsilon : epsilon));break;
 				}
 				current.update();
-								
+
 				gen.rand.setSeed(seed);
 				scene.calculateRays(0, 1, 1, gen, 0, 0,null, null, endpoints, enddirs, sceneEndpointColor, null, accepted, bounces, oo, 10, false, rso, RaytraceScene.UNACCEPTED_MARK);
 				if (useSurfaceCoordinates)
@@ -302,21 +302,21 @@ public class ErrorAnalysisFrame extends JFrame implements SceneChangeListener, A
 				{
 					tmpEndpoint.set(rso.position);
 				}
-				
+
 				tmpEndpoint.sub(endpoint);
 				tmpEndpoint.multiply(1 / epsilon);
-				
+
 				if (toggleButtonLogarithmicPlot.isSelected())
 				{
 					arrowWindows[j - 1].positions[i*2] = (float)(Math.log(1 + Math.abs(tmpEndpoint.x)) * Math.signum(tmpEndpoint.x));
-					arrowWindows[j - 1].positions[i*2 + 1] = (float)(Math.log(1 + Math.abs(tmpEndpoint.y)) * Math.signum(tmpEndpoint.y));	
+					arrowWindows[j - 1].positions[i*2 + 1] = (float)(Math.log(1 + Math.abs(tmpEndpoint.y)) * Math.signum(tmpEndpoint.y));
 				}
 				else
 				{
 					arrowWindows[j - 1].positions[i*2] = (float)(tmpEndpoint.x);
 					arrowWindows[j - 1].positions[i*2 + 1] = (float)(tmpEndpoint.y);
 				}
-				
+
 				data[i][j] = absoluteDistances ? tmpEndpoint.norm() : tmpEndpoint.toString();
 				switch(j)
 				{
@@ -344,7 +344,7 @@ public class ErrorAnalysisFrame extends JFrame implements SceneChangeListener, A
 		scrollPanelValues.setPreferredSize(new Dimension(dim.width, dim.height + tableValues.getTableHeader().getPreferredSize().height + 8));
 		panelArrowWindows.repaint();
 	}
-	
+
 	private void update()
 	{
 		EventQueue.invokeLater(this);
@@ -360,7 +360,7 @@ public class ErrorAnalysisFrame extends JFrame implements SceneChangeListener, A
 			{
 				oso[i] = scene.getSurfaceObject(i);
 			}
-			comboBoxSource.setModel(new DefaultComboBoxModel<GuiOpticalSurfaceObject>(oso));
+			comboBoxSource.setModel(new DefaultComboBoxModel<>(oso));
 			comboBoxSource.setSelectedItem(selected);
 		}
 	}
@@ -377,7 +377,7 @@ public class ErrorAnalysisFrame extends JFrame implements SceneChangeListener, A
 			update();
 		}
 	}
-	
+
 	public void documentUpdate(DocumentEvent arg)
 	{
 		if (toggleButtonAutoUpdate.isSelected())

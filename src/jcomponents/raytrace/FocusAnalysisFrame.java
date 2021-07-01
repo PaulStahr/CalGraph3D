@@ -108,7 +108,7 @@ public class FocusAnalysisFrame extends JFrame  implements ActionListener{
 					{
 						FileWriter out = new FileWriter("FocusAnalysis");
 						BufferedWriter outBuf = new BufferedWriter(out);
-						util.IOUtil.writeColumnTable(
+						util.io.IOUtil.writeColumnTable(
 								new String[]{"Elevation", "SurfaceElevation", "SurfaceElevationVariance", "Variance", "CountPerArc", "FocalDistance", "HitpointDistance"},
 								new Object[] {fc.sourceElevations, fc.destinationElevationAveraged, fc.destinationElevationVariance, fc.destinationEucledeanVariance, fc.acceptedRatio, fc.focusToDestinationDistances, fc.focusToHitpointDistances}, outBuf);
 						outBuf.close();

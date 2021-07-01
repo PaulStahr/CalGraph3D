@@ -339,6 +339,14 @@ public class ArrayUtil {
 		}
 	}
 
+
+    public static void mult(float[] in, int begin, int end, float[] out, int outBegin, float mult) {
+        for (; begin < end; ++begin, ++outBegin)
+        {
+            out[outBegin] += in[begin] * mult;
+        }
+    }
+
 	public static final void divide(int[] in, int begin, int end, int[] out, int outBegin, int div)
 	{
 		for (; begin < end; ++begin, ++outBegin)
@@ -446,6 +454,14 @@ public class ArrayUtil {
 			data1[begin1] = data0[begin0] * mult;
 		}
 	}
+
+
+    public static void setTo(float[] data0, int begin0, int end0, float[] data1, int begin1, float mult) {
+        for (; begin0 != end0; ++begin0, ++begin1)
+        {
+            data1[begin1] = data0[begin0] * mult;
+        }
+    }
 
 	public static void setTo(float[] input, int ibegin, int oend, int[] output, int obegin, float mult) {
 		if (input == null)
@@ -729,6 +745,13 @@ public class ArrayUtil {
         for (; begin < end; ++begin)
         {
             output[begin] += value;
+        }
+    }
+
+    public static void add(float[] input, int iBegin, int iEnd, float[] output, int oBegin) {
+        for (; iBegin < iEnd; ++iBegin, ++oBegin)
+        {
+            output[oBegin] += input[iBegin];
         }
     }
 }

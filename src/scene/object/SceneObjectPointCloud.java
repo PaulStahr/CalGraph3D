@@ -1,5 +1,7 @@
 package scene.object;
 
+import geometry.FloatVectorObject;
+
 public class SceneObjectPointCloud extends SceneObject {
 	private FloatVectorObject vertex = new FloatVectorObject();
 	private float vectorField[] = new float[30000];

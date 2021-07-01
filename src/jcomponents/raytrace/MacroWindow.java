@@ -24,13 +24,13 @@ import util.data.UniqueObjects;
 
 public class MacroWindow extends JFrame implements ActionListener{
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = 8961055562270337081L;
 	private static final Logger logger = LoggerFactory.getLogger(MacroWindow.class);
 	public final JTextArea textArea = new JTextArea();
 	private final JButton buttonRun = new JButton("Run");
-	
+
 	public MacroWindow(RaytraceScene scene, RaytraceSession session)
 	{
 		setLayout(JFrameUtils.SINGLE_COLUMN_LAYOUT);

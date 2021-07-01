@@ -48,11 +48,11 @@ import maths.algorithm.OperationCalculate;
 import maths.exception.OperationParseException;
 import maths.variable.Variable;
 import maths.variable.VariableStack;
-import util.IOUtil;
 import util.JFrameUtils;
 import util.StringUtils;
 import util.data.DoubleArrayList;
 import util.functional.BooleanFunction;
+import util.io.IOUtil;
 import util.stream.NullOutputStream;
 
 public class RaytraceCommandLine {
@@ -393,6 +393,7 @@ public class RaytraceCommandLine {
 							gui.paintOffset.set(Double.parseDouble(split.get(2)), Double.parseDouble(split.get(3)));
 							gui.panelVisualization.scale = Double.parseDouble(split.get(4));
 							gui.panelVisualization.repaint();
+							System.out.println(gui.panelVisualization.getSize());
 						}
 					}
 					break;
@@ -526,7 +527,7 @@ public class RaytraceCommandLine {
 					final Variable v = scene.vs.get(split.get(4));
 					final RayGenerator gen = new RayGenerator();
 					gen.setSource(source);
-					final int numRays = 10000;
+					final int numRays = 10;
 
 					int bidirCount = numRays * (source.bidirectional ? 2 : 1);
 					final float endpos[] = new float[bidirCount * 3];
@@ -553,10 +554,11 @@ public class RaytraceCommandLine {
 									npc.addRay(endpos, enddir, j * 3);
 								}
 							}
-							assert(npc.calculate() == 3);
+							int independentRows = npc.calculate();
+							assert(independentRows == 3);
 							npc.get(vec);
 							try {
-								out.write(value + "->" + destination.evaluate_inner_outer(vec) + "\t" + vec + "\t" + npc.getCount() + "\n");
+								out.write("opt " + value + "->" + destination.evaluate_inner_outer(vec) + "\t" + vec + "\t" + npc.getCount() + "\n");
 								out.flush();
 							} catch (IOException e) {
 								logger.error("Can't write output", e);

@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import data.DataHandler;
 import data.raytrace.RaytraceScene.RaySimulationObject;
 import data.raytrace.raygen.ImageRayGenerator;
+import util.ArrayUtil;
 import util.ThreadPool;
 import util.ThreadPool.RunnableObject;
 import util.data.UniqueObjects;
@@ -16,7 +17,7 @@ import util.data.UniqueObjects;
 public class CameraViewRunnable  extends RunnableObject{
 	private static final Logger logger = LoggerFactory.getLogger(CameraViewRunnable.class);
 	RaytraceScene scene;
-	
+
 	public CameraViewRunnable(RaytraceScene scene)
 	{
 		super("Scene View", null);
@@ -25,7 +26,7 @@ public class CameraViewRunnable  extends RunnableObject{
 	}
 	private final ThreadPool.ThreadLocal<RaySimulationObject> rso = DataHandler.runnableRunner.new ThreadLocal<>();
 		public final ImageRayGenerator gen = new ImageRayGenerator();
-		
+
 		float enddirs[] = UniqueObjects.EMPTY_FLOAT_ARRAY;
 		float endpoints[] = UniqueObjects.EMPTY_FLOAT_ARRAY;
 		byte accepted[] = UniqueObjects.EMPTY_BYTE_ARRAY;
@@ -38,13 +39,13 @@ public class CameraViewRunnable  extends RunnableObject{
 	public GuiTextureObject gto;
 	public int passes = 1;
 	private volatile boolean calculating = false;
-	
+
 	public boolean isRunning() {
 		return calculating;
 	}
-	
+
 	private final ThreadPool.ParallelRangeRunnable prr = new ThreadPool.ParallelRangeRunnable() {
-		
+
 		@Override
 		public void run(int from, int to) {
 			Arrays.fill(sceneEndpointColor, from * 4, to * 4, 0);
@@ -54,7 +55,7 @@ public class CameraViewRunnable  extends RunnableObject{
 			{
 				rso.set(r = new RaySimulationObject());
 			}
-			
+
 			if (passes > 1)
 			{
 				Arrays.fill(sceneEndpointColorAdded, from * 4, to * 4, 0);
@@ -64,38 +65,32 @@ public class CameraViewRunnable  extends RunnableObject{
 				scene.calculateRays(from, to, numPixels, gen, from, from, null, null, endpoints, enddirs, sceneEndpointColor, null, accepted, bounces, lastObject, maxBounces, false, r, RaytraceScene.UNACCEPTED_MARK);
 				if (passes > 1)
 				{
-					for (int j = from * 4; j < to * 4; ++j)
-					{
-						sceneEndpointColorAdded[j] += sceneEndpointColor[j];
-					}
+				    ArrayUtil.add(sceneEndpointColor, from * 4, to * 4, sceneEndpointColorAdded, from * 4);
 				}
 			}
 			if (passes > 1)
 			{
-				for (int j = from * 4; j < to * 4; ++j)
-				{
-					sceneEndpointColor[j] = sceneEndpointColorAdded[j] / passes;
-				}
+			    ArrayUtil.mult(sceneEndpointColorAdded, from * 4, to * 4, sceneEndpointColor, from * 4, 1f/passes);
 			}
-			
-			int pixel[] = r.color;
-			pixel[3] = 255;
+
+			float pixel[] = r.color;
+			pixel[3] = 1;
    			int width = raster.getWidth();
    			for (int i = from; i < to; ++i)
    			{
    				for (int j = 0; j < 3; ++j)
    				{
-   					pixel[j] = (int)(sceneEndpointColor[i * 4 + j] * 255);
+   					pixel[j] = sceneEndpointColor[i * 4 + j];
    				}
    				raster.setPixel(i % width, i / width, pixel);
    			}
    			gto.modified();
-			}
-		
+		}
+
 		@Override
 		public void finished() {CameraViewRunnable.this.finished();}
 	};
-	
+
 		@Override
 		public void run()
 		{
@@ -103,14 +98,12 @@ public class CameraViewRunnable  extends RunnableObject{
 			{
 				return;
 			}
-			synchronized(this)
+			synchronized(CameraViewRunnable.this)
 			{
 				calculating = true;
 			}
-		int width = gto.image.getWidth();
-			int height = gto.image.getHeight();
-			gen.width = width;
-			gen.height = height;
+			int width = gen.width = gto.image.getWidth();
+			int height = gen.height = gto.image.getHeight();
 			numPixels = width * height;
 			if (enddirs.length != numPixels * 3 || bounces.length  != numPixels)
 			{
@@ -122,11 +115,11 @@ public class CameraViewRunnable  extends RunnableObject{
 				lastObject = new OpticalObject[numPixels];
 			}
 			if (passes > 1 && sceneEndpointColorAdded.length != numPixels * 4)
-		{
+			{
 				sceneEndpointColorAdded = new float[numPixels * 4];
-		}
+			}
 			DataHandler.runnableRunner.runParallel(prr, "Scene View", null, 0, numPixels, 200000, true);
-			
+
 			gto.triggerModificationEvents();
 			synchronized(CameraViewRunnable.this)
 			{
@@ -134,9 +127,9 @@ public class CameraViewRunnable  extends RunnableObject{
 				CameraViewRunnable.this.notifyAll();
 			}
 		}
-		
+
 		public void finished() {}
-		
+
 		public void blockOnCalculation()
 		{
 			synchronized(this)

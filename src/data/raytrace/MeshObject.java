@@ -48,7 +48,7 @@ public class MeshObject extends SurfaceObject {
 	private double radiusQ;
 	private double normalizedIncrementingArea[] = UniqueObjects.EMPTY_DOUBLE_ARRAY;
 	public boolean smooth;
-	
+
 	public static interface MeshObjectChangeListener
 	{
 		public void valueChanged(MeshObject object, SCENE_OBJECT_COLUMN_TYPE ct);
@@ -86,13 +86,13 @@ public class MeshObject extends SurfaceObject {
 			SCENE_OBJECT_COLUMN_TYPE.SMOOTH,
 			SCENE_OBJECT_COLUMN_TYPE.INVERT_INOUT,
 			SCENE_OBJECT_COLUMN_TYPE.DELETE});
-	
+
 	@Override
 	public COLUMN_TYPES getTypes()
 	{
 		return TYPES;
 	}
-			
+
 	private static final Object defaultValues[] = new Object[TYPES.colSize()];
 	static
 	{
@@ -101,17 +101,17 @@ public class MeshObject extends SurfaceObject {
 			defaultValues[i] = TYPES.getCol(i).defaultValue;
 		}
 	}
-		
+
 	public MeshObject(VariableAmount va, ParseUtil parser)
 	{
 		setValues(defaultValues, va, parser);
 	}
-	
+
 	public MeshObject(ArrayList<SCENE_OBJECT_COLUMN_TYPE> vctList, ArrayList<? extends Object> valueList, VariableAmount va, ParseUtil parser) {
 		super();
 		setValues(vctList, valueList, va, parser);
 	}
-	
+
 	private static final int binarySearch(double[] a, int low, int hi, double key)
 	{
 		if (low > hi)
@@ -134,12 +134,12 @@ public class MeshObject extends SurfaceObject {
 	    }
 		return mid;
 	}
-	
+
 	public final int getFace(double incArea)
 	{
 		return binarySearch(normalizedIncrementingArea, 0, normalizedIncrementingArea.length - 1, incArea);
 	}
-	
+
 	public final void getPoint(int face, double alpha, double beta, Vector3d position)
 	{
 		face *= 3;
@@ -150,7 +150,7 @@ public class MeshObject extends SurfaceObject {
 		position.z = vertices[f0 + 2] * gamma + vertices[f1 + 2] * alpha + vertices[f2 + 2] * beta;
 		meshToGlobal.rdotAffine(position);
 	}
-	
+
 	public final void getNormal(int face, double alpha, double beta, Vector3d direction)
 	{
 		face *= 3;
@@ -161,7 +161,7 @@ public class MeshObject extends SurfaceObject {
 		direction.z = vertexNormals[f0 + 2] * gamma + vertexNormals[f1 + 2] * alpha + vertexNormals[f2 + 2] * beta;
 		globalToMesh.ldot(direction);
 	}
-	
+
 	public final void getTextureCoord(int face, double alpha, double beta, Vector2d position)
 	{
 		face *= 3;
@@ -170,12 +170,12 @@ public class MeshObject extends SurfaceObject {
 		position.x = textureCoordinates[f0]     * gamma + textureCoordinates[f1]     * alpha + textureCoordinates[f2]     * beta;
 		position.y = textureCoordinates[f0 + 1] * gamma + textureCoordinates[f1 + 1] * alpha + textureCoordinates[f2 + 1] * beta;
 	}
-	
+
 	public final void getNormal(int face, Vector3d direction)
 	{
 		direction.set(faceNormals, face * 3);
 	}
-	
+
 	@Override
 	public Intersection getIntersection(Vector3d position, Vector3d direction, Intersection intersection, double lowerBound, double upperBound) {
 		//Geometry.calcTriangleMeshVertexFaceNormals(vertices, faces, vertexNormals, faceNormals);
@@ -192,7 +192,7 @@ public class MeshObject extends SurfaceObject {
 		dx *= invDirLen;
 		dy *= invDirLen;
 		dz *= invDirLen;
-		
+
 		{
 			double x = px - weightPoint.x, y = py - weightPoint.y, z = pz - weightPoint.z;
 			double c = x * x + y * y + z * z - this.radiusQ;
@@ -221,7 +221,7 @@ public class MeshObject extends SurfaceObject {
 			}
 			final double xir = dist * dx - pxr, yir = dist * dy - pyr, zir = dist * dz - pzr;
 			final double cx = zir * yfn - yir * zfn, cy = xir * zfn - zir * xfn, cz = yir * xfn - xir * yfn;
-			
+
 			final int v1 = faces[i + 1] * 3;
 			final double u1 = cx * (vertices[v1] - x0) + cy * (vertices[v1 + 1] - y0) + cz * (vertices[v1 + 2] - z0);
 			if (u1 < 0 || u1 > 1)
@@ -261,13 +261,13 @@ public class MeshObject extends SurfaceObject {
 		}
 		return null;
 	}
-	
+
 	public void applyMatrix()
 	{
 		globalToMesh.invert(meshToGlobal);
 		meshToGlobal.getCol(3, midpoint);
 	}
-	
+
 	@Override
 	public void setValue(SCENE_OBJECT_COLUMN_TYPE ct, Object o, VariableAmount variables, ParseUtil parser) throws OperationParseException
 	{
@@ -368,7 +368,7 @@ public class MeshObject extends SurfaceObject {
 		parser.reset();
 	}
 
-	
+
 	@Override
 	public Object getValue(SCENE_OBJECT_COLUMN_TYPE ct)
 	{
@@ -390,7 +390,7 @@ public class MeshObject extends SurfaceObject {
 		case TEXTURE_OBJECT:		return textureObjectStr;
 		case SAVE_TO:		break;
 		case OPEN:			break;
-		default:			throw new IllegalArgumentException(ct.name);		
+		default:			throw new IllegalArgumentException(ct.name);
 		}
 		return null;
 	}
@@ -398,15 +398,15 @@ public class MeshObject extends SurfaceObject {
 	public void removeChangeListener(MeshObjectChangeListener toc) {
 		changeListeners.remove(toc);
 	}
-	
+
 	public void addDataChangeListener(MeshObjectChangeListener tcl) {
 		changeListeners.add(tcl);
 	}
-	
+
 	public void addChangeListener(MeshObjectChangeListener tcl) {
 		changeListeners.add(tcl);
 	}
-	
+
 	@Override
 	public void valueChanged(SCENE_OBJECT_COLUMN_TYPE ct, ParseUtil parser)
 	{
@@ -430,7 +430,7 @@ public class MeshObject extends SurfaceObject {
 	{
 		this.lines = lines;
 	}
-	
+
 	public void setData(double vertices[], int faces[], double textureCoordinates[])
 	{
 		this.textureCoordinates = textureCoordinates;
@@ -503,13 +503,13 @@ public class MeshObject extends SurfaceObject {
 			len = 1 / len;
 			faceNormalsInversedLength[i] = x * len; faceNormalsInversedLength[i + 1] = y * len; faceNormalsInversedLength[i + 2] = z * len;
 		}
-		
+
 		DoubleMatrixUtil.multiply(normalizedIncrementingArea, 0, normalizedIncrementingArea.length, 1/sum);
 		DoubleMatrixUtil.partialSum(normalizedIncrementingArea, 0, normalizedIncrementingArea.length);
 		modified();
 		triggerModificationEvents();
 	}
-	
+
 	public void load(String filepath) throws IOException
 	{
 		FileInputStream is = new FileInputStream(filepath);
@@ -522,12 +522,12 @@ public class MeshObject extends SurfaceObject {
 		is.close();
 		//Geometry.calcTriangleMeshVertexFaceOrthorgonals(vertices, faces, vertexNormals, faceNormals);
 	}
-	
+
 	public final int getMeshVertexLength()
 	{
 		return this.vertices.length;
 	}
-	
+
 	public void getMeshVertices(float vertices[])
 	{
 		for (int i = 0; i < this.vertices.length; i += 3)
@@ -539,7 +539,7 @@ public class MeshObject extends SurfaceObject {
 	public int[] getMeshFaces() {
 		return faces;
 	}
-	
+
 	public int[] getLines() {
 		return lines;
 	}
@@ -549,7 +549,7 @@ public class MeshObject extends SurfaceObject {
 		ObjectImporter.exportTriangleWavefront(os, id, faces, vertices, textureCoordinates);
 		os.close();
 	}
-	
+
 	@Override
 	public void read(OpticalObject other, VariableAmount va, ParseUtil parser)
 	{
