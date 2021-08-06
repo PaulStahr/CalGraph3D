@@ -219,13 +219,16 @@ public final class LwjglOpenGl extends AWTGLCanvas implements OpenGlInterface, C
         GLData data = new GLData();
         data.majorVersion = 3;
         data.minorVersion = 3;
-        data.profile = GLData.Profile.CORE;
+        data.profile = GLData.Profile.COMPATIBILITY;
+        data.api = GLData.API.GL;
         data.samples = 4;
         return data;
     }
 
     public LwjglOpenGl(Scene scene){
         super(getGlData());
+        effective.profile = GLData.Profile.COMPATIBILITY;
+        effective.majorVersion = 3;
     	this.scene = new SceneObserver(scene);
     	/*for (int i = 0; i < vertices.length; ++i)
     	{
@@ -390,9 +393,9 @@ public final class LwjglOpenGl extends AWTGLCanvas implements OpenGlInterface, C
             GL11.glHint(GL11.GL_POLYGON_SMOOTH_HINT,quality);
             GL11.glHint(GL13.GL_TEXTURE_COMPRESSION_HINT,quality);
             //Display.setVSyncEnabled(false);
-            Options.OptionTreeInnerNode sceneNode = Options.getInnerNode("cubemap");
+            Options.OptionTreeInnerNode sceneNode = Options.getInnerNode("scene");
             tmp = Options.getString(sceneNode, "cubemap", null);
-            if (tmp != null && scene != null && !tmp.equals(scene.getScene().cupemap)){
+            if (tmp != null && scene != null && (!tmp.equals(scene.getScene().cupemap) || cubemap == null)){
                 try{
                     final String paths[] = new String[6];
                     File folder = new File (scene.getScene().cupemap = tmp);
@@ -515,7 +518,6 @@ public final class LwjglOpenGl extends AWTGLCanvas implements OpenGlInterface, C
     @Override
     public void paintGL()
     {
-        System.out.println("paint");
         GL11.glMatrixMode(GL11.GL_PROJECTION);
         GL11.glLoadIdentity();
        	LwjglGlUtils.perspectiveGL(camera.getAngle(),camera.getAspect(),0.01,10000.0);

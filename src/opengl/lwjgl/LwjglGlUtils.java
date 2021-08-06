@@ -73,15 +73,20 @@ public class LwjglGlUtils {
     }
 
 	public static final void setEnabledGlPositions(LightGroup lg){
-	    for (int i=0;i<lg.size();i++)
-	    	if (lg.get(i).enabled)
+	    for (int i=0;i<lg.size();i++) {
+	    	if (lg.get(i).enabled) {
+                lg.get(i).positionReadOnly.mark();
+                lg.get(i).positionReadOnly.reset();
 	            GL11.glLightfv(GL_LIGHTS[i],GL11.GL_POSITION,lg.get(i).positionReadOnly);
-
+	    	}
+	    }
 	}
 
 	public static final void setGlPositions(LightGroup lg){
-	    for (int i=0;i<lg.size();i++)
+	    for (int i=0;i<lg.size();i++) {
+	        lg.get(i).positionReadOnly.reset();
             GL11.glLightfv(GL_LIGHTS[i],GL11.GL_POSITION,lg.get(i).positionReadOnly);
+	    }
 	}
 
 	public static final void setLights(LightGroup lg)
@@ -91,6 +96,8 @@ public class LwjglGlUtils {
 			Light l = lg.get(i);
 			int id = GL_LIGHTS[i];
             l.attenuation = GL11.GL_CONSTANT_ATTENUATION;
+            lg.get(i).ambientReadOnly.mark();
+            lg.get(i).ambientReadOnly.reset();
             GL11.glLightfv(id,GL11.GL_AMBIENT,l.ambientReadOnly);
             GL11.glLightfv(id,GL11.GL_DIFFUSE,l.diffuseReadOnly);
             GL11.glLightfv(id,GL11.GL_SPECULAR,l.specularReadOnly);
@@ -171,26 +178,16 @@ public class LwjglGlUtils {
 
 	public static final void setMaterialColor(boolean ambient, boolean diffuse, boolean specular, boolean emission, FloatBuffer color)
 	{
-		if (ambient)
-		{
-			GL11.glMaterialfv(GL11.GL_FRONT_AND_BACK, GL11.GL_AMBIENT, color);
-		}
-		if (diffuse)
-		{
-	        GL11.glMaterialfv(GL11.GL_FRONT_AND_BACK, GL11.GL_DIFFUSE, color);
-		}
-		if (specular)
-		{
-			GL11.glMaterialfv(GL11.GL_FRONT_AND_BACK, GL11.GL_SPECULAR, color);
-		}
-		if (emission)
-		{
-			GL11.glMaterialfv(GL11.GL_FRONT_AND_BACK, GL11.GL_EMISSION, color);
-		}
+		if (ambient)  {GL11.glMaterialfv(GL11.GL_FRONT_AND_BACK, GL11.GL_AMBIENT, color);}
+		if (diffuse)  {GL11.glMaterialfv(GL11.GL_FRONT_AND_BACK, GL11.GL_DIFFUSE, color);}
+		if (specular) {GL11.glMaterialfv(GL11.GL_FRONT_AND_BACK, GL11.GL_SPECULAR, color);}
+		if (emission) {GL11.glMaterialfv(GL11.GL_FRONT_AND_BACK, GL11.GL_EMISSION, color);}
 	}
 
 	public static final void bindMaterial(Material m)
     {
+        m.ambientReadOnly.mark();
+        m.ambientReadOnly.reset();
         GL11.glMaterialfv(GL11.GL_FRONT_AND_BACK, GL11.GL_AMBIENT, 	m.ambientReadOnly);
         GL11.glMaterialfv(GL11.GL_FRONT_AND_BACK, GL11.GL_DIFFUSE, 	m.diffuseReadOnly);
         GL11.glMaterialfv(GL11.GL_FRONT_AND_BACK, GL11.GL_SPECULAR, m.specularReadOnly);

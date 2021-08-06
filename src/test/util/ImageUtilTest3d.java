@@ -8,8 +8,8 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import jcomponents.util.ImageUtil;
 import test.geometry.GeometryTest;
+import util.Interpolator;
 
 @RunWith(Parameterized.class)
 public class ImageUtilTest3d {
@@ -28,10 +28,10 @@ public class ImageUtilTest3d {
         float testpoints[] = {0,0,0,1,1,1,0,1,2,4.5f,3.5f,2.5f,8,8.5f,8.8f};
         for (int i = 0; i < testpoints.length; i += 3)
         {
-            float interpolated = ImageUtil.getSmoothedPixel(testpoints[i], testpoints[i + 1], testpoints[i + 2], data, width, height, depth);
+            float interpolated = Interpolator.interpolatePoint(testpoints[i], testpoints[i + 1], testpoints[i + 2], data, width, height, depth);
             float expected = GeometryTest.eval(initF, testpoints[i], testpoints[i + 1], testpoints[i + 2], width, height, depth);
             try {
-                assert(Math.abs(interpolated - (int)(expected)) < 0.05);
+                assert(Math.abs(interpolated - expected) < 0.05);
             }catch(AssertionError e){
                 throw new AssertionError("interpolated was " + interpolated + " expected " + expected, e);
             }

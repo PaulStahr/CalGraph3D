@@ -1,16 +1,16 @@
 /*******************************************************************************
  * Copyright (c) 2019 Paul Stahr
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -64,6 +64,7 @@ import maths.variable.Variable;
 import maths.variable.VariableStack;
 import util.ArrayUtil;
 import util.Buffers;
+import util.Interpolator;
 import util.JFrameUtils;
 import util.StringUtils;
 import util.data.DoubleArrayList;
@@ -73,7 +74,7 @@ import util.data.SortedIntegerArrayList;
 public abstract class OpticalVolumeObject extends OpticalObject{
 	public static final OpticalVolumeObject EMPTY_VOLUME_ARRAY[] = new OpticalVolumeObject[0];
 	private static final Logger logger = LoggerFactory.getLogger(OpticalVolumeObject.class);
-	
+
 	private static boolean native_raytrace = false;
 	static
 	{
@@ -99,7 +100,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			{
 				JFrameUtils.logErrorAndShow("No cuda found", new FileNotFoundException(), logger);
 			}
-			
+
 			if (new File ("/usr/lib/cuda_raytrace_java.so").exists())
 			{
 				System.load("/usr/lib/cuda_raytrace_java.so");
@@ -118,7 +119,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			JFrameUtils.logErrorAndShow("Can't load cuda-raytracer", e, logger);
 		}
 	}
-	
+
 	static class VolumeRaytraceOptions
 	{
 		private long pointer;
@@ -127,33 +128,33 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			private final int id;
 			VolumeRaytraceOptionType(int id) { this.id = id; }
 		    public int getValue() { return id; }
-		};
-		
+		}
+
 		public VolumeRaytraceOptions()
 		{
 			pointer = new_options();
 		}
-		
+
 		public int getLoglevel()
 		{
 			return get_option_valuei(pointer, VolumeRaytraceOptionType.LOGLEVEL.id);
 		}
-		
+
 		public void setLoglevel(int value)
 		{
 			set_option_valuei(pointer, VolumeRaytraceOptionType.LOGLEVEL.id, value);
 		}
-		
+
 		public boolean getWriteInstance()
 		{
 			return get_option_valueb(pointer, VolumeRaytraceOptionType.WRITE_INSTANCE.id);
 		}
-		
+
 		public void setWriteInstance(boolean value)
 		{
-			set_option_valueb(pointer, VolumeRaytraceOptionType.WRITE_INSTANCE.id, value);			
+			set_option_valueb(pointer, VolumeRaytraceOptionType.WRITE_INSTANCE.id, value);
 		}
-		
+
 		@Override
 		protected void finalize()
 		{
@@ -164,29 +165,29 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			}
 		}
 	}
-	
+
 	public static native long new_instance(IntBuffer bounds, IntBuffer ior, IntBuffer transculency, long opt_pt);
 
 	public static native long new_options();
-	
+
 	public static native long new_instance(IntBuffer bounds, FloatBuffer ior, IntBuffer transculency, long opt_pt);
-	
+
 	public static native void delete_instance(long pointer);
-	
+
 	public static native void delete_options(long pointer);
-	
+
 	public static native int get_option_valuei(long pointer, long id);
-	
+
 	public static native void set_option_valuei(long pointer, long id, int value);
-	
+
 	public static native boolean get_option_valueb(long pointer, long id);
-	
+
 	public static native void set_option_valueb(long pointer, long id, boolean value);
-	
+
 	public static native void trace_rays(long pointer, IntBuffer start_position, ShortBuffer start_direction, IntBuffer end_iteration, FloatBuffer scale, float minimum_brightness, int iterations, boolean trace_path, IntBuffer path, long option_pointer);
-	
+
 	public static native void trace_rays(long pointer, IntBuffer start_position, FloatBuffer start_direction, IntBuffer end_iteration, FloatBuffer scale, float minimum_brightness, int iterations, boolean trace_path, IntBuffer path, long option_pointer);
-	
+
 	public final Matrix4d unitVolumeToGlobal = new Matrix4d();
 	public final Matrix4d globalToUnitVolume = new Matrix4d();
 	private final Matrix4d cudaCubesToGlobal = new Matrix4d();
@@ -210,17 +211,17 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		private long pointer;
 		private AtomicInteger running = new AtomicInteger();
 		boolean destroy = false;
-		
+
 		private VolumeScene(IntBuffer bounds, IntBuffer ior, IntBuffer translucency, VolumeRaytraceOptions opt)
 		{
 			pointer = new_instance(bounds, ior, translucency, opt.pointer);
 		}
-		
+
 		private VolumeScene(IntBuffer bounds, FloatBuffer ior, IntBuffer translucency, VolumeRaytraceOptions opt)
 		{
 			pointer = new_instance(bounds, ior, translucency, opt.pointer);
 		}
-		
+
 		public void traceRays(IntBuffer start_position, ShortBuffer start_direction, IntBuffer end_iteration, FloatBuffer scale, float minimum_brightness, int iterations, IntBuffer path, VolumeRaytraceOptions options)
 		{
 			running.incrementAndGet();
@@ -230,7 +231,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 				finalize();
 			}
 		}
-		
+
 		public void traceRays(IntBuffer start_position, FloatBuffer start_direction, IntBuffer end_iteration, FloatBuffer scale, float minimum_brightness, int iterations, IntBuffer path, VolumeRaytraceOptions options)
 		{
 			running.incrementAndGet();
@@ -240,7 +241,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 				finalize();
 			}
 		}
-		
+
 		public void destroyLazy()
 		{
 			if (running.get() == 0)
@@ -252,7 +253,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 				destroy = true;
 			}
 		}
-		
+
 		@Override
 		protected void finalize()
 		{
@@ -264,12 +265,12 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		}
 	}
 
-	
+
 	public OpticalVolumeObject()
 	{
 		setSize(10, 10, 10);
 	}
-	
+
 	public void applyMatrix()
 	{
 		unitVolumeToGlobal.getCol(3, midpoint);
@@ -328,7 +329,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			this.depth = depth;
 			vs.addLocal(xVar);
 			vs.addLocal(yVar);
-			vs.addLocal(zVar);	
+			vs.addLocal(zVar);
 			vs.addLocal(xLocalVar);
 			vs.addLocal(yLocalVar);
 			vs.addLocal(zLocalVar);
@@ -445,12 +446,12 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 								sum += value;
 								absSum += Math.abs(value);
 							}
-							
+
 							eval[i].setValue(sum / absSum);
 						}
 						datVar.setValue(data[index]);
 						transVar.setValue(translucency[index]);
-						
+
 						vce.setPosition(index, x, y, z);
 						equalityOperationResult[index] = givenValueOperation.calculate(vs, control).doubleValue();
 						notGivenIndices[index] =  isGivenOperation.calculate(vs, control).booleanValue() ? -1 : notGivenCount++;
@@ -469,7 +470,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			logger.debug(new StringBuilder().append('(').append(eqLimits[0]).append(',').append(eqLimits[1]).append(')').toString());
 		}
 		double min = Double.POSITIVE_INFINITY, max = Double.NEGATIVE_INFINITY;
-		
+
 		for (int z = 0, index = 0; z < depth; ++z)
 		{
 			for (int y = 0; y < height; ++y)
@@ -486,7 +487,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 							sum += value;
 							absSum += Math.abs(value);
 						}
-						
+
 						eval[i].setValue(sum / absSum);
 					}
 					datVar.setValue(data[index]);
@@ -514,7 +515,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 						{
 							throw new RuntimeException("Translucency value " + value + '-' + '>' + (double)value / ((long)Integer.MAX_VALUE - (long)Integer.MIN_VALUE) + " is out of range");
 						}
-						translucency[index] = (int)value;					
+						translucency[index] = (int)value;
 					}
 				}
 			}
@@ -522,7 +523,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		logger.debug(new StringBuilder().append('(').append(min/0x10000).append(',').append(max/0x10000).append(')').toString());
 		vol.modified();
 	}
-	
+
 	public void writeBinaryFile(File file) throws IOException
 	{
 		OutputStream stream = new FileOutputStream(file);
@@ -532,7 +533,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		outBuf.close();
 		stream.close();
 	}
-	
+
 	public void readBinaryFile(String file) throws IOException
 	{
 		InputStream stream = new FileInputStream(file);
@@ -543,7 +544,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
         unitVolumeToGlobal.getCol(2, v1);
         unitVolumeToGlobal.setCol(2, v0);
         unitVolumeToGlobal.setCol(0, v1);
-		
+
 		Vector3d vec = new Vector3d();
 		unitVolumeToGlobal.getColDot3(vec);
 		vec.sqrt();
@@ -555,7 +556,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		inBuf.close();
 		stream.close();
 	}
-	
+
 	public void readAvi(String file)
 	{
 		int width = vol.width, height = vol.height, depth = vol.depth;
@@ -565,13 +566,13 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		readVoxels(is, vol.data, width, height, depth);
 		dcm = null;
 	}
-	
+
 	public BufferedImage getSlice(int slice)
 	{
 		ip.setZ(slice);
 		return ip.getBufferedImage();
 	}
-	
+
 	public void readDycom(String file)
 	{
 		if (dcm == null)
@@ -634,11 +635,11 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 				applyMatrix();
 				inBuf.close();
 				reader.close();
-				
+
 			} catch (IOException e) {
 				logger.error("Can't read property", e);
 			}
-	        
+
     		//readStringPoperty(dcm);
 	    }
 		vs = null;
@@ -762,11 +763,11 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			raytraceWriteInstance = Options.getBoolean(raytrace, "writeinstance");
 		}
 	};
-	
+
 	static {
 		Options.addInvokeModificationListener(optionRunnable);
 	}
-	
+
 	public void updateMesh()
 	{
 	    synchronized(vertexPositions)
@@ -780,7 +781,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
             Geometry.volumeToMesh(vol.data, vol.width, vol.height, vol.depth, (bounds[0] * 0.1+ bounds[1] * 0.9), faceIndices, vertexPositions);
 	    }
 	}
-		
+
 	public float[] getVolumeVertices(float vertices[])
 	{
 		int width = vol.width, height = vol.height, depth = vol.depth;
@@ -798,14 +799,14 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		}
 		return vertices;
 	}
-	
+
 	public int getRefractiveIndex(double x, double y, double z) {
 		double tx = globalToCudaCubes.rdotAffineX(x,y,z) / 0x10000;
 		double ty = globalToCudaCubes.rdotAffineY(x,y,z) / 0x10000;
 		double tz = globalToCudaCubes.rdotAffineZ(x,y,z) / 0x10000;
-		return (int)jcomponents.util.ImageUtil.getSmoothedPixel(tx, ty, tz, vol.data, vol.width, vol.height, vol.depth);
+		return (int)Interpolator.interpolatePoint(tx, ty, tz, vol.data, vol.width, vol.height, vol.depth);
 	}
-	
+
 	public float[] getVolumeColor(float color[])
 	{
 		int num_vertices = vol.width * vol.height * vol.depth;
