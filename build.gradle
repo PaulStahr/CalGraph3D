@@ -3,8 +3,11 @@ plugins {
     id 'application'
 }
 
-repositories {
-    jcenter()
+allprojects{
+    repositories {
+        jcenter()
+        maven { url "https://jitpack.io" }
+    }
 }
 
 dependencies {
@@ -12,10 +15,15 @@ dependencies {
     implementation 'org.jdom:jdom:2.0.2'
     implementation 'com.hynnet:logback-core:1.1.3'
     implementation 'com.hynnet:logback-classic:1.1.3'
-    implementation 'org.lwjgl.lwjgl:lwjgl:2.9.3'
     implementation 'org.jogamp.jogl:jogl-all:2.3.2'
     implementation 'org.jogamp.gluegen:gluegen-rt:2.3.2'
     implementation 'net.imagej:pom-imagej:14.1.0'
+    implementation 'org.lwjgl:lwjgl:3.2.2'
+    implementation 'org.lwjgl:lwjgl-opengl:3.2.2'
+    implementation 'org.lwjgl:lwjgl-glfw:3.2.2'
+    implementation 'org.lwjglx:lwjgl3-awt:0.1.8'
+    compile group: 'org.lwjgl', name: 'lwjgl-tinyexr', version: '3.2.2'
+    implementation 'com.github.PaulStahr:JSymMath:796a71d777'
     compile files("./src/ij.jar")
 
     testCompile 'junit:junit:4.12'
