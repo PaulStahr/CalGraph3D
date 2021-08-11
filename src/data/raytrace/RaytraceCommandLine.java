@@ -631,32 +631,7 @@ public class RaytraceCommandLine {
 						int height = Integer.parseInt(split.get(3));
 						File file = new File(split.get(4));
 						file.getParentFile().mkdirs();
-						String filepath = file.getAbsolutePath();
-						if (filepath.endsWith("svg"))
-						{
-							try {
-								FileWriter writer = new FileWriter(file);
-								BufferedWriter outBuf = new BufferedWriter(writer);
-								SvgDrawer drawer = new SvgDrawer(outBuf);
-								drawer.beginDocument(width, height);
-								gui.panelVisualization.paintComponent(drawer);
-								drawer.endDocument();
-								outBuf.close();
-								writer.close();
-							} catch (IOException e1) {
-								throw new RuntimeException("Can't save Screensot", e1);
-							}
-						}
-						else
-						{
-							BufferedImage im = new BufferedImage(gui.currentVisualization.getWidth(), gui.currentVisualization.getHeight(), BufferedImage.TYPE_INT_ARGB);
-							gui.currentVisualization.paint(im.getGraphics());
-							try {
-								ImageIO.write(im, filepath.substring(filepath.indexOf('.') + 1), file);
-							} catch (IOException e1) {
-								throw new RuntimeException("Can't save Screensot", e1);
-							}
-						}
+						gui.saveScreenshot(file, width, height);
 					}
 					break;
 				}

@@ -1066,32 +1066,14 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 			if(fileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION)
             {
 				File selectedFile = fileChooser.getSelectedFile();
-				String filepath = selectedFile.getAbsolutePath();
-				if (filepath.endsWith("svg"))
-				{
-					try {
-						FileWriter writer = new FileWriter(selectedFile);
-						BufferedWriter outBuf = new BufferedWriter(writer);
-						SvgDrawer drawer = new SvgDrawer(outBuf);
-						Operation op = textFieldSize.get().calculate(scene.vs, new Controller());
-						drawer.beginDocument((int)op.get(0).longValue(), (int)op.get(1).longValue());
-						panelVisualization.paintComponent(drawer);
-						drawer.endDocument();
-						outBuf.close();
-						writer.close();
-					} catch (IOException e1) {
-						visibleErrorMessage("Can't save Screensot", e1);
-					}
+                Operation op = textFieldSize.get().calculate(scene.vs, new Controller());
+                session.commandExecuted("screenshot" + ' ' + scene.getId() + ' ' + op.get(0) + ' ' + op.get(1) + ' ' + selectedFile.getPath());
+				try {
+				    saveScreenshot(selectedFile, (int)op.get(0).longValue(), (int)op.get(1).longValue());
 				}
-				else
+				catch(RuntimeException ex)
 				{
-					BufferedImage im = new BufferedImage(currentVisualization.getWidth(), currentVisualization.getHeight(), BufferedImage.TYPE_INT_ARGB);
-					currentVisualization.paint(im.getGraphics());
-					try {
-						ImageIO.write(im, filepath.substring(filepath.indexOf('.') + 1), selectedFile);
-					} catch (IOException e1) {
-						visibleErrorMessage("Can't save Screensot", e1);
-					}
+                    visibleErrorMessage("Can't save Screensot", ex);
 				}
 		    }
 		}
@@ -1182,6 +1164,36 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 			mw.setVisible(true);
 		}
 	}
+
+    public final void saveScreenshot(File file, int width, int height)
+    {
+        String filepath = file.getAbsolutePath();
+        if (filepath.endsWith("svg"))
+        {
+            try {
+                FileWriter writer = new FileWriter(file);
+                BufferedWriter outBuf = new BufferedWriter(writer);
+                SvgDrawer drawer = new SvgDrawer(outBuf);
+                drawer.beginDocument(width, height);
+                panelVisualization.paintComponent(drawer);
+                drawer.endDocument();
+                outBuf.close();
+                writer.close();
+            } catch (IOException e1) {
+                throw new RuntimeException("Can't save Screensot", e1);
+            }
+        }
+        else
+        {
+            BufferedImage im = new BufferedImage(currentVisualization.getWidth(), currentVisualization.getHeight(), BufferedImage.TYPE_INT_ARGB);
+            currentVisualization.paint(im.getGraphics());
+            try {
+                ImageIO.write(im, filepath.substring(filepath.indexOf('.') + 1), file);
+            } catch (IOException e1) {
+                throw new RuntimeException("Can't save Screensot", e1);
+            }
+        }
+    }
 
     private final ArrayList<String> executedCommands = new ArrayList<>();
 
