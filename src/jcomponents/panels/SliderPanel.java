@@ -1,16 +1,16 @@
 /*******************************************************************************
  * Copyright (c) 2019 Paul Stahr
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -42,15 +42,12 @@ import maths.variable.Variable;
 import maths.variable.VariableAmount;
 import util.SaveLineCreator;
 import util.TimedUpdateHandler;
-/** 
+/**
 * @author  Paul Stahr
 * @version 04.02.2012
 */
 public class SliderPanel extends InterfacePanel implements ActionListener, ChangeListener, DocumentListener, TimedUpdateHandler
 {
-    /**
-     * Ein Panel mit einem Slider um Variablen zu �ndern
-     */
     private static final long serialVersionUID	= 4298663699345171238L;
     private final JTextField fieldMinValue      = new JTextField("0");
     private final JSlider slider                = new JSlider(0, 1000);
@@ -68,19 +65,19 @@ public class SliderPanel extends InterfacePanel implements ActionListener, Chang
     @Override
 	public void actionPerformed(ActionEvent e){
     	variables.add(new Variable(fieldVariableName.getText(), value));
-    } 
+    }
     @Override
 	public void stateChanged (ChangeEvent e){
     	updateValue();
     }
-    
+
 	public void update (DocumentEvent de){
 		Document doc = de.getDocument();
 		if (doc == fieldVariableName.getDocument())
 		{
 			String text = fieldVariableName.getText();
 			boolean valid = text.length() == 0 || Variable.isValidName(text) ;
-        	fieldVariableName.setBackground(valid ? Color.WHITE : Color.RED); 
+        	fieldVariableName.setBackground(valid ? Color.WHITE : Color.RED);
         	v = valid ? variables.get(text) : null;
         }
 		else if (doc == fieldMinValue.getDocument())
@@ -92,11 +89,11 @@ public class SliderPanel extends InterfacePanel implements ActionListener, Chang
 			updateMax();
 		}
     }
-    
+
     public SliderPanel(VariableAmount variables){
         super("Slider");
         this.variables = variables;
-        final JButton buttonAcceptName      = new JButton("Variable hinzuf\u00FCgen");
+        final JButton buttonAcceptName      = new JButton("Add Variable");
         final JLabel labelEquals            = new JLabel("=");
         final GroupLayout layout = new GroupLayout(content);
         content.setLayout(layout);
@@ -118,7 +115,7 @@ public class SliderPanel extends InterfacePanel implements ActionListener, Chang
         		.addComponent(buttonAcceptName, Alignment.CENTER)
         	)
         );
-        
+
         layout.setHorizontalGroup(layout.createParallelGroup()
         	.addGroup(layout.createSequentialGroup()
         		.addComponent(fieldMinValue, 40, 40, 40)
@@ -146,7 +143,7 @@ public class SliderPanel extends InterfacePanel implements ActionListener, Chang
         }
         updateValue();
     }
-    
+
     private void updateMax(){
         try{
             max = Double.parseDouble(fieldMaxValue.getText());
@@ -157,7 +154,7 @@ public class SliderPanel extends InterfacePanel implements ActionListener, Chang
         }
         updateValue();
     }
-    
+
     @Override
 	public void setExtended(boolean extended){
     	if (isExtended() == extended)
@@ -166,14 +163,14 @@ public class SliderPanel extends InterfacePanel implements ActionListener, Chang
     	if (extended){
     		DataHandler.timedUpdater.add(this);
     	}else{
-    		DataHandler.timedUpdater.remove(this);    		
+    		DataHandler.timedUpdater.remove(this);
     	}
     }
-    
+
     private void updateValue(){
     	final int sValue = slider.getValue();
         labelValue.setText(Double.toString(value = (sValue * max + (1000 - sValue) * min) / 1000));
-        
+
         v = variables.get(fieldVariableName.getText());
         if (v != null)
         {
@@ -185,8 +182,8 @@ public class SliderPanel extends InterfacePanel implements ActionListener, Chang
             vModCount = v.modCount();
         }
     }
-    
-    
+
+
 	@Override
 	public StringBuilder getExtendedContent(StringBuilder content){
         SaveLineCreator.appendSaveLine("min", fieldMinValue.getText(), content);
@@ -196,13 +193,13 @@ public class SliderPanel extends InterfacePanel implements ActionListener, Chang
         return content;
     }
 
-    
+
 	@Override
 	protected String getType(){
     	return "slider";
     }
 
-    
+
 	@Override
 	public void setVariable(String variable, String value){
         if (variable.equals("min"))					fieldMinValue.setText(value);
@@ -211,7 +208,7 @@ public class SliderPanel extends InterfacePanel implements ActionListener, Chang
         else if (variable.equals("variable_name"))  fieldVariableName.setText(value);
     }
 
-    
+
 	@Override
 	public void reset(){
         fieldMinValue.setText("");
@@ -220,17 +217,11 @@ public class SliderPanel extends InterfacePanel implements ActionListener, Chang
         slider.setValue(500);
     }
 	@Override
-	public void changedUpdate(DocumentEvent e) {
-		update(e);
-	}
+	public void changedUpdate(DocumentEvent e) {update(e);}
 	@Override
-	public void insertUpdate(DocumentEvent e) {
-		update(e);
-	}
+	public void insertUpdate(DocumentEvent e) {update(e);}
 	@Override
-	public void removeUpdate(DocumentEvent e) {
-		update(e);
-	}
+	public void removeUpdate(DocumentEvent e) {update(e);}
 	@Override
 	public int getUpdateInterval() {
 		return 20;
