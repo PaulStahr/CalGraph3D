@@ -1,16 +1,16 @@
 /*******************************************************************************
  * Copyright (c) 2019 Paul Stahr
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,7 +23,7 @@ package main;
 
 /**
  * Write a description of class Main here.
- * 
+ *
  * @author Paul Stahr
  * @version 19.11.2011
  */
@@ -84,24 +84,22 @@ public class Main
 		} catch (JoranException e) {
 			e.printStackTrace();
 		}
-		
+
 
 
 	}
-	
+
     private static final String neededJavaVersion = "1.7";
 	private static boolean activated;
 	private static int forceActivateWindow = 0;
 	private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
-	//while(b,set(t,t+0.00001);set(i,int(rand()*(kard(a)-2))+1);set(j,int(rand()*(kard(a[i])-2))+1);set(a[i][j],(a[i-1][j]+a[i][j-1]+a[i+1][j]+a[i][j+1])*0.25+cos(t+(i+j)*0.1)*0.5+if(i<40˄i>30˄j<40˄j>30,c,0)))
-	//while(b,while(j<100,set(a[i][j],a[i][j]+aa[i][j]);set(aa[i][j],aa[i][j]-a[i][j]*0.5);set(j,j+1));set(j,0);set(i,(i+1)%100))
-    public static final void main (String args[]){
+	public static final void main (String args[]){
     	//Runtime.getRuntime().traceInstructions(false);
     	//Runtime.getRuntime().traceMethodCalls(false);
     	LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
     	StatusPrinter.print(lc);
-    	    
+
     	String loadProject = null;
     	boolean loadNext = false;
     	boolean console = false;
@@ -155,11 +153,11 @@ public class Main
 				}else{
 					System.out.println("Unknown command-line argument " + arg);
 				}
-					
+
 			}
 		}
 		//SpeedTests.objectOrganicationTest();
-		
+
 		logger.info(new StringBuilder().append("Starting ").append(ProgrammData.name).append(" Version:\"").append(ProgrammData.getVersion()).append('"').toString());
 		if (console)
 		{
@@ -211,7 +209,7 @@ public class Main
     			interfaceInstance.setVisible(true);
     			if (loadProject != null)
     			{
-    				DataHandler.load(loadProject, interfaceInstance);    
+    				DataHandler.load(loadProject, interfaceInstance);
     			}
     			else
     			{
@@ -234,9 +232,9 @@ public class Main
     		e.printStackTrace();
     		System.exit(-1);
     	}
-    		
+
     }
-    
+
     private static void init(){
     	final UncaughtExceptionHandler exceptionHandler = new UncaughtExceptionHandler(){
     		@Override
@@ -246,7 +244,7 @@ public class Main
         		System.exit(-1);
     		}
     	};
-    	
+
     	RunTree runTree = new RunTree(DataHandler.runnableRunner);
     	final RunTree.RunTreeItem checkVersion = runTree.addRunnable(new Runnable() {
 			@Override
@@ -257,7 +255,7 @@ public class Main
 		            logger.warn("java version should be >=" + neededJavaVersion + ", Expecting Problems");
 			}
 		}, "Check Version", exceptionHandler);
-     	
+
     	runTree.addRunnable(new Runnable() {
 			@Override
 			public void run() {
@@ -267,7 +265,7 @@ public class Main
 		    	logger.info(activated ? "Activated version" : "Not activated version");
 			}
 		}, "Check Activation", exceptionHandler, checkVersion);
-    	
+
     	runTree.addRunnable(new Runnable() {
 			@Override
 			public void run() {
@@ -309,7 +307,7 @@ public class Main
      		int optionCount = -1;
      		long limitMemory = -1;
      		private final Runtime runtime = Runtime.getRuntime();
-    		
+
     		@Override
     		public int getUpdateInterval() {
     			return 1000;
@@ -320,7 +318,7 @@ public class Main
     			if (optionCount != Options.modCount()){
     				optionCount = Options.modCount();
     				limitMemory = Options.getInteger("limit_memory", -1);
-    			}			
+    			}
     			if (limitMemory != -1 && runtime.totalMemory() - runtime.freeMemory() > limitMemory){
     				long usedMemory = runtime.totalMemory() - runtime.freeMemory();
     				System.gc();

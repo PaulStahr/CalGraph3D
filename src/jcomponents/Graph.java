@@ -634,8 +634,8 @@ public final class Graph extends JPanel implements MouseListener, ChangeListener
     }
 
     /**
-     * Gibt Alle Variablennamen zur\u00FCck, die den Graphen ver\u00E4ndern k\u00F6nnen. Die Sortierung ist Alphabetisch und kein Name kommt doppelt vor
-     * @return List<String> Unmodifizierbare List mit Variablen
+     * Returns all variable-ids, that might change the graph. Elements are sorted and unique.
+     * @return ReadOnlySortedIntegerArrayList Unmodifiable List with Variables
      */
     public final ReadOnlySortedIntegerArrayList getPendentVariables(){
     	return variables;

@@ -152,8 +152,9 @@ public class LwjglListHandler {
 		}
 
 		/**
-		 * Sorgt daf\u00FCr, dass eine Liste nicht als destroyed markiert werden kann
-		 * @param isProtected
+		 * Sets the status of the list beeing protected. A protected list can't be destroyed.
+		 * If destroying the list is already requested and the list is set to non-protected the list is destroyed imediatly
+		 * @param isProtected Flag to assign the protection status
 		 */
 		public final void setProtected(boolean isProtected){
 			this.isProtected = isProtected;
