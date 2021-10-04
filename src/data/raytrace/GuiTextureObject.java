@@ -59,7 +59,9 @@ public class GuiTextureObject extends OpticalObject{
 	private VideoImageSupplier imageObject;
 	private int frameNumber;
 	private String frameString = "undef";
-	public final Matrix3d mat = new Matrix3d();
+    private final Matrix3d matCoordToTexture = new Matrix3d();
+    private final Matrix3d matCoordToRaster = new Matrix3d();
+
 	private Object transformationStr;
 
 	public GuiTextureObject(Object[] content, VariableAmount va, ParseUtil parser) {
@@ -77,9 +79,8 @@ public class GuiTextureObject extends OpticalObject{
 
 	public void getColor(double x, double y, int result[])
 	{
-
-		int xi = (int)(mat.ldotAffineX(x,y) * raster.getWidth());
-		int yi = (int)(mat.ldotAffineY(x,y) * raster.getHeight());
+		int xi = (int)matCoordToRaster.ldotAffineX(x,y);
+		int yi = (int)matCoordToRaster.ldotAffineY(x,y);
 		if (xi < 0 || xi >= raster.getWidth() || yi < 0 || yi >= raster.getHeight())
 		{
 			Arrays.fill(result, 0);
@@ -94,8 +95,8 @@ public class GuiTextureObject extends OpticalObject{
 	public void getColor(double x, double y, float result[])
 	{
 		//TODO interpolate
-		int xi = (int)(mat.ldotAffineX(x,y) * raster.getWidth());
-		int yi = (int)(mat.ldotAffineY(x,y) * raster.getHeight());
+        int xi = (int)matCoordToRaster.ldotAffineX(x,y);
+        int yi = (int)matCoordToRaster.ldotAffineY(x,y);
 		if (xi < 0 || xi >= raster.getWidth() || yi < 0 || yi >= raster.getHeight())
 		{
 			Arrays.fill(result, 0);
@@ -157,6 +158,11 @@ public class GuiTextureObject extends OpticalObject{
 						}
 					}
 				}
+                if(raster !=null)
+                {
+                    matCoordToRaster.set(matCoordToTexture);
+                    matCoordToRaster.postScale(raster.getWidth(), raster.getHeight());
+                }
 				break;
 			case LOAD:break;
 			case OPEN:break;
@@ -166,7 +172,12 @@ public class GuiTextureObject extends OpticalObject{
 				break;
 			case TRANSFORMATION:
 			{
-				parser.parseMat(transformationStr, mat, variables, controll);
+				parser.parseMat(transformationStr, matCoordToTexture, variables, controll);
+				if(raster !=null)
+				{
+	                matCoordToRaster.set(matCoordToTexture);
+				    matCoordToRaster.postScale(raster.getWidth(), raster.getHeight());
+				}
 				break;
 			}
 			case SAVE:break;
@@ -211,6 +222,11 @@ public class GuiTextureObject extends OpticalObject{
 					try {
 						image = imageObject.getFrame(frameNumber);
 						raster = image.getRaster();
+						if(raster !=null)
+		                {
+		                    matCoordToRaster.set(matCoordToTexture);
+		                    matCoordToRaster.postScale(raster.getWidth(), raster.getHeight());
+		                }
 						modified();
 						triggerModificationEvents();
 					} catch (IOException e) {
@@ -228,7 +244,7 @@ public class GuiTextureObject extends OpticalObject{
 				break;
 			case TRANSFORMATION:
 			{
-				parser.parseMat(o, mat, variables, controll);
+				parser.parseMat(o, matCoordToTexture, variables, controll);
 				transformationStr = parser.str;
 				break;
 			}
@@ -255,31 +271,25 @@ public class GuiTextureObject extends OpticalObject{
 	public Object getValue(SCENE_OBJECT_COLUMN_TYPE visibleCol) {
 		switch (visibleCol)
 		{
-			case DELETE:	return "Delete";
 			case ID:		return id;
 			case POSITION:	return positionStr;
 			case DIRECTION:	return directionStr;
-			case LOAD:		return "Load";
-			case OPEN:		return "Open";
+			case TRANSFORMATION: return transformationStr;
 			case FRAME:		return frameString;
 			case PATH:		return filepathString;
-			case VIEW:		return "View";
-			case SAVE:		return "Save";
-			case TRANSFORMATION: return transformationStr;
-			case SAVE_TO:	return SCENE_OBJECT_COLUMN_TYPE.SAVE_TO.defaultValue;
+			case DELETE:
+            case LOAD:
+            case OPEN:
+            case VIEW:
+			case SAVE:
+			case SAVE_TO:	return visibleCol.defaultValue;
 			case ACTIVE:	return active;
 			default:		throw new IllegalArgumentException();
 		}
 	}
 
-	public void removeChangeListener(TextureObjectChangeListener toc) {
-		changeListeners.remove(toc);
-	}
-
-	public void addChangeListener(TextureObjectChangeListener tcl) {
-		changeListeners.add(tcl);
-	}
-
+	public void removeChangeListener(TextureObjectChangeListener toc) {changeListeners.remove(toc);}
+	public void addChangeListener(TextureObjectChangeListener tcl) {changeListeners.add(tcl);}
 
 	public void load(VariableAmount variable, ParseUtil parser) throws IOException, OperationParseException {
 		load(filepath == null ? null : filepath, variable, parser);
@@ -360,6 +370,11 @@ public class GuiTextureObject extends OpticalObject{
 	public void setImage(BufferedImage image) {
 		this.image = image;
 		this.raster = image.getRaster();
+        if(raster !=null)
+        {
+            matCoordToRaster.set(matCoordToTexture);
+            matCoordToRaster.postScale(raster.getWidth(), raster.getHeight());
+        }
 	}
 
 	public void saveTo(File file) throws IOException {
