@@ -1,16 +1,16 @@
 /*******************************************************************************
  * Copyright (c) 2019 Paul Stahr
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -50,33 +50,33 @@ public abstract class OpticalSurfaceObject extends SurfaceObject{
 	private double dotProdUpperBound2;
 	private double dotProdLowerBound2;
 	private double maxArcOpen;
-	private double minArcOpen;	
+	private double minArcOpen;
 	public TextureMapping textureMapping = TextureMapping.SPHERICAL;
 	public boolean alphaAsRadius;
 	private boolean mapLocal = true;
 	public boolean alphaAsMask;
 	public OpticalSurfaceObject() {}
-	
+
 	public double getMaxArcOpen()
 	{
 		return maxArcOpen;
 	}
-	
+
 	public double getMinArcOpen()
 	{
 		return minArcOpen;
 	}
-	
+
 	public double getDotProdUpperBound()
 	{
 		return dotProdUpperBound;
 	}
-	
+
 	public double getDotProdLowerBound()
 	{
 		return dotProdLowerBound;
 	}
-	
+
 	@Override
 	public void getTextureCoordinates(Vector3d position, Vector3d dir, Vector2d out)
 	{
@@ -94,9 +94,9 @@ public abstract class OpticalSurfaceObject extends SurfaceObject{
 			textureMapping.mapCartToTex(dirx, diry, dirz, out);
 		}
 	}
-	
 
-	
+
+
 	public void update()
 	{
 		directionLengthQ = this.direction.dot();
@@ -143,31 +143,31 @@ public abstract class OpticalSurfaceObject extends SurfaceObject{
 			if (maxRadiusGeometric < directionLength)
 			{
 				dotProdUpperBound = Math.sqrt(1 - maxRatio);
-				maxArcOpen = Math.asin(maxRadiusGeometric * invDirectionLength);	
+				maxArcOpen = Math.asin(maxRadiusGeometric * invDirectionLength);
 			}
 			else
 			{
 				maxArcOpen = Math.PI - Math.asin(directionLength / maxRadiusGeometric);
 				dotProdUpperBound = -Math.sqrt(1 - 1 / maxRatio);
-			}			
+			}
 			//dotProdUpperBound = Math.cos(arcOpen) * this.directionLengthQ;
 			if (minRadiusGeometric < directionLength)
 			{
-				minArcOpen = Math.asin(minRadiusGeometric * invDirectionLength);	
+				minArcOpen = Math.asin(minRadiusGeometric * invDirectionLength);
 			}
 			else
 			{
 				minArcOpen = Math.PI - Math.asin(directionLength / minRadiusGeometric);
-			}			
+			}
 			dotProdLowerBound = Math.cos(minArcOpen);
 			//double tmp = (this.directionLengthQ - this.radiusGeometricQ) * this.directionLengthQ;
 			//dotProdBound = (tmp > 0 ? Math.sqrt(tmp) : -Math.sqrt(-tmp));
 			break;
 		default:
 			break;
-			
+
 		}
-		
+
 		Geometry.getOrthorgonalZMatrix(direction, matSurfaceToGlobal); //Creates a matrix with mat*e1=direction and mat*e2 and mat*e3 orthorgonal
 		matSurfaceToGlobal.setCol(3, midpoint);
 		matGlobalToSurface.invert(matSurfaceToGlobal);
@@ -182,17 +182,17 @@ public abstract class OpticalSurfaceObject extends SurfaceObject{
 			}
 		}
 	}
-	
+
 	public static final double asinh(double x)
 	{
 		return Math.log(x + Math.sqrt(x*x + 1.0));
 	}
-	
+
 	public final int getMeshVertexCount(int latitudes, int longitudes)
 	{
 		return longitudes * latitudes + (surf == SurfaceType.CYLINDER || minRadiusGeometric > 0 ? 0 : 1 - latitudes);
 	}
-	
+
 	public void getMeshVertices(int latitudes, int longitudes, float vertices[])
 	{
 		int index = 0;
@@ -268,7 +268,7 @@ public abstract class OpticalSurfaceObject extends SurfaceObject{
 			}
 		}
 	}
-	
+
 	public int[] getMeshFaces(int latitudes, int longitudes, int faces[])
 	{
 		if (surf == SurfaceType.CYLINDER || minRadiusGeometric > 0)
@@ -277,15 +277,29 @@ public abstract class OpticalSurfaceObject extends SurfaceObject{
 		}
 		return BufferUtils.fillWithRadialIndexData(latitudes, longitudes, faces);
 	}
-	
+
 	public double evaluate_inner_outer(Vector3d position)
 	{
 		double x = position.x - this.midpoint.x;
 		double y = position.y - this.midpoint.y;
 		double z = position.z - this.midpoint.z;
-		
+
 		switch (surf)
 		{
+        /*case HYPERBOLIC:
+            z = 2-Math.sqrt(r * r + 1);
+            break;
+        case PARABOLIC:
+            z = 1 - r * r * 0.5;
+            break;
+        case SPHERICAL:
+            z = Math.cos(r);
+            r = Math.sin(r);
+            break;
+        case CUSTOM:
+            z = 1 - r;
+            r = Math.sqrt(r * (2 - r * (1 + conicConstant)));*/
+
 			case FLAT:
 			{
 				return -this.directionNormalized.dot(x, y, z);
@@ -296,25 +310,33 @@ public abstract class OpticalSurfaceObject extends SurfaceObject{
 			}
 			case CUSTOM:
 			{
-				
+			    double mdir = this.directionNormalized.dot(x, y, z);
+			    double dirdot = directionLength - mdir;
+			    return dirdot * (2 * directionLength - dirdot * (1 + conicConstant)) - x * x - y * y - z * z + mdir * mdir;
 			}
-				break;
 			case CYLINDER:
 			{
 				double dotprod = this.directionNormalized.dot(x, y, z);
-				return Math.max(dotProdUpperBound - dotprod, Math.max(dotprod - dotProdLowerBound, dotprod * dotprod - radiusGeometricQ));
+				double dist = this.directionNormalized.distanceQ(dotprod, x, y, z);
+				return Math.max(dotprod + dotProdUpperBound2, Math.max(- (dotProdLowerBound2 + dotprod), dist - directionLengthQ));
 			}
-		case HYPERBOLIC:
-			break;
-		case PARABOLIC:
-			break;
+    		case HYPERBOLIC:
+    		{
+    		    double dirdot = this.directionNormalized.dot(x, y, z);
+    		    return 2 * directionLength - dirdot - Math.sqrt(x * x + y * y + z * z - dirdot * dirdot + directionLengthQ);
+    		}
+    		case PARABOLIC:
+    		{
+    		    double dirdot = this.directionNormalized.dot(x,y,z) - directionLength;
+    		    return x * x + y * y + z * z - dirdot * dirdot - directionLengthQ;
+    		}
 		default:
 			break;
-			
+
 		}
 		return Double.NaN;
 	}
-	
+
 	@Override
 	public Intersection getIntersection(Vector3d position, Vector3d direction, Intersection intersection, double lowerBound, double upperBound)
 	{
@@ -402,7 +424,7 @@ public abstract class OpticalSurfaceObject extends SurfaceObject{
 				double scal = this.directionNormalized.dot(direction);
 				double b = direction.dot(x,y,z) - this.conicConstant * scal * dirproj;
 				double a = 1 / (1 + this.conicConstant * scal * scal);
-				
+
 				c *= a;
 				b *= a;
 				double sqrt = Math.sqrt(b*b-c);
@@ -440,7 +462,7 @@ public abstract class OpticalSurfaceObject extends SurfaceObject{
 							//intersection.normal.set(tmp0, direction,alpha);
 							//double dotProd = intersection.normal.dot(this.directionNormalized);
 							double dotProd = dirproj + scal * alpha;
-							
+
 							if (dotProd >= dotProdUpperBound2 && dotProd <= dotProdLowerBound2)
 							{
 								double dax = direction.x * alpha, day = direction.y * alpha, daz = direction.z * alpha;
@@ -484,17 +506,17 @@ public abstract class OpticalSurfaceObject extends SurfaceObject{
 			}
 			default:
 				break;
-				
+
 		}
 		return null;
 	}
-	
+
 	@Override
 	public void densityCompensation(int width, int height, int imageColorArray[], int channels, int stride)
 	{
 		textureMapping.densityCompensation(width, height, imageColorArray, channels, stride);
 	}
-	
+
 	public void inverseDensityCompensation(int width, int height, int imageColorArray[], int channels, int stride)
 	{
 		textureMapping.inverseDensityCompensation(width, height, imageColorArray, channels, stride);
