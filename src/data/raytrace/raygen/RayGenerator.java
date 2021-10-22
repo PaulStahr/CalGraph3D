@@ -230,16 +230,18 @@ public class RayGenerator extends AbstractRayGenerator{
 		if (diffuse != 0)
 		{
 			direction.normalize();
-			/*Use Householder transformation H=I-2/(v^t*v)*v*v^t with v=dir-e_3 mirror the distribution from the x-y-plane to the v-orthorgonal plane*/
 			if (threeDimensional || source instanceof MeshObject)
 			{
+	            /*Use Householder transformation H=I-2/(v^t*v)*v*v^t with v=dir-e_3 mirror the distribution from the x-y-plane to the v-orthorgonal plane*/
 				double w = rand() * diffuse * diffuse;
 				double rho = rand() * (Math.PI * 2);
 				double xf = Math.sqrt(w)*Math.cos(rho);
 				double yf = Math.sqrt(w)*Math.sin(rho);
 				double zf = Math.sqrt(1-w);
 				direction.z -= 1;
-				double dot = 2 / direction.dot() * direction.dot(xf,yf,zf);
+				double dot = direction.dot();
+				if (dot < 10E-6){dot = 1;} //Don't mirror if vectors are already almost equal
+				dot = 2 / dot * direction.dot(xf,yf,zf);
 				direction.x = xf - dot * direction.x;
 				direction.y = yf - dot * direction.y;
 				direction.z = zf - dot * direction.z;
