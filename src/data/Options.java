@@ -1,16 +1,16 @@
 /*******************************************************************************
  * Copyright (c) 2019 Paul Stahr
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -46,7 +46,7 @@ import util.ArrayTools;
 import util.HeterogenousComparator;
 import util.ListTools;
 import util.StringUtils;
-/** 
+/**
 * @author  Paul Stahr
 * @version 04.02.2012
 */
@@ -57,9 +57,9 @@ public abstract class Options
     private static volatile int lastListener = -1;
     private static int lastFileSync = -1;
 	private static final Logger logger = LoggerFactory.getLogger(Options.class);
-	private static final ArrayList<Runnable> oml = new ArrayList<Runnable>();
+	private static final ArrayList<Runnable> oml = new ArrayList<>();
 	private static Thread thread;
-	
+
 	public static void triggerUpdates()
 	{
 		if (modCount != lastListener)
@@ -88,16 +88,16 @@ public abstract class Options
 			}
 		}
 	}
-	
+
 	private static final void optionsUpdated(){
 		++modCount;
 	}
-	
+
 	public static void set(String key, Object value)
 	{
 		set(root, key, value);
 	}
-	
+
 	public static synchronized void set(OptionTreeNode root, String key, Object value) //TODO seperate into set and setCreate
 	{
 		OptionTreeNode otn = createNode(key, root, value);
@@ -111,7 +111,7 @@ public abstract class Options
 			else if (otn instanceof OptionTreeLeafInteger)		{((OptionTreeLeafInteger)	otn).value = Integer.parseInt(str);				}
 			else if (otn instanceof OptionTreeLeafBoolean)		{((OptionTreeLeafBoolean)	otn).value = Boolean.parseBoolean(str);			}
 			else if (otn instanceof OptionTreeLeafFloat)		{((OptionTreeLeafFloat)		otn).value = Float.parseFloat(str);				}
-			else												{throw new IllegalArgumentException("missmatched type for key " + key + ':' + value.getClass().getName() + " should be " + otn.typeValue());}			
+			else												{throw new IllegalArgumentException("missmatched type for key " + key + ':' + value.getClass().getName() + " should be " + otn.typeValue());}
 		}
 		else
 		{
@@ -127,19 +127,19 @@ public abstract class Options
 		optionsUpdated();
 		otn.lastModification = modCount;
 	}
-	
+
 	private static void readStructure(InputStream in) throws JDOMException, IOException
 	{
 		Document doc = new SAXBuilder().build(in);
     	root = recursiveTreeCreator(doc.getRootElement());
 	}
-	
+
 	private static void readTree(InputStream in) throws JDOMException, IOException
 	{
 		Document doc = new SAXBuilder().build(in);
     	recursiveTreeReader(doc.getRootElement(), root);
 	}
-	
+
 	private static OptionTreeNode recursiveTreeCreator(Element elem)
 	{
 		String type = elem.getAttributeValue("type");
@@ -175,7 +175,7 @@ public abstract class Options
 		}
 		return toAdd;
 	}
-	
+
 	private static void recursiveTreeReader(Element elem, OptionTreeNode node)
 	{
 		if (node == null)
@@ -203,7 +203,7 @@ public abstract class Options
 				logger.error("Node " + elem.getName() + " has wrong type");
 			}
 		}
-		
+
 		for (Element child : elem.getChildren())
 		{
 			OptionTreeNode childNode = ((OptionTreeInnerNode)node).getChild(child.getName());
@@ -217,14 +217,14 @@ public abstract class Options
 			}
 		}
 	}
-	
+
 	private static Document getDocument()
 	{
 		Document doc = new Document();
 		doc.addContent(recursiveXmlCreator(root));
 		return doc;
 	}
-	
+
 	private static Element recursiveXmlCreator(OptionTreeNode node)
 	{
 		Element toAdd = new Element(node.name);
@@ -243,7 +243,7 @@ public abstract class Options
 		}
 		return toAdd;
 	}
-	
+
 	private static final HeterogenousComparator<OptionTreeNode, String> stringTreeNodeComparator = new HeterogenousComparator<OptionTreeNode, String>()
     {
     	@Override
@@ -251,9 +251,9 @@ public abstract class Options
 			return o1.compareTo(o2.name);
 		}
     };
-    
+
     private static OptionTreeNode root = createNodeInstance("options", null, modCount);
-    
+
     static
     {
     	try
@@ -268,7 +268,12 @@ public abstract class Options
         }
     	try
     	{
-	    	final File file = new File(defaultDirectory() + '/' + '.' + "graphs" + '/' + "options" + '.' + "xml");
+    	    final File directory = new File(defaultDirectory() + '/' + '.' + "graphs");
+    	    if (!directory.exists())
+    	    {
+    	        directory.mkdirs();
+    	    }
+	    	final File file = new File(directory.getAbsolutePath() + '/' + "options" + '.' + "xml");
 		    if (!file.exists() || file.isDirectory())
 		    {
 		        new XMLOutputter(Format.getPrettyFormat()).output(getDocument(), new FileWriter(file));
@@ -281,7 +286,7 @@ public abstract class Options
     	catch (Exception e)
     	{
         	logger.error("Problems with loading Options", e);
-        }    	
+        }
         Runtime.getRuntime().addShutdownHook(new Thread()
 		{
         	@Override
@@ -292,23 +297,23 @@ public abstract class Options
     }
 
     private Options(){}
-    
+
     public static final int modCount()
     {
         return modCount;
     }
-    
+
     public synchronized static void addInvokeModificationListener(Runnable runnable)
     {
     	oml.add(runnable);
     	runnable.run();
     }
-    
+
     public synchronized static void addModificationListener(Runnable runnable)
     {
     	oml.add(runnable);
     }
-    
+
     private static final boolean save(){
     	if (lastFileSync == modCount)
     		return true;
@@ -322,7 +327,7 @@ public abstract class Options
             }
             File tmpFile = new File(dir.getPath() + '/' + "options" + '-' + "tmp" + '.' + "xml");
             new XMLOutputter(Format.getPrettyFormat()).output(getDocument(), new FileWriter(tmpFile));
-            Files.move(tmpFile.toPath(), new File(dir.getPath() + '/' + "options" + '.' + "xml").toPath(), StandardCopyOption.REPLACE_EXISTING);	
+            Files.move(tmpFile.toPath(), new File(dir.getPath() + '/' + "options" + '.' + "xml").toPath(), StandardCopyOption.REPLACE_EXISTING);
         }catch (Exception e){
             logger.error("Can't save Options",e);
             return false;
@@ -335,28 +340,28 @@ public abstract class Options
     {
     	public final String name;
     	private int lastModification;
-    	
+
     	private OptionTreeNode(String name, int lastModification)
     	{
     		this.name = name.intern();
     		this.lastModification = lastModification;
     	}
-    	
+
     	public final int getLastMod()
     	{
     		return lastModification;
     	}
-    	
+
     	public abstract String typeValue();
 
 		public abstract String stringValue();
-		
+
 		@Override
 		public String toString(){
 			return name + ':' + '=' + stringValue();
 		}
     }
-    
+
     private static OptionTreeNode createNodeInstance(String name, Object value, int lastModification)
     {
     	if (value instanceof BigInteger)	{return new OptionTreeLeafBigInteger(name, (BigInteger)value, lastModification);}
@@ -368,7 +373,7 @@ public abstract class Options
 		if (value instanceof String)		{return new OptionTreeLeafString(name, (String)value, lastModification);}
 		return new OptionTreeInnerNode(name, lastModification);
     }
-    
+
     public static class OptionTreeLeafBoolean extends OptionTreeNode
     {
     	private boolean value;
@@ -377,16 +382,16 @@ public abstract class Options
     		super(name, lastModification);
     		value = init;
     	}
-    	
+
 		@Override
 		public String typeValue() {	return "bool";}
-		
+
 		public boolean get(){return value;}
-		
+
 		@Override
 		public String stringValue() {return String.valueOf(value);}
     }
-    
+
     public static class OptionTreeLeafInteger extends OptionTreeNode
     {
     	private int value;
@@ -395,16 +400,16 @@ public abstract class Options
     		super(name, lastModification);
     		value = init;
     	}
-    	
+
 		@Override
 		public String typeValue() {	return "int";}
-		
+
 		public int get(){return value;}
-		
+
 		@Override
 		public String stringValue() {return String.valueOf(value);}
 	}
-    
+
     public static class OptionTreeLeafDouble extends OptionTreeNode
     {
     	private double value;
@@ -413,16 +418,16 @@ public abstract class Options
     		super(name, lastModification);
     		value = init;
     	}
-    	
+
 		@Override
 		public String typeValue() {	return "double";}
-		
+
 		public double get()	{return value;}
-		
+
 		@Override
 		public String stringValue() {return String.valueOf(value);}
 	}
-    
+
     public static class OptionTreeLeafFloat extends OptionTreeNode
     {
     	private float value;
@@ -431,16 +436,16 @@ public abstract class Options
     		super(name, lastModification);
     		value = init;
     	}
-    	
+
 		@Override
 		public String typeValue() {	return "float";}
-		
+
 		public float get(){	return value;}
-		
+
 		@Override
 		public String stringValue() {return String.valueOf(value);}
 	}
-    
+
     public static class OptionTreeLeafColor extends OptionTreeNode
     {
     	private Color value;
@@ -449,16 +454,16 @@ public abstract class Options
     		super(name, lastModification);
     		value = init;
     	}
-    	
+
 		@Override
 		public String typeValue() {return "color";}
-		
+
 		public Color get(){	return value;}
-		
+
 		@Override
 		public String stringValue() {return String.valueOf(value.getRGB());}
 	}
-    
+
     public static class OptionTreeLeafString extends OptionTreeNode
     {
     	private String value;
@@ -467,16 +472,16 @@ public abstract class Options
     		super(name, lastModification);
     		value = init;
     	}
-    	
+
 		@Override
 		public String typeValue() {return "string";}
-		
+
 		public String get(){return value;}
-		
+
 		@Override
 		public String stringValue() {return String.valueOf(value);}
 	}
-    
+
     public static class OptionTreeLeafBigInteger extends OptionTreeNode
     {
     	private BigInteger value;
@@ -485,16 +490,16 @@ public abstract class Options
     		super(name, lastModification);
     		value = init;
     	}
-    	
+
     	public BigInteger get(){return value;}
-    	
+
 		@Override
 		public String typeValue() {return "bigint";}
-		
+
 		@Override
 		public String stringValue() {return String.valueOf(value);}
 	}
-    
+
     public static class OptionTreeInnerNode extends OptionTreeNode
     {
     	private OptionTreeNode children[] = new OptionTreeNode[0];
@@ -503,13 +508,13 @@ public abstract class Options
     	{
     		super(name, lastModification);
     	}
-    	
+
 		@Override
     	public String typeValue() {return "void";}
-    	
+
 		@Override
     	public String stringValue() {return "void";}
-		
+
 		public final OptionTreeNode getChild(String name)
     	{//TODO no alloc
 			int index = ListTools.binarySearch(children, 0, size, name, stringTreeNodeComparator);
@@ -519,7 +524,7 @@ public abstract class Options
 			}
     		return children[index];
     	}
-		
+
 		public final OptionTreeInnerNode getInnerChild(String name)
     	{
 			OptionTreeNode node = getChild(name);
@@ -529,7 +534,7 @@ public abstract class Options
 			}
     		return null;
     	}
-		
+
 		private OptionTreeNode getOrCreateChild(String name, Object value)
 		{
 			int index = ListTools.binarySearch(children, 0, size, name, stringTreeNodeComparator);
@@ -543,7 +548,7 @@ public abstract class Options
 			return children[index];
 		}
 
-		
+
 		private void addChild(OptionTreeNode child)
 		{
 			int index = ListTools.binarySearch(children, 0, size, child.name, stringTreeNodeComparator);
@@ -555,12 +560,12 @@ public abstract class Options
 		}
 
     }
-    
+
     private static final OptionTreeNode createNode(final CharSequence name, OptionTreeNode root, final Object value)
     {
     	return getOrCreateNode(new StringUtils().split(name, 0, name.length(), '.'), root, value);
     }
-    
+
     public static final OptionTreeNode getNode(final CharSequence name)
     {
    		return getNode(new StringUtils().split(name, 0, name.length(), '.'));
@@ -609,9 +614,9 @@ public abstract class Options
     			otn = ((OptionTreeInnerNode)otn).getOrCreateChild(str[i], null);
     		}
     	}
-   		return otn;   
+   		return otn;
    	}
-    
+
     private static final OptionTreeNode getNode(String str[])
     {
     	return getNode(root, str);
@@ -646,7 +651,7 @@ public abstract class Options
     public static final Boolean getBoolean (final CharSequence name){
     	return getBoolean(name, null);
     }
-    
+
     public static final Boolean getBoolean (final CharSequence name, Boolean def){
     	OptionTreeNode otn = getNode(name);
     	if (otn instanceof OptionTreeLeafBoolean)
@@ -659,7 +664,7 @@ public abstract class Options
     public static final Boolean getBoolean (OptionTreeNode root, final CharSequence name){
     	return getBoolean(root, name, null);
     }
-    
+
     public static final Boolean getBoolean (OptionTreeNode root, final CharSequence name, Boolean def){
     	OptionTreeNode otn = getNode(root, name);
     	if (otn instanceof OptionTreeLeafBoolean)
@@ -673,7 +678,7 @@ public abstract class Options
     {
     	return getInteger(name, null);
     }
-    
+
     public static final Integer getInteger (final String[] name, Integer def)
     {
     	OptionTreeNode otn = getNode(name);
@@ -683,7 +688,7 @@ public abstract class Options
     	}
     	return def;
     }
-    
+
     public static final Byte getByte (final String[] name, Byte def)
     {
     	OptionTreeNode otn = getNode(name);
@@ -693,7 +698,7 @@ public abstract class Options
     	}
     	return def;
     }
-    
+
     public static final Integer getInteger (final CharSequence name, Integer def){
     	OptionTreeNode otn = getNode(name);
     	if (otn instanceof OptionTreeLeafInteger)
@@ -701,7 +706,7 @@ public abstract class Options
     		return ((OptionTreeLeafInteger)otn).value;
     	}
     	return def;
-    }    
+    }
 
     public static final Byte getByte (OptionTreeNode root, final CharSequence name, Byte def){
     	OptionTreeNode otn = getNode(root, name);
@@ -720,7 +725,7 @@ public abstract class Options
     	}
     	return def;
     }
-    
+
     public static final Integer getInteger (OptionTreeNode root, final CharSequence name, Integer def){
     	OptionTreeNode otn = getNode(root, name);
     	if (otn instanceof OptionTreeLeafInteger)
@@ -729,15 +734,15 @@ public abstract class Options
     	}
     	return def;
     }
-    
+
     public static final Integer getInteger (OptionTreeNode root, final CharSequence name){
     	return getInteger(root, name, null);
     }
-    
+
     public static final Float getFloat (final CharSequence name){
     	return getFloat(name, null);
     }
-    
+
     public static final Float getFloat (final CharSequence name, Float def){
     	OptionTreeNode otn = getNode(name);
     	if (otn instanceof OptionTreeLeafFloat)
@@ -759,7 +764,7 @@ public abstract class Options
     public static final Double getDouble (final CharSequence name){
     	return getDouble(name, null);
     }
-    
+
    public static final Double getDouble (final CharSequence name, Double def){
     	OptionTreeNode otn = getNode(name);
     	if (otn instanceof OptionTreeLeafDouble)
@@ -772,7 +777,7 @@ public abstract class Options
    	public static final Color getColor (final CharSequence name){
    		return getColor(name, null);
    	}
-   
+
     public static final Color getColor (final CharSequence name, Color def){
     	OptionTreeNode otn = getNode(name);
     	if (otn instanceof OptionTreeLeafColor)
@@ -825,7 +830,7 @@ public abstract class Options
     	}
     	return def;
     }
- 
+
     public static final String getString(final CharSequence name, String def){
     	OptionTreeNode otn = getNode(name);
     	if (otn instanceof OptionTreeLeafString)
@@ -834,7 +839,7 @@ public abstract class Options
     	}
     	return def;
     }
- 
+
     public static final BigInteger getBigInteger(final CharSequence name, BigInteger def){
     	OptionTreeNode otn = getNode(name);
     	if (otn instanceof OptionTreeLeafBigInteger)
@@ -843,11 +848,11 @@ public abstract class Options
     	}
     	return def;
     }
- 
+
     public static final BigInteger getBigInteger (final CharSequence name){
     	return getBigInteger (name, null);
     }
-    
+
     public static final String defaultDirectory(){
         final String os = System.getProperty("os.name").toUpperCase();
         if (os.contains("WIN"))
