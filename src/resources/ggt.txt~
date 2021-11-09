@@ -1,8 +1,0 @@
-set(t,0)
-while(b)
-  set(t,t+0.00001)
-  set(i,int(rand()*(kard(a)-2))+1)
-  set(j,int(rand()*(kard(a[i])-2))+1)
-  set(a[i][j],(a[i-1][j]+a[i][j-1]+a[i+1][j]+a[i][j+1])*0.25+cos(t+i*0.1+j*0.1)*0.5+ifn(i<40˄i>30˄j<40˄j>30,c,0))
-endwhile
-return(a)

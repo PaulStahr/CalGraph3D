@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 
 public class ImageSaver implements Runnable
 {
-	Logger logger = LoggerFactory.getLogger(ImageSaver.class);
+	private static final Logger logger = LoggerFactory.getLogger(ImageSaver.class);
 	BufferedImage img;
 	File file;
 	public ImageSaver(BufferedImage img, File file)
@@ -19,7 +19,7 @@ public class ImageSaver implements Runnable
 		this.img = img;
 		this.file = file;
 	}
-	
+
 	@Override
 	public void run()
 	{

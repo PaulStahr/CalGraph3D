@@ -1,5 +1,7 @@
 package test.util;
 
+import static org.junit.Assert.assertEquals;
+
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.util.Arrays;
@@ -33,18 +35,14 @@ public class ImageUtilTest2d {
         BufferedImage finalImg = new BufferedImage(width,height, BufferedImage.TYPE_INT_RGB);
         WritableRaster newRaster= (WritableRaster)finalImg.getData();
         newRaster.setPixels(0, 0, width, height, ArrayUtil.interleave(data,data,data));
+        int interpolated[] = new int[4];
+        int tmp[] = new int[4];
         for (int i = 0; i < testpoints.length; i += 2)
         {
-            int interpolated[] = new int[4];
-            ImageUtil.getSmoothedPixel(testpoints[i], testpoints[i + 1], interpolated, new int[4], newRaster);
+            ImageUtil.getSmoothedPixel(testpoints[i], testpoints[i + 1], interpolated, tmp, newRaster);
             float expected = GeometryTest.eval(initF, testpoints[i], testpoints[i + 1], width, height);
             expected = expected * fusedMul[0] + fusedMul[1];
-            try {
-                assert(Math.abs(interpolated[0] - expected) < (initF == GeometryTest.circleGenerator ? 3f : 1f));
-            }catch(AssertionError e){
-                throw new AssertionError("interpolated at " + testpoints[i] + ' ' + testpoints[i + 1] + " was " + interpolated[0] + " expected " + expected, e);
-            }
+            assertEquals("interpolated at " + testpoints[i] + ' ' + testpoints[i + 1] + " was " + interpolated[0] + " expected " + expected, interpolated[0], expected, initF == GeometryTest.circleGenerator ? 3f : 1f);
         }
     }
-
 }
