@@ -58,7 +58,7 @@ public class OpticalVolumeTest {
     }
 
     @Test
-    private void testCubeMirror() throws OperationParseException {
+    public void testCubeMirror() throws OperationParseException {
         VariableStack vs = new VariableStack();
         ParseUtil parser = new ParseUtil();
         GuiOpticalVolumeObject ovo = new GuiOpticalVolumeObject(vs, parser);
@@ -85,7 +85,7 @@ public class OpticalVolumeTest {
     }
 
     @Test
-    private void testCuboidMirror() throws OperationParseException {
+    public void testCuboidMirror() throws OperationParseException {
         VariableStack vs = new VariableStack();
         ParseUtil parser = new ParseUtil();
         GuiOpticalVolumeObject ovo = new GuiOpticalVolumeObject(vs, parser);
@@ -113,7 +113,7 @@ public class OpticalVolumeTest {
     }
 
     @Test
-    private void testCuboidRotatedMirror() throws OperationParseException {
+    public void testCuboidRotatedMirror() throws OperationParseException {
         VariableStack vs = new VariableStack();
         ParseUtil parser = new ParseUtil();
         GuiOpticalVolumeObject ovo = new GuiOpticalVolumeObject(vs, parser);
