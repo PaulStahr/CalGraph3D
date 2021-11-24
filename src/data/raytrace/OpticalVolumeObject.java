@@ -75,41 +75,30 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 	public static final OpticalVolumeObject EMPTY_VOLUME_ARRAY[] = new OpticalVolumeObject[0];
 	private static final Logger logger = LoggerFactory.getLogger(OpticalVolumeObject.class);
 
+	private static final boolean loadIfExists(String library)
+	{
+	    if (!new File(library).exists())
+	    {
+	        return false;
+	    }
+	    System.load(library);
+	    return true;
+	}
+
 	private static boolean native_raytrace = false;
 	static
 	{
 		try
 		{
-			if (new File("/usr/lib/x86_64-linux-gnu/libcudart.so").exists())
+			if (!(loadIfExists("/usr/lib/x86_64-linux-gnu/libcudart.so")
+		       || loadIfExists("/usr/local/cuda-8.0/lib64/libcudart.so")
+		       || loadIfExists("/usr/lib/nvidia-cuda-toolkit/lib64/libcudart.so")
+		       || loadIfExists("/usr/lib/x86_64-linux-gnu/libcudart.so")))
 			{
-				System.load("/usr/lib/x86_64-linux-gnu/libcudart.so");
+                JFrameUtils.logErrorAndShow("libcudart not found", new FileNotFoundException(), logger);
 			}
-			else if (new File("/usr/local/cuda-8.0/lib64/libcudart.so").exists())
-			{
-				System.load("/usr/local/cuda-8.0/lib64/libcudart.so");
-			}
-			else if (new File("/usr/lib/nvidia-cuda-toolkit/lib64/libcudart.so").exists())
-			{
-				System.load("/usr/lib/nvidia-cuda-toolkit/lib64/libcudart.so");
-			}
-			else if (new File("/usr/lib/x86_64-linux-gnu/libcudart.so").exists())
-			{
-				System.load("/usr/lib/x86_64-linux-gnu/libcudart.so");
-			}
-			else
-			{
-				JFrameUtils.logErrorAndShow("No cuda found", new FileNotFoundException(), logger);
-			}
-
-			if (new File ("/usr/lib/cuda_raytrace_java.so").exists())
-			{
-				System.load("/usr/lib/cuda_raytrace_java.so");
-			}
-			else if (new File ("/media/paul/Data1/Caesar/Raytracer/cuda_raytrace_java.so").exists())
-			{
-				System.load("/media/paul/Data1/Caesar/Raytracer/cuda_raytrace_java.so");
-			}
-			else
+			if (!(loadIfExists("/usr/lib/cuda_raytrace_java.so")
+		       || loadIfExists("/media/paul/Data1/Caesar/Raytracer/cuda_raytrace_java.so")))
 			{
 				DataHandler.loadLib("cuda_raytrace_java.so");
 			}
