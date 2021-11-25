@@ -18,7 +18,7 @@ import maths.variable.VariableStack;
 public class OpticalSurfaceTest {
     @Test
     public void testHperbolic() throws OperationParseException {
-        RaytraceScene rs = new RaytraceScene("Parabolic");
+        RaytraceScene rs = new RaytraceScene("Hyperbolic");
         ParseUtil parser = new ParseUtil();
         VariableStack va = new VariableStack();
         GuiOpticalSurfaceObject goso = new GuiOpticalSurfaceObject(va, parser);
@@ -42,7 +42,38 @@ public class OpticalSurfaceTest {
             rs.calculateRay(rso, 10, null, 0, rs.getActiveSurfaces(), null, 0);
             rso.position.sub(expectedPoint);
             rso.position.add(rso.direction, -rso.direction.dot(rso.position)/rso.direction.dot());
-            assertEquals(0,rso.position.norm(), 0.0001);
+            assertEquals(0,rso.position.norm(), 1E-5);
+        }
+    }
+
+    @Test
+    public void testParabolic() throws OperationParseException {
+        RaytraceScene rs = new RaytraceScene("Parabolic");
+        ParseUtil parser = new ParseUtil();
+        VariableStack va = new VariableStack();
+        GuiOpticalSurfaceObject goso = new GuiOpticalSurfaceObject(va, parser);
+        goso.setValue(SCENE_OBJECT_COLUMN_TYPE.SURFACE, SurfaceType.HYPERBOLIC, va, parser);
+        goso.setValue(SCENE_OBJECT_COLUMN_TYPE.DIRECTION, new Vector3d(1,0,0), va, parser);
+        goso.setValue(SCENE_OBJECT_COLUMN_TYPE.MINRADIUS, 0, va, parser);
+        goso.setValue(SCENE_OBJECT_COLUMN_TYPE.MAXRADIUS, 100, va, parser);
+        goso.setValue(SCENE_OBJECT_COLUMN_TYPE.MATERIAL, MaterialType.REFLECTION, va, parser);
+        goso.setValue(SCENE_OBJECT_COLUMN_TYPE.ACTIVE, true, va, parser);
+        rs.add(goso);
+        RaySimulationObject rso = new RaySimulationObject();
+        Vector3d expectedPoint = new Vector3d(0.5,0,0);
+        rs.updateScene();
+        for (int i = 0; i< 10; ++i)
+        {
+            rso.position.set(-1,i/100.,0);
+            rso.direction.set(1, -1e-4,0);
+            rso.numBounces = 0;
+            rs.calculateRay(rso, 1, null, 0, rs.getActiveSurfaces(), null, 0);
+            System.out.println(rso.position);
+            System.out.println(rso.direction);
+            System.out.println(rso.position.y * rso.direction.x / rso.direction.y - rso.position.x);
+            rso.position.sub(expectedPoint);
+            rso.position.add(rso.direction, -rso.direction.dot(rso.position)/rso.direction.dot());
+            assertEquals(0,rso.position.norm(), 4E-4);
         }
     }
 }
