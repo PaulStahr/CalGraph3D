@@ -2025,18 +2025,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
     		for (int j = 0; j < types.visibleColsSize();++j)
     		{
     			Object value = obj.getValue(types.getVisibleCol(j));
-    			if (value instanceof Boolean)
-    			{
-    				rowData[i][j] = value;
-    			}
-    			else if (value == null)
-    			{
-    				rowData[i][j] = null;
-    			}
-    			else
-    			{
-    				rowData[i][j] = String.valueOf(value);
-    			}
+				rowData[i][j] = value instanceof Boolean || value == null ? value : String.valueOf(value);
     		}
     	}
 
@@ -2413,18 +2402,9 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		public void mouseClicked(MouseEvent e) {
 			if (!(advancedView&=selectedAdvanced >= 0))
 			{
-				if (tableSurfaces.getRowCount() != 0)
-				{
-					tableSurfaces.removeRowSelectionInterval(0, tableSurfaces.getRowCount()-1);
-				}
-				if (tableMeshes.getRowCount() != 0)
-				{
-					tableMeshes.removeRowSelectionInterval(0, tableMeshes.getRowCount()-1);
-				}
-				if (tableVolumes.getRowCount() != 0)
-				{
-					tableVolumes.removeRowSelectionInterval(0, tableVolumes.getRowCount()-1);
-				}
+				if (tableSurfaces.getRowCount() != 0)   {tableSurfaces.removeRowSelectionInterval(0, tableSurfaces.getRowCount()-1);}
+				if (tableMeshes.getRowCount() != 0)     {tableMeshes.removeRowSelectionInterval(0, tableMeshes.getRowCount()-1);}
+				if (tableVolumes.getRowCount() != 0)    {tableVolumes.removeRowSelectionInterval(0, tableVolumes.getRowCount()-1);}
 			}
 		}
 
