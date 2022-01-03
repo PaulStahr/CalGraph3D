@@ -27,7 +27,7 @@ dependencies {
     implementation 'org.lwjgl:lwjgl-glfw:3.2.2'
     implementation 'org.lwjglx:lwjgl3-awt:0.1.8'
     compile group: 'org.lwjgl', name: 'lwjgl-tinyexr', version: '3.2.2'
-    implementation 'com.github.PaulStahr:JSymMath:8d2dfd2d96'
+    implementation 'com.github.PaulStahr:JSymMath:4e8966104d'
     compile files("./src/ij.jar")
 
     testCompile 'junit:junit:4.12'

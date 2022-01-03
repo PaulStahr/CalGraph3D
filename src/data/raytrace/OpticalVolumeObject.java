@@ -179,8 +179,8 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 
 	public final Matrix4d unitVolumeToGlobal = new Matrix4d();
 	public final Matrix4d globalToUnitVolume = new Matrix4d();
-	private final Matrix4d cudaCubesToGlobal = new Matrix4d();
-	private final Matrix4d globalToCudaCubes = new Matrix4d();
+	public final Matrix4d cudaCubesToGlobal = new Matrix4d();
+	public final Matrix4d globalToCudaCubes = new Matrix4d();
 	private final Matrix4d cubesToGlobal = new Matrix4d();
 	private final Matrix4d globalTolattice = new Matrix4d();
 	public final Vector3d unitVolumeToGlobalRows[] = new Vector3d[] {new Vector3d(), new Vector3d(), new Vector3d()};
@@ -195,6 +195,8 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 	private final FloatBuffer scale = Buffers.createFloatBuffer(3);
 	protected int maxSteps = 8000;
 	public double volumeScaling = 1000;
+	public double backshift = 0.1;
+    private final float[] refMinMax = new float[2];
 	private static class VolumeScene
 	{
 		private long pointer;
@@ -224,8 +226,13 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		public void traceRays(IntBuffer start_position, FloatBuffer start_direction, IntBuffer end_iteration, FloatBuffer scale, float minimum_brightness, int iterations, IntBuffer path, VolumeRaytraceOptions options)
 		{
 			running.incrementAndGet();
+            //System.out.println(Buffers.toString(start_position));
+            //System.out.println(Buffers.toString(start_direction));
 			trace_rays(pointer, start_position, start_direction, end_iteration, scale, minimum_brightness, iterations, path != null, path, options.pointer);
-			if (running.decrementAndGet() == 0 && destroy)
+            //System.out.println(Buffers.toString(end_iteration));
+			//System.out.println(Buffers.toString(start_position));
+            //System.out.println(Buffers.toString(start_direction));
+        	if (running.decrementAndGet() == 0 && destroy)
 			{
 				finalize();
 			}
@@ -279,8 +286,6 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		cudaCubesToGlobal.preScale(1/xScale, 1/yScale, 1/zScale);
 		cudaCubesToGlobal.getColDot3(spacing);
 		spacing.sqrt();
-		System.out.println(spacing);
-		System.out.println(width + " " + height + " " + depth);
 		spacing.multiply(0x10000 * 0.5);
 		spacingInf.set(1f/spacing.x,1f/spacing.y,1f/spacing.z);
 		globalToCudaCubes.postTranslate(0x10000, 0x10000, 0x10000);
@@ -295,14 +300,15 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 	}
 
 	static class VolumeCalculationEnvironment{
-		Variable xVar = new Variable("x");
-		Variable yVar = new Variable("y");
-		Variable zVar = new Variable("z");
-		Variable xLocalVar = new Variable("lx");
-		Variable yLocalVar = new Variable("ly");
-		Variable zLocalVar = new Variable("lz");
-		Variable indexVar = new Variable("index");
-		VariableStack vs;
+		private final Variable xVar = new Variable("x");
+		private final Variable yVar = new Variable("y");
+		private final Variable zVar = new Variable("z");
+		private final Variable xLocalVar = new Variable("lx");
+		private final Variable yLocalVar = new Variable("ly");
+		private final Variable zLocalVar = new Variable("lz");
+		private final Variable indexVar = new Variable("index");
+		@SuppressWarnings("unused")
+        private final VariableStack vs;
 		private Matrix4d latticeToGlobal;
 		private int width;
 		private int height;
@@ -360,8 +366,8 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 				tmpList.add(oso[i]);
 			}
 		}
-		float minMaxDat[] = ArrayUtil.minMax(data);
-		int minMaxTrans[] = ArrayUtil.minMax(translucency);
+		float minMaxDat[] = ArrayUtil.minMax(data, new float[2]);
+		int minMaxTrans[] = ArrayUtil.minMax(translucency, new int[2]);
 
 		double divx = 1. / (width - 3), divy = 1. / (height - 3), divz = 1. / (depth - 3);
 		oso = tmpList.toArray(new OpticalSurfaceObject[tmpList.size()]);
@@ -371,6 +377,9 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		cubesToGlobal.preScale(divx, divy, divz);
 		cubesToGlobal.preTranslate(-width, -height, -depth);
 		cubesToGlobal.preScale(2,2,2);
+		/*System.out.println(cubesToGlobal);
+		System.out.println(this.cubesToGlobal);
+*/
 		for (int i = 0; i < oso.length; ++i)
 		{
 			for (int z = 0, index = 0; z <= depth; ++z)
@@ -449,7 +458,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			}
 			Armadillo.solveDiffusionEquation(width, height, depth, equalityOperationResult, notGivenIndices, notGivenCount);
 			vs.add(equalityOperationResVar = new Variable("lres"));
-			double eqLimits[] = ArrayUtil.minMax(equalityOperationResult);
+			double eqLimits[] = ArrayUtil.minMax(equalityOperationResult, new double[2]);
 			Variable minEqVar = new Variable("eqmin");
 			minEqVar.setValue(eqLimits[0]);
 			vs.addLocal(minEqVar);
@@ -510,6 +519,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			}
 		}
 		logger.debug(new StringBuilder().append('(').append(min/0x10000).append(',').append(max/0x10000).append(')').toString());
+		ArrayUtil.minMax(vol.data, refMinMax);
 		vol.modified();
 	}
 
@@ -763,11 +773,11 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 	    {
     		vertexPositions.clear();
     		faceIndices.clear();
-    		float bounds[] = ArrayUtil.minMax(vol.data);
-            Geometry.volumeToMesh(vol.data, vol.width, vol.height, vol.depth, (bounds[0] * 0.75 + bounds[1] * 0.25), faceIndices, vertexPositions);
-            Geometry.volumeToMesh(vol.data, vol.width, vol.height, vol.depth, (bounds[0] + bounds[1]) * 0.5, faceIndices, vertexPositions);
-            Geometry.volumeToMesh(vol.data, vol.width, vol.height, vol.depth, (bounds[0] * 0.25+ bounds[1] * 0.75), faceIndices, vertexPositions);
-            Geometry.volumeToMesh(vol.data, vol.width, vol.height, vol.depth, (bounds[0] * 0.1+ bounds[1] * 0.9), faceIndices, vertexPositions);
+    		ArrayUtil.minMax(vol.data, refMinMax);
+            Geometry.volumeToMesh(vol.data, vol.width, vol.height, vol.depth, (refMinMax[0] * 0.75 + refMinMax[1] * 0.25), faceIndices, vertexPositions);
+            Geometry.volumeToMesh(vol.data, vol.width, vol.height, vol.depth, (refMinMax[0] + refMinMax[1]) * 0.5, faceIndices, vertexPositions);
+            Geometry.volumeToMesh(vol.data, vol.width, vol.height, vol.depth, (refMinMax[0] * 0.25+ refMinMax[1] * 0.75), faceIndices, vertexPositions);
+            Geometry.volumeToMesh(vol.data, vol.width, vol.height, vol.depth, (refMinMax[0] * 0.1+ refMinMax[1] * 0.9), faceIndices, vertexPositions);
 	    }
 	}
 
@@ -789,20 +799,36 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		return vertices;
 	}
 
-	public int getRefractiveIndex(double x, double y, double z) {
-		double tx = globalToCudaCubes.rdotAffineX(x,y,z) / 0x10000;
-		double ty = globalToCudaCubes.rdotAffineY(x,y,z) / 0x10000;
-		double tz = globalToCudaCubes.rdotAffineZ(x,y,z) / 0x10000;
-		return (int)Interpolator.interpolatePoint(tx, ty, tz, vol.data, vol.width, vol.height, vol.depth);
-	}
+    public int getRefractiveIndex(double x, double y, double z) {
+        double tx = globalToCudaCubes.rdotAffineX(x,y,z) / 0x10000;
+        double ty = globalToCudaCubes.rdotAffineY(x,y,z) / 0x10000;
+        double tz = globalToCudaCubes.rdotAffineZ(x,y,z) / 0x10000;
+        if (tx < 0 || tx > vol.width || ty < 0 || ty > vol.height || tz < 0 || tz > vol.depth)
+        {
+            return -1;
+        }
+        return (int)Interpolator.interpolatePoint(tx, ty, tz, vol.data, vol.width, vol.height, vol.depth);
+    }
+
+
+    public float getOpacity(double x, double y, double z) {
+        double tx = globalToCudaCubes.rdotAffineX(x,y,z) / 0x10000;
+        double ty = globalToCudaCubes.rdotAffineY(x,y,z) / 0x10000;
+        double tz = globalToCudaCubes.rdotAffineZ(x,y,z) / 0x10000;
+        if (tx < 0 || tx > vol.width || ty < 0 || ty > vol.height || tz < 0 || tz > vol.depth)
+        {
+            return -1;
+        }
+        return Interpolator.interpolateUnsignedPoint(tx, ty, tz, vol.translucency, vol.width, vol.height, vol.depth);
+    }
 
 	public float[] getVolumeColor(float color[])
 	{
 		int num_vertices = vol.width * vol.height * vol.depth;
         color = ArrayUtil.setToLength(color, num_vertices);
-		float minMax[] = ArrayUtil.minMax(vol.data);
-		double mult = 1. / (minMax[1] - minMax[0]);
-		double add = -minMax[0] * mult;
+		ArrayUtil.minMax(vol.data, refMinMax);
+		double mult = 1. / (refMinMax[1] - refMinMax[0]);
+		double add = -refMinMax[0] * mult;
 		for (int i = 0; i < num_vertices; ++i)
 		{
 			int index = i * 4;
@@ -907,8 +933,8 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 				if (object[j] == this)
 				{
 					Buffers.getRev(startDirection, tmp, readIndex);
-              	tmp.multiply(spacingInf);
-                    double factor = (0.1*0x10000)/tmp.norm();
+					tmp.multiply(spacingInf);
+                    double factor = (backshift*0x10000)/tmp.norm();
                     double x = tmp.x, y = tmp.y, z = tmp.z;
 					cudaCubesToGlobal.rdot(tmp, direction, i);
              		Buffers.getRev(startPosition, tmp, readIndex);
@@ -958,7 +984,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			{
 				Buffers.getRev(startDirection, tmp, readIndex);
                 tmp.multiply(spacingInf);
-                double factor = (0.1*0x10000)/tmp.norm();
+                double factor = (backshift*0x10000)/tmp.norm();
                 double x = tmp.x, y = tmp.y, z = tmp.z;
 				cudaCubesToGlobal.rdot(tmp, direction, i);
 				Buffers.getRev(startPosition, tmp, readIndex);
@@ -1060,4 +1086,8 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 	}
 
 	public Volume getVolume() {return vol;}
+
+    public float getRefractiveMin() {return refMinMax[0];}
+
+    public float getRefractiveMax() {return refMinMax[1];}
 }

@@ -15,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import data.DataHandler;
-import geometry.Matrixd;
 import jcomponents.raytrace.TextureView;
 import jcomponents.raytrace.Volume;
 import maths.Controller;
@@ -29,7 +28,7 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 	private final StringBuilder strB = new StringBuilder();
 	public String positionStr;
 	public String transformationStr;
-	private static final Controller controll = new Controller(); 
+	private static final Controller controll = new Controller();
 	private final ArrayList<OpticalVolumeObjectChangeListener> changeListeners = new ArrayList<>();
 	private static final Logger logger = LoggerFactory.getLogger(GuiOpticalVolumeObject.class);
 	private String colorStr;
@@ -65,16 +64,16 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 	{
 		return TYPES;
 	}
-	
+
 	public static interface OpticalVolumeObjectChangeListener
 	{
 		public void valueChanged(GuiOpticalVolumeObject object, SCENE_OBJECT_COLUMN_TYPE ct);
 	}
-	
+
 	public GuiOpticalVolumeObject(Object[] volumeRow, VariableAmount va, ParseUtil parser) {
 		setValues(volumeRow, va, parser);
 	}
-	
+
 	public GuiOpticalVolumeObject(VariableAmount va, ParseUtil parser) {setValues(defaultValues, va, parser);}
 
 	private static final Object defaultValues[] = new Object[TYPES.colSize()];
@@ -92,7 +91,7 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 
 	public void addChangeListener(OpticalVolumeObjectChangeListener r)     {changeListeners.add(r);}
 	public void removeChangeListener(OpticalVolumeObjectChangeListener r)  {changeListeners.remove(r);}
-	
+
 	@Override
 	public void valueChanged(SCENE_OBJECT_COLUMN_TYPE ct, ParseUtil parser)
 	{
@@ -111,13 +110,13 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 			isUpdating = false;
 		}
 	}
-	
+
 	@Override
 	public void readBinaryFile(String file) throws IOException
 	{
 		super.readBinaryFile(file);
 		strB.setLength(0);
-		transformationStr = new ArrayOperation((Matrixd)unitVolumeToGlobal).toString(strB).toString();
+		transformationStr = new ArrayOperation(unitVolumeToGlobal).toString(strB).toString();
 		strB.setLength(0);
 		positionStr = new ArrayOperation(midpoint).toString(strB).toString();
 		valueChanged(SCENE_OBJECT_COLUMN_TYPE.TRANSFORMATION, null);
@@ -130,7 +129,7 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 	{
 		super.readDycom(file);
 		strB.setLength(0);
-		transformationStr = new ArrayOperation((Matrixd)unitVolumeToGlobal).toString(strB).toString();
+		transformationStr = new ArrayOperation(unitVolumeToGlobal).toString(strB).toString();
 		strB.setLength(0);
 		positionStr = new ArrayOperation(midpoint).toString(strB).toString();
 		valueChanged(SCENE_OBJECT_COLUMN_TYPE.TRANSFORMATION, null);
@@ -204,7 +203,7 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 		{
 			int width = vol.width, height = vol.height, depth = vol.depth;
 			float data[] = vol.data;
-			float minMax[] = ArrayUtil.minMax(data);
+			float minMax[] = ArrayUtil.minMax(data, new float[2]);
 			int pixel[] = new int[4];
 			BufferedImage bi = getImage();
 			if (bi.getWidth() != width || bi.getHeight() != height)
@@ -325,7 +324,7 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 		case MAX_STEPS:		return maxSteps;
 		case INNER_POINT_TRAJECTORY_COUNT: return numInnerTrajectoryPoints;
 		case VOLUME_SCALING:return volumeScaling;
-		default:			throw new IllegalArgumentException(ct.name);		
+		default:			throw new IllegalArgumentException(ct.name);
 		}
 		return null;
 	}

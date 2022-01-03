@@ -56,6 +56,7 @@ import java.awt.event.WindowListener;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
+import java.awt.image.WritableRaster;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -2057,8 +2058,55 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
     void updateTextureTable()	{updateTable(tableTextures, scrollPaneTextures, scene.textureObjectList, GuiTextureObject.TYPES, 		tableModelTextures, texturOpenColumn,	texturLoadColumn, texturSaveColumn, texturSaveToColumn, texturViewColumn, texturDeleteColumn);}
     void updateMeshTable()	    {updateTable(tableMeshes,	 scrollPaneMeshes, 	scene.meshObjectList, 	 MeshObject.TYPES, 				tableModelMeshes, 	meshOpenColumn, 	meshSaveColumn,   meshDeleteColumn);}
 
-    private static float[] drawVolume(OpticalVolumeObject v, Drawer g, Vector2d translation, double scale, float vertices[]) throws IOException
+    private static float[] drawVolume(OpticalVolumeObject v, Drawer gd, Matrix3x2d sceneToScreen, Matrix3x2d screenToScene, float vertices[]) throws IOException
     {
+        if (!v.active) {
+            return vertices;
+        }
+        Graphics g = ((Drawer.GraphicsDrawer)gd).getOutput();
+        if (g instanceof Graphics2D)
+        {
+            int minX = Integer.MAX_VALUE, maxX = Integer.MIN_VALUE, minY = Integer.MAX_VALUE, maxY = Integer.MIN_VALUE;
+            Vector3d v3 = new Vector3d();
+            for (int i = 0; i < 8; ++i)
+            {
+                v.unitVolumeToGlobal.rdotAffine((i / 4) * 2 - 1, ((i / 2) % 2) * 2 - 1, (i % 2) * 2 - 1, v3);
+                v3.z = 1;
+                sceneToScreen.rdot(v3);
+                minX = Math.min((int)v3.x, minX); maxX = Math.max((int)Math.ceil(v3.x), minX);
+                minY = Math.min((int)v3.y, minY); maxY = Math.max((int)Math.ceil(v3.y), minY);
+            }
+            Rectangle r = g.getClipBounds();
+            minX = Math.max(r.x, minX); maxX = Math.min(r.x + r.width, maxX);
+            minY = Math.max(r.y, minY); maxY = Math.min(r.y + r.height, maxY);
+            BufferedImage bi = new BufferedImage(maxX - minX, maxY - minY, BufferedImage.TYPE_INT_ARGB);
+            WritableRaster raster = bi.getRaster();
+            float refractiveMin = v.getRefractiveMin(), refractiveMax = v.getRefractiveMax();
+            float refractiveScale = 255 / (refractiveMax - refractiveMin);
+            int data[] = new int[raster.getWidth() * raster.getHeight()*4];
+            for (int y = minY, idx = 0; y < maxY; ++y)
+            {
+                for (int x = minX; x < maxX; ++x, ++idx)
+                {
+                    double xf = screenToScene.rdotAffineX(x,y), yf = screenToScene.rdotAffineY(x,y);
+                    int refractiveIndex = v.getRefractiveIndex(xf,yf, 0);
+                    data[idx * 4] = data[idx * 4 + 2] = (int)((refractiveIndex - refractiveMin) * refractiveScale);
+                    data[idx * 4 + 1] = 255 - data[idx * 4];
+                    float opacity = v.getOpacity(xf, yf, 0);
+                    data[idx * 4 + 3] = opacity > 0x7FFFFFFF ? 196 : 0;
+                }
+            }
+            raster.setPixels(0, 0, raster.getWidth(), raster.getHeight(), data);
+
+            //AffineTransform gat = ((Graphics2D)g).getTransform();
+            //AffineTransform affineSceneToScreen = new AffineTransform();
+            //TransformConversion.copy(sceneToScreen, affineSceneToScreen);
+            //affineSceneToScreen.preConcatenate(gat);
+            //((Graphics2D)g).setTransform(affineSceneToScreen);
+            g.drawImage(bi, minX, minY, null);
+            //g.drawImage(bi, minX, minY, minX + bi.getWidth(), minY + bi.getHeight(), 0, 0, bi.getWidth(), bi.getHeight(), null);
+            //((Graphics2D)g).setTransform(gat);
+        }
     	/*
     	vertices = ArrayUtil.ensureLength(vertices, v.numMeshVertices() * 3);
 		v.getMeshVertices(vertices);
@@ -2081,7 +2129,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		return vertices;
     }
 
-    private static float[] drawMesh(MeshObject mesh, Drawer g, Vector2d translation, double scale, float vertices[]) throws IOException
+    private static float[] drawMesh(MeshObject mesh, Drawer g, Matrix3x2d sceneToScreen, float vertices[]) throws IOException
     {
     	vertices = ArrayUtil.ensureLength(vertices, mesh.getMeshVertexLength());
 		mesh.getMeshVertices(vertices);
@@ -2090,10 +2138,10 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		{
 			int l0 = lines[i    ] * 3;
 			int l1 = lines[i + 1] * 3;
-			double x0 = (vertices[l0	] + translation.x) * scale;
-			double y0 = (vertices[l0 + 1] + translation.y) * scale;
-			double x1 = (vertices[l1	] + translation.x) * scale;
-			double y1 = (vertices[l1 + 1] + translation.y) * scale;
+            double x0 = sceneToScreen.rdotAffineX(vertices[l0], vertices[l0 + 1]);
+            double y0 = sceneToScreen.rdotAffineY(vertices[l0], vertices[l0 + 1]);
+            double x1 = sceneToScreen.rdotAffineX(vertices[l1], vertices[l1 + 1]);
+            double y1 = sceneToScreen.rdotAffineY(vertices[l1], vertices[l1 + 1]);
 			g.drawLine(x0,y0,x1,y1);
 		}
 		return vertices;
@@ -2338,31 +2386,28 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		public int getLense(int ex, int ey)
 	    {
 	    	try
-		    	{
+		    {
 		    	BufferedImage image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
 				Graphics g = image.getGraphics();
 				Vector3d vec = new Vector3d();
 				g.setClip(0, 0, image.getWidth(), image.getHeight());
 				GraphicsDrawer gd = new GraphicsDrawer(g, 33);
-				Matrix3x2d at = new Matrix3x2d();
-				at.postTranslate(panelVisualization.globalPaintOffset.x, panelVisualization.globalPaintOffset.y);
-				at.postScale(scale, scale);
 				int count = 1;
+                float vertices[] = UniqueObjects.EMPTY_FLOAT_ARRAY;
+                for (int i = 0; i < scene.volumeObjectList.size(); ++i, ++count)
+                {
+                    gd.setColor(new Color(count, count, count));
+                    vertices = drawVolume(scene.volumeObjectList.get(i), gd, sceneToScreen, screenToScene, vertices);
+                }
 				for (int i = 0; i < scene.surfaceObjectList.size(); ++i, ++count)
 				{
 					gd.setColor(new Color(count, count, count));
-					drawSurface(scene.surfaceObjectList.get(i), gd, vec, at);
-				}
-				float vertices[] = UniqueObjects.EMPTY_FLOAT_ARRAY;
-				for (int i = 0; i < scene.volumeObjectList.size(); ++i, ++count)
-				{
-					gd.setColor(new Color(count, count, count));
-					vertices = drawVolume(scene.volumeObjectList.get(i), gd, panelVisualization.globalPaintOffset, scale, vertices);
+					drawSurface(scene.surfaceObjectList.get(i), gd, vec, sceneToScreen);
 				}
 				for (int i = 0; i < scene.meshObjectList.size(); ++i, ++count)
 				{
 					gd.setColor(new Color(count, count, count));
-					vertices = drawMesh(scene.meshObjectList.get(i), gd, panelVisualization.globalPaintOffset, scale, vertices);
+					vertices = drawMesh(scene.meshObjectList.get(i), gd, sceneToScreen, vertices);
 				}
 				int mindist = Integer.MAX_VALUE;
 				int rownumber = 0;
@@ -2508,6 +2553,8 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		private final RayGenerator gen = new RayGenerator();
 		private final StringBuilder strB = new StringBuilder();
 		private final NearestPointCalculator npc = new NearestPointCalculator(3);
+        private final Matrix3x2d sceneToScreen = new Matrix3x2d();
+        private final Matrix3x2d screenToScene = new Matrix3x2d();
 
 		public synchronized void paintComponent(Drawer gd) throws IOException
 		{
@@ -2519,20 +2566,20 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 				super.paintComponent(((Drawer.GraphicsDrawer)gd).getOutput());
 			}
 			scene.updateScene();
-
-			Matrix3x2d at = new Matrix3x2d();
-            at.postTranslate(panelVisualization.globalPaintOffset.x, panelVisualization.globalPaintOffset.y);
-            at.postScale(scale, scale);
+			sceneToScreen.set(1,0,0,0,1,0);
+            sceneToScreen.postTranslate(panelVisualization.globalPaintOffset.x, panelVisualization.globalPaintOffset.y);
+            sceneToScreen.postScale(scale, scale);
+            screenToScene.invert(sceneToScreen);
 	        if (gd instanceof Drawer.GraphicsDrawer)
 			{
 				Graphics g = ((Drawer.GraphicsDrawer)gd).getOutput();
 				for (int i = 0; i < scene.textureObjectList.size(); ++i)
 				{
 				    GuiTextureObject current = scene.textureObjectList.get(i);
-                    if (g instanceof Graphics2D)
+                    if (g instanceof Graphics2D && current.image != null)
 				    {
 				        AffineTransform gat = ((Graphics2D)g).getTransform();
-				        TransformConversion.copy(at, gat);
+				        TransformConversion.copy(sceneToScreen, gat);
 				        ((Graphics2D)g).setTransform(gat);
                         g.drawImage(current.image, 0, 0, current.image.getWidth(), current.image.getHeight(), 0, 0, current.image.getWidth(), current.image.getHeight(), null);
                         gat.setToIdentity();
@@ -2540,8 +2587,8 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 				    }
                     else
                     {
-    					double x = at.rdotAffineX(current.midpoint.x,current.midpoint.y);
-                        double y = at.rdotAffineY(current.midpoint.x,current.midpoint.y);
+    					double x = sceneToScreen.rdotAffineX(current.midpoint.x,current.midpoint.y);
+                        double y = sceneToScreen.rdotAffineY(current.midpoint.x,current.midpoint.y);
     					if (current.active && !current.midpoint.containsNaN() && !current.direction.containsNaN() && current.image != null)
     					{
     						g.drawImage(current.image, (int)x, (int)y, (int)(x + current.direction.x * scale), (int)(y+ current.direction.y * scale), 0, 0, current.image.getWidth(), current.image.getHeight(), null);
@@ -2549,22 +2596,22 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
                     }
 				}
 			}
+	        for (int i = 0; i < scene.volumeObjectList.size(); ++i)
+            {
+                volumeVertices = drawVolume(scene.volumeObjectList.get(i), gd, sceneToScreen, screenToScene, volumeVertices);
+            }
 			for (int i = 0; i < scene.surfaceObjectList.size(); ++i)
 			{
 				GuiOpticalSurfaceObject current = scene.surfaceObjectList.get(i);
 				gd.setColor(current.materialType == MaterialType.EMISSION ? (current.active ? Color.BLUE : EMISSION_INVISIBLE) : (current.active ? Color.BLACK : LENSE_INVISIBLE));
-				drawSurface(current, gd, v0, at);
+				drawSurface(current, gd, v0, sceneToScreen);
 			}
 			gd.setColor(Color.BLACK);
-			for (int i = 0; i < scene.volumeObjectList.size(); ++i)
-			{
-				volumeVertices = drawVolume(scene.volumeObjectList.get(i), gd, globalPaintOffset, scale, volumeVertices);
-			}
 			for (int i = 0; i < scene.meshObjectList.size(); ++i)
 			{
 				MeshObject current = scene.meshObjectList.get(i);
 				gd.setColor(current.active ? Color.BLACK : LENSE_INVISIBLE);
-				volumeVertices = drawMesh(current, gd, globalPaintOffset, scale, volumeVertices);
+				volumeVertices = drawMesh(current, gd, sceneToScreen, volumeVertices);
 			}
 			int numTracedRays = 0;
 			int maxTracedRays = 0;
@@ -2636,7 +2683,9 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 					}
 					gd.setColor(Color.RED);
 					v0.multiply(1./count);
-					gd.drawArc((v0.x + globalPaintOffset.x) * scale-5, (v0.y + globalPaintOffset.y) * scale-5, 10, 10, 0, 360);
+					v0.z = 1;
+					sceneToScreen.rdot(v0);
+					gd.drawArc(v0.x - 5, v0.y - 5, 10, 10, 0, 360);
 					v0.set(0,0,0);
 				}
 				for (int j = 0, trajectoryIndex = 0; j < source.numTracedRays; ++j)
@@ -2645,8 +2694,8 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 					for (int dir = 0; dir < (source.bidirectional ? 2 : 1); ++dir)
 					{
 						v0.set(trajectory, trajectoryIndex);
-						v0.add(globalPaintOffset);
-						v0.multiply(scale);
+                        v0.z = 1;
+                        sceneToScreen.rdot(v0);
 						gd.pushPoint(v0.x, v0.y);
 						for (int b = 3 + trajectoryIndex; b < maxBounces * 3 + 6 + trajectoryIndex; b += 3)
 						{
@@ -2655,8 +2704,8 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 							{
 								break;
 							}
-							v0.add(globalPaintOffset);
-							v0.multiply(scale);
+							v0.z = 1;
+							sceneToScreen.rdot(v0);
 							gd.pushPoint(v0.x, v0.y);
 						}
 						gd.drawPolyLine();
@@ -2700,17 +2749,11 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 				double invscale = maxWidth / scale;
 				if (invscale < 1)
 				{
-					while(getScale(power) >= invscale)
-					{
-						--power;
-					}
+					while(getScale(power) >= invscale){--power;}
 				}
 				else
 				{
-					while(getScale(power + 1) < invscale)
-					{
-						++power;
-					}
+					while(getScale(power + 1) < invscale){++power;}
 				}
 				double len = getScale(power) * scale * 0.5;
 				double x0 = maxWidth / 2 + 10 - len;
