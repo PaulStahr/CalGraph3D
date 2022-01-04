@@ -2089,7 +2089,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
                 for (int x = minX; x < maxX; ++x, ++idx)
                 {
                     double xf = screenToScene.rdotAffineX(x,y), yf = screenToScene.rdotAffineY(x,y);
-                    int refractiveIndex = v.getRefractiveIndex(xf,yf, 0);
+                    float refractiveIndex = v.getRefractiveIndex(xf,yf, 0);
                     data[idx * 4] = data[idx * 4 + 2] = (int)((refractiveIndex - refractiveMin) * refractiveScale);
                     data[idx * 4 + 1] = 255 - data[idx * 4];
                     float opacity = v.getOpacity(xf, yf, 0);

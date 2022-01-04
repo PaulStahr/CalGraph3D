@@ -49,8 +49,8 @@ import util.JFrameUtils;
 
 public class SceneIO {
 	private static final Logger logger = LoggerFactory.getLogger(SceneIO.class);
-	private static final int version = 1;
-    
+	private static final int version = 2;
+
     private static final void readXMLValues(Element elem, ArrayList<SCENE_OBJECT_COLUMN_TYPE> ctList, ArrayList<String> valueList)
     {
     	ctList.clear();
@@ -65,14 +65,14 @@ public class SceneIO {
 			}
 		}
 	}
-	
+
     public static void loadScene(InputStream in, RaytraceScene scene, final RaySimulationGui gui) throws JDOMException, IOException
     {
         ParseUtil parser = new ParseUtil();
     	Document doc = new SAXBuilder().build(in);
     	Element root = doc.getRootElement();
-    	ArrayList<SCENE_OBJECT_COLUMN_TYPE> ctList = new ArrayList<SCENE_OBJECT_COLUMN_TYPE>();
-    	
+    	ArrayList<SCENE_OBJECT_COLUMN_TYPE> ctList = new ArrayList<>();
+
     	ArrayList<String> valueList = new ArrayList<>();
     	String versionString = root.getAttributeValue("version");
     	int version = versionString == null ? -1 : Integer.parseInt(versionString);
@@ -127,16 +127,21 @@ public class SceneIO {
     			case "Tool":gui.panelTools.add(InterfacePanelFactory.getInstance(elem.getText(), scene.vs));break;
     			case "Pipeline":
     				VolumePipeline pipeline = gui.volumePipelines.addPipeline().pipeline;
-    				
+
         			for (Element child : elem.getChildren())
         			{
         				switch (child.getName())
         				{
         					case "Generate":			pipeline.steps.add(new VolumePipeline.GenerationCalculationStep(child.getAttributeValue("Bounds")));break;
-        					case "Calculate":			pipeline.steps.add(new VolumePipeline.CalculationCalcuationStep(child.getAttributeValue("Ior"), child.getAttributeValue("Translucency"), child.getAttributeValue("EqValue"), child.getAttributeValue("EqGiven")));break;
-        					default:					logger.warn("Unknown option " + child.getName());
+        					case "Calculate":            pipeline.steps.add(new VolumePipeline.CalculationCalcuationStep(child.getAttributeValue("Ior"), child.getAttributeValue("Translucency"), child.getAttributeValue("EqValue"), child.getAttributeValue("EqGiven")));break;
+					        default:					logger.warn("Unknown option " + child.getName());
         				}
         			}
+        			if (version <= 1 && pipeline.steps.size() != 0 && pipeline.steps.get(pipeline.steps.size() - 1) instanceof VolumePipeline.CalculationCalcuationStep)
+                    {
+                        VolumePipeline.CalculationCalcuationStep ccs = (CalculationCalcuationStep) pipeline.steps.get(pipeline.steps.size() - 1);
+                        ccs.ior = '(' + ccs.ior +")/0x10000";
+                    }
         			for (Attribute attr : elem.getAttributes())
         			{
         				switch (attr.getName())
@@ -152,7 +157,7 @@ public class SceneIO {
     			case "Author":		scene.author = elem.getText();break;
     			case "Epsilon":		scene.epsilon = Double.parseDouble(elem.getText());break;
     			case "Description": gui.textAreaProjectInformation.setText(elem.getValue());break;
-    			case "Variables": 
+    			case "Variables":
         			for (Element child : elem.getChildren())
         			{
         				try {
@@ -200,13 +205,13 @@ public class SceneIO {
     	JFrameUtils.runByDispatcher(new Runnable() {
     		@Override
 			public void run() {
-            	gui.updateAllTables();    			
+            	gui.updateAllTables();
     		}
     	});
     }
-    
+
     private static final void writeXmlValues(OpticalObject oso, Element elem) {
-    	
+
     	COLUMN_TYPES types = oso.getTypes();
 		for (int j = 0; j < types.colSize(); ++j)
 		{
@@ -214,7 +219,7 @@ public class SceneIO {
 			elem.setAttribute(ct.name, String.valueOf(oso.getValue(ct)));
 		}
     }
-    
+
     private static final <E extends OpticalObject> void writeXmlList(Element root, ArrayList<E> list, JTable table, String elemName, boolean onlySelected)
     {
     	for (int i = 0; i < list.size(); ++i)
@@ -227,12 +232,12 @@ public class SceneIO {
     		}
     	}
     }
-    
+
    	public static void saveScene(OutputStream out, boolean onlySelected, RaytraceScene scene, RaySimulationGui gui) throws IOException
     {
     	Document doc = new Document();
     	Element root = new Element("scene");
-    	doc.setRootElement(root); 
+    	doc.setRootElement(root);
     	root.setAttribute("version", Integer.toString(version));
     	writeXmlList(root, scene.surfaceObjectList, gui.tableSurfaces, "surface", onlySelected);
     	writeXmlList(root, scene.volumeObjectList,  gui.tableVolumes, "volume", onlySelected);
@@ -259,7 +264,7 @@ public class SceneIO {
 	    		if (comp instanceof InterfacePanel)
 				{
 	    			InterfacePanel ip = (InterfacePanel)comp;
-	    			elem.setText(ip.getContent());		
+	    			elem.setText(ip.getContent());
 				}
 	    		root.addContent(elem);
 	    	}

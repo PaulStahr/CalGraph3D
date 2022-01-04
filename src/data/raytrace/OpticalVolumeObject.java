@@ -518,7 +518,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 				}
 			}
 		}
-		logger.debug(new StringBuilder().append('(').append(min/0x10000).append(',').append(max/0x10000).append(')').toString());
+		logger.debug(new StringBuilder().append('(').append(min).append(',').append(max).append(')').toString());
 		ArrayUtil.minMax(vol.data, refMinMax);
 		vol.modified();
 	}
@@ -799,7 +799,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		return vertices;
 	}
 
-    public int getRefractiveIndex(double x, double y, double z) {
+    public float getRefractiveIndex(double x, double y, double z) {
         double tx = globalToCudaCubes.rdotAffineX(x,y,z) / 0x10000;
         double ty = globalToCudaCubes.rdotAffineY(x,y,z) / 0x10000;
         double tz = globalToCudaCubes.rdotAffineZ(x,y,z) / 0x10000;
@@ -807,7 +807,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
         {
             return -1;
         }
-        return (int)Interpolator.interpolatePoint(tx, ty, tz, vol.data, vol.width, vol.height, vol.depth);
+        return Interpolator.interpolatePoint(tx, ty, tz, vol.data, vol.width, vol.height, vol.depth);
     }
 
 
@@ -849,7 +849,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		}
 		vol = new Volume(width, height, depth);
 		Arrays.fill(vol.translucency, 0x7FFFFFFF);
-		Arrays.fill(vol.data, 0x10000);
+		Arrays.fill(vol.data, 1);
 		applyMatrix();
 		vs = null;
 	}
@@ -875,7 +875,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			{
 				float value = vol.data[i];
 				if (value <= 0){throw new RuntimeException("Refractive-index underflow:" + value + "<=" + 0);}
-	            ior.put(i,value/0x100);
+	            ior.put(i,value * 0x100);
 			}
             if (native_raytrace)
 			{
