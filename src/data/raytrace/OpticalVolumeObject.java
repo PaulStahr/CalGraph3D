@@ -351,8 +351,6 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		float data[] = vol.data;
 		int translucency[] = vol.translucency;
 		Vector3d position = new Vector3d();
-		final int heightp = height + 1;
-		final int widthp = width + 1;
 		SortedIntegerArrayList ial = new SortedIntegerArrayList();
 		if (operationIOR != null)			{OperationCalculate.getVariables(operationIOR, ial);}
 		if (operationTranslucency != null)	{OperationCalculate.getVariables(operationTranslucency, ial);}
@@ -369,24 +367,18 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		float minMaxDat[] = ArrayUtil.minMax(data, new float[2]);
 		int minMaxTrans[] = ArrayUtil.minMax(translucency, new int[2]);
 
-		double divx = 1. / (width - 3), divy = 1. / (height - 3), divz = 1. / (depth - 3);
 		oso = tmpList.toArray(new OpticalSurfaceObject[tmpList.size()]);
-		final double values[][] = new double[oso.length][widthp * heightp * (depth + 1)];
-
-		Matrix4d cubesToGlobal = new Matrix4d(unitVolumeToGlobal);
-		cubesToGlobal.preScale(divx, divy, divz);
-		cubesToGlobal.preTranslate(-width, -height, -depth);
-		cubesToGlobal.preScale(2,2,2);
+		final double values[][] = new double[oso.length][width * height * depth];
 
 		for (int i = 0; i < oso.length; ++i)
 		{
-			for (int z = 0, index = 0; z <= depth; ++z)
+			for (int z = 0, index = 0; z < depth; ++z)
 			{
-				for (int y = 0; y <= height; ++y)
+				for (int y = 0; y < height; ++y)
 				{
-					for (int x = 0; x <= width; ++x, ++index)
+					for (int x = 0; x <width; ++x, ++index)
 					{
-						cubesToGlobal.rdotAffine(x, y, z, position);
+						this.cubesToGlobal.rdotAffine(x, y, z, position);
 						values[i][index] = oso[i].evaluate_inner_outer(position);
 					}
 				}
@@ -428,23 +420,14 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 				{
 					for (int x = 0; x < width; ++x, ++index)
 					{
+                        vce.setPosition(index, x, y, z);
 						for (int i = 0; i < oso.length; ++i)
 						{
-							double sum = 0;
-							double absSum = 0;
-							for (int corner = 0; corner < 8; ++corner)
-							{
-								final double value = values[i][((z + (corner & 1)) * heightp + y + ((corner & 2) >> 1)) * widthp + x + ((corner & 4) >> 2)];
-								sum += value;
-								absSum += Math.abs(value);
-							}
-
-							eval[i].setValue(sum / absSum);
+							eval[i].setValue(values[i][index]);
 						}
 						datVar.setValue(data[index]);
 						transVar.setValue(translucency[index]);
 
-						vce.setPosition(index, x, y, z);
 						equalityOperationResult[index] = givenValueOperation.calculate(vs, control).doubleValue();
 						notGivenIndices[index] =  isGivenOperation.calculate(vs, control).booleanValue() ? -1 : notGivenCount++;
 					}
@@ -467,22 +450,13 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			{
 				for (int x = 0; x < width; ++x, ++index)
 				{
+                    vce.setPosition(index, x, y, z);
 					for (int i = 0; i < oso.length; ++i)
 					{
-						double sum = 0;
-						double absSum = 0;
-						for (int corner = 0; corner < 8; ++corner)
-						{
-							final double value = values[i][((z + (corner & 1)) * heightp + y + ((corner & 2) >> 1)) * widthp + x + ((corner & 4) >> 2)];
-							sum += value;
-							absSum += Math.abs(value);
-						}
-
-						eval[i].setValue(sum / absSum);
+                        eval[i].setValue(values[i][index]);
 					}
 					datVar.setValue(data[index]);
 					transVar.setValue(translucency[index]);
-					vce.setPosition(index, x, y, z);
 					if (equalityOperationResult != null)
 					{
 						equalityOperationResVar.setValue(equalityOperationResult[index]);
@@ -501,9 +475,13 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 					if (operationTranslucency != null)
 					{
 						long value = operationTranslucency.calculate(vs, control).longValue();
-						if (value > (long)Integer.MAX_VALUE - (long)Integer.MIN_VALUE || value < 0)
+						if (value > (long)Integer.MAX_VALUE - (long)Integer.MIN_VALUE)
 						{
-							throw new RuntimeException("Translucency value " + value + '-' + '>' + (double)value / ((long)Integer.MAX_VALUE - (long)Integer.MIN_VALUE) + " is out of range");
+						    value = (long)Integer.MAX_VALUE - (long)Integer.MIN_VALUE;
+						}
+						else if (value < 0)
+						{
+						    value = 0;
 						}
 						translucency[index] = (int)value;
 					}
