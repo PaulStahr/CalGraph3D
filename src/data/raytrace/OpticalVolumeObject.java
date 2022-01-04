@@ -377,9 +377,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		cubesToGlobal.preScale(divx, divy, divz);
 		cubesToGlobal.preTranslate(-width, -height, -depth);
 		cubesToGlobal.preScale(2,2,2);
-		/*System.out.println(cubesToGlobal);
-		System.out.println(this.cubesToGlobal);
-*/
+
 		for (int i = 0; i < oso.length; ++i)
 		{
 			for (int z = 0, index = 0; z <= depth; ++z)
@@ -404,19 +402,15 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		{
 			vs.addLocal(eval[i] = new Variable(oso[i].getId()));
 		}
-		Variable minTransVar = new Variable("tmin");
-		minTransVar.setValue(minMaxTrans[0]);
+		Variable minTransVar = new Variable("tmin", minMaxTrans[0]);
 		vs.addLocal(minTransVar);
-		Variable maxTransVar = new Variable("tmax");
-		maxTransVar.setValue(minMaxTrans[1]);
+		Variable maxTransVar = new Variable("tmax", minMaxTrans[1]);
 		vs.addLocal(maxTransVar);
-		Variable minDataVar = new Variable("dmin");
-		minDataVar.setValue(minMaxDat[0]);
+		Variable minDataVar = new Variable("dmin", minMaxDat[0]);
 		vs.addLocal(minDataVar);
-		Variable maxDataVar = new Variable("dmax");
-		maxDataVar.setValue(minMaxDat[1]);
+		Variable maxDataVar = new Variable("dmax", minMaxDat[1]);
 		vs.addLocal(maxDataVar);
-		VolumeCalculationEnvironment vce = new VolumeCalculationEnvironment(vs, cubesToGlobal, width, height, depth);
+		VolumeCalculationEnvironment vce = new VolumeCalculationEnvironment(vs, this.cubesToGlobal, width, height, depth);
 
 		Controller control = new Controller();
 		control.calculateRandom(true);
@@ -459,11 +453,9 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			Armadillo.solveDiffusionEquation(width, height, depth, equalityOperationResult, notGivenIndices, notGivenCount);
 			vs.add(equalityOperationResVar = new Variable("lres"));
 			double eqLimits[] = ArrayUtil.minMax(equalityOperationResult, new double[2]);
-			Variable minEqVar = new Variable("eqmin");
-			minEqVar.setValue(eqLimits[0]);
+			Variable minEqVar = new Variable("eqmin", eqLimits[0]);
 			vs.addLocal(minEqVar);
-			Variable maxEqVar = new Variable("eqmax");
-			maxEqVar.setValue(eqLimits[1]);
+			Variable maxEqVar = new Variable("eqmax", eqLimits[1]);
 			vs.addLocal(maxEqVar);
 			logger.debug(new StringBuilder().append('(').append(eqLimits[0]).append(',').append(eqLimits[1]).append(')').toString());
 		}
@@ -874,7 +866,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			for (int i=0;i<vol.data.length;i++)
 			{
 				float value = vol.data[i];
-				if (value <= 0){throw new RuntimeException("Refractive-index underflow:" + value + "<=" + 0);}
+				if (!(value > 0)){throw new RuntimeException("Refractive-index underflow:" + value + "<=" + 0);}
 	            ior.put(i,value * 0x100);
 			}
             if (native_raytrace)
