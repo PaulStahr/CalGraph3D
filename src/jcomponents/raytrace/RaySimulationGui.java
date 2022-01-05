@@ -2073,12 +2073,13 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
                 v.unitVolumeToGlobal.rdotAffine((i / 4) * 2 - 1, ((i / 2) % 2) * 2 - 1, (i % 2) * 2 - 1, v3);
                 v3.z = 1;
                 sceneToScreen.rdot(v3);
-                minX = Math.min((int)v3.x, minX); maxX = Math.max((int)Math.ceil(v3.x), minX);
-                minY = Math.min((int)v3.y, minY); maxY = Math.max((int)Math.ceil(v3.y), minY);
+                minX = Math.min((int)Math.floor(v3.x), minX); maxX = Math.max((int)Math.ceil(v3.x), minX);
+                minY = Math.min((int)Math.floor(v3.y), minY); maxY = Math.max((int)Math.ceil(v3.y), minY);
             }
             Rectangle r = g.getClipBounds();
             minX = Math.max(r.x, minX); maxX = Math.min(r.x + r.width, maxX);
             minY = Math.max(r.y, minY); maxY = Math.min(r.y + r.height, maxY);
+            if (minX >= maxX || minY >= maxY) {return vertices;}
             BufferedImage bi = new BufferedImage(maxX - minX, maxY - minY, BufferedImage.TYPE_INT_ARGB);
             WritableRaster raster = bi.getRaster();
             float refractiveMin = v.getRefractiveMin(), refractiveMax = v.getRefractiveMax();
@@ -2089,15 +2090,17 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
                 for (int x = minX; x < maxX; ++x, ++idx)
                 {
                     double xf = screenToScene.rdotAffineX(x,y), yf = screenToScene.rdotAffineY(x,y);
-                    float refractiveIndex = v.getRefractiveIndex(xf,yf, 0);
-                    data[idx * 4] = data[idx * 4 + 2] = (int)((refractiveIndex - refractiveMin) * refractiveScale);
-                    data[idx * 4 + 1] = 255 - data[idx * 4];
                     float opacity = v.getOpacity(xf, yf, 0);
                     data[idx * 4 + 3] = opacity > 0x7FFFFFFF ? 196 : 0;
+                    if (data[idx * 4 + 3] != 0)
+                    {
+                        float refractiveIndex = v.getRefractiveIndex(xf,yf, 0);
+                        data[idx * 4] = data[idx * 4 + 2] = (int)((refractiveIndex - refractiveMin) * refractiveScale);
+                        data[idx * 4 + 1] = 255 - data[idx * 4];
+                    }
                 }
             }
             raster.setPixels(0, 0, raster.getWidth(), raster.getHeight(), data);
-
             //AffineTransform gat = ((Graphics2D)g).getTransform();
             //AffineTransform affineSceneToScreen = new AffineTransform();
             //TransformConversion.copy(sceneToScreen, affineSceneToScreen);
@@ -2394,11 +2397,11 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 				GraphicsDrawer gd = new GraphicsDrawer(g, 33);
 				int count = 1;
                 float vertices[] = UniqueObjects.EMPTY_FLOAT_ARRAY;
-                for (int i = 0; i < scene.volumeObjectList.size(); ++i, ++count)
+                /*for (int i = 0; i < scene.volumeObjectList.size(); ++i, ++count)
                 {
                     gd.setColor(new Color(count, count, count));
                     vertices = drawVolume(scene.volumeObjectList.get(i), gd, sceneToScreen, screenToScene, vertices);
-                }
+                }*/
 				for (int i = 0; i < scene.surfaceObjectList.size(); ++i, ++count)
 				{
 					gd.setColor(new Color(count, count, count));

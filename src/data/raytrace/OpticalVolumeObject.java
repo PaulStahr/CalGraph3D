@@ -124,25 +124,10 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			pointer = new_options();
 		}
 
-		public int getLoglevel()
-		{
-			return get_option_valuei(pointer, VolumeRaytraceOptionType.LOGLEVEL.id);
-		}
-
-		public void setLoglevel(int value)
-		{
-			set_option_valuei(pointer, VolumeRaytraceOptionType.LOGLEVEL.id, value);
-		}
-
-		public boolean getWriteInstance()
-		{
-			return get_option_valueb(pointer, VolumeRaytraceOptionType.WRITE_INSTANCE.id);
-		}
-
-		public void setWriteInstance(boolean value)
-		{
-			set_option_valueb(pointer, VolumeRaytraceOptionType.WRITE_INSTANCE.id, value);
-		}
+		public int getLoglevel()                      {return get_option_valuei(pointer, VolumeRaytraceOptionType.LOGLEVEL.id);}
+		public void setLoglevel(int value)            {set_option_valuei(pointer, VolumeRaytraceOptionType.LOGLEVEL.id, value);}
+		public boolean getWriteInstance()             {return get_option_valueb(pointer, VolumeRaytraceOptionType.WRITE_INSTANCE.id);}
+		public void setWriteInstance(boolean value)   {set_option_valueb(pointer, VolumeRaytraceOptionType.WRITE_INSTANCE.id, value);}
 
 		@Override
 		protected void finalize()
@@ -155,23 +140,17 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		}
 	}
 
-	public static native long new_instance(IntBuffer bounds, IntBuffer ior, IntBuffer transculency, long opt_pt);
-
 	public static native long new_options();
+    public static native void delete_options(long pointer);
 
+    public static native long new_instance(IntBuffer bounds, IntBuffer ior, IntBuffer transculency, long opt_pt);
 	public static native long new_instance(IntBuffer bounds, FloatBuffer ior, IntBuffer transculency, long opt_pt);
+    public static native void delete_instance(long pointer);
 
-	public static native void delete_instance(long pointer);
-
-	public static native void delete_options(long pointer);
-
-	public static native int get_option_valuei(long pointer, long id);
-
-	public static native void set_option_valuei(long pointer, long id, int value);
-
-	public static native boolean get_option_valueb(long pointer, long id);
-
-	public static native void set_option_valueb(long pointer, long id, boolean value);
+	public static native int       get_option_valuei(long pointer, long id);
+	public static native void      set_option_valuei(long pointer, long id, int value);
+	public static native boolean   get_option_valueb(long pointer, long id);
+	public static native void      set_option_valueb(long pointer, long id, boolean value);
 
 	public static native void trace_rays(long pointer, IntBuffer start_position, ShortBuffer start_direction, IntBuffer end_iteration, FloatBuffer scale, float minimum_brightness, int iterations, boolean trace_path, IntBuffer path, long option_pointer);
 
@@ -203,15 +182,8 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		private AtomicInteger running = new AtomicInteger();
 		boolean destroy = false;
 
-		private VolumeScene(IntBuffer bounds, IntBuffer ior, IntBuffer translucency, VolumeRaytraceOptions opt)
-		{
-			pointer = new_instance(bounds, ior, translucency, opt.pointer);
-		}
-
-		private VolumeScene(IntBuffer bounds, FloatBuffer ior, IntBuffer translucency, VolumeRaytraceOptions opt)
-		{
-			pointer = new_instance(bounds, ior, translucency, opt.pointer);
-		}
+		private VolumeScene(IntBuffer bounds, IntBuffer ior, IntBuffer translucency, VolumeRaytraceOptions opt)   {pointer = new_instance(bounds, ior, translucency, opt.pointer);}
+		private VolumeScene(IntBuffer bounds, FloatBuffer ior, IntBuffer translucency, VolumeRaytraceOptions opt) {pointer = new_instance(bounds, ior, translucency, opt.pointer);}
 
 		public void traceRays(IntBuffer start_position, ShortBuffer start_direction, IntBuffer end_iteration, FloatBuffer scale, float minimum_brightness, int iterations, IntBuffer path, VolumeRaytraceOptions options)
 		{
@@ -347,6 +319,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 
 	public void editValues(OpticalSurfaceObject oso[], Operation operationIOR, Operation operationTranslucency, Operation givenValueOperation, Operation isGivenOperation, VariableStack variables, Volume vol)
 	{
+	    long time = System.nanoTime();
 		int width = vol.width, height = vol.height, depth = vol.depth;
 		float data[] = vol.data;
 		int translucency[] = vol.translucency;
@@ -370,15 +343,15 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		oso = tmpList.toArray(new OpticalSurfaceObject[tmpList.size()]);
 		final double values[][] = new double[oso.length][width * height * depth];
 
-		for (int i = 0; i < oso.length; ++i)
+		for (int z = 0, index = 0; z < depth; ++z)
 		{
-			for (int z = 0, index = 0; z < depth; ++z)
+			for (int y = 0; y < height; ++y)
 			{
-				for (int y = 0; y < height; ++y)
+				for (int x = 0; x <width; ++x, ++index)
 				{
-					for (int x = 0; x <width; ++x, ++index)
-					{
-						this.cubesToGlobal.rdotAffine(x, y, z, position);
+                    this.cubesToGlobal.rdotAffine(x, y, z, position);
+			        for (int i = 0; i < oso.length; ++i)
+			        {
 						values[i][index] = oso[i].evaluate_inner_outer(position);
 					}
 				}
@@ -443,6 +416,17 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			logger.debug(new StringBuilder().append('(').append(eqLimits[0]).append(',').append(eqLimits[1]).append(')').toString());
 		}
 		double min = Double.POSITIVE_INFINITY, max = Double.NEGATIVE_INFINITY;
+		datVar.setValue((Operation)null);
+		transVar.setValue((Operation)null);
+		for (int i = 0; i < eval.length; ++i){eval[i].setValue((Operation)null);}
+        control.calculateLoop(false);
+        control.calculateRandom(false);
+        control.connectEmptyVariables(true);
+        operationIOR = operationIOR.calculate(vs, control);
+        operationTranslucency = operationTranslucency.calculate(vs, control);
+        control.calculateLoop(true);
+        control.calculateRandom(true);
+        System.out.println((System.nanoTime() - time)/1000000000f);
 
 		for (int z = 0, index = 0; z < depth; ++z)
 		{
@@ -488,7 +472,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 				}
 			}
 		}
-		logger.debug(new StringBuilder().append('(').append(min).append(',').append(max).append(')').toString());
+		logger.debug(new StringBuilder().append('(').append(min).append(',').append(max).append(')').append(' ').append((System.nanoTime() - time) / 1000000000f).toString());
 		ArrayUtil.minMax(vol.data, refMinMax);
 		vol.modified();
 	}
