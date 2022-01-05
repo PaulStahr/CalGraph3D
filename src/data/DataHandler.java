@@ -132,6 +132,7 @@ public abstract class DataHandler
 
 	public static void loadLib(String file) throws IOException {
     	InputStream in = DataHandler.getResourceAsStream(file);
+    	if (in == null) {throw new NullPointerException("Couldn't get resource " + file);}
     	String name = file.substring(Math.max(0,file.lastIndexOf('/')));
         File fileOut = new File(System.getProperty("java.io.tmpdir") + 	'/' + name);
         logger.info("Writing dll to: " + fileOut.getAbsolutePath());
@@ -140,6 +141,7 @@ public abstract class DataHandler
         in.close();
         out.close();
         System.load(fileOut.toString());
+        fileOut.deleteOnExit();
 	}
 
 	private static final maths.ProgramFunction saveFunction = new maths.ProgramFunction("save") {
@@ -190,9 +192,7 @@ public abstract class DataHandler
 		return res;
     }
 
-    public static final String getResourceFolder(){
-    	return resourceFolder;
-    }
+    public static final String getResourceFolder(){return resourceFolder;}
 
     public static final void setLookAndFeel(final Object lafi){
     	if (lafi instanceof LookAndFeelInfo){

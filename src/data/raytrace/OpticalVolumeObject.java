@@ -95,13 +95,14 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		       || loadIfExists("/usr/lib/nvidia-cuda-toolkit/lib64/libcudart.so")
 		       || loadIfExists("/usr/lib/x86_64-linux-gnu/libcudart.so")))
 			{
-                JFrameUtils.logErrorAndShow("libcudart not found", new FileNotFoundException(), logger);
+                JFrameUtils.logErrorAndShow("libcudart not found, fallback to noncuda-version", new FileNotFoundException(), logger);
+                DataHandler.loadLib("raytracer_java.so");
 			}
-			if (!(loadIfExists("/usr/lib/cuda_raytrace_java.so")
-		       || loadIfExists("/media/paul/Data1/Caesar/Raytracer/cuda_raytrace_java.so")))
+			else// if (!(loadIfExists("/usr/lib/cuda_raytrace_java.so")))
 			{
-				DataHandler.loadLib("cuda_raytrace_java.so");
+                DataHandler.loadLib("raytracer_java_cuda.so");
 			}
+			logger.debug("Raytracer loaded successfully");
 			native_raytrace = true;
 		}catch(UnsatisfiedLinkError | IOException | NullPointerException e)
 		{
