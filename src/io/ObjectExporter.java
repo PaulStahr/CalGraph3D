@@ -1,16 +1,16 @@
 /*******************************************************************************
  * Copyright (c) 2019 Paul Stahr
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -33,7 +33,7 @@ import util.StringUtils;
 
 public class ObjectExporter {
 	public static final byte OFF = 0, OBJ = 1;
-	
+
 	public static void export(byte type, String file, SceneObject so) throws IOException
 	{
         char chBuf[] = new char[1024];
@@ -83,7 +83,7 @@ public class ObjectExporter {
 	                {
 	                	if (plane.isYCyclic())
 	                	{
-	                		
+
 	                	}
 	                }
 	                outBuffer.flush();
@@ -104,20 +104,29 @@ public class ObjectExporter {
 	                        		.append(vertexZ[i*sizeY+j]), chBuf);
 	                    }
 	                }
+	                for (int i=0;i<sizeX;i++){
+                        for (int j=0;j<sizeY;j++){
+                            outBuffer.newLine();
+                            chBuf = StringUtils.writeAndReset(outBuffer, strBuilder.
+                                    append('v').append('t').append(' ')
+                                    .append((float)i/(sizeX-1)).append(' ')
+                                    .append((float)j/(sizeY-1)), chBuf);
+                        }
+                    }
 	                for (int i=0;i<sizeX-1;i++){
 	                    for (int j=0;j<sizeY-1;j++){
 	                        outBuffer.newLine();
 	                        chBuf = StringUtils.writeAndReset(outBuffer, strBuilder.append('f').append(' ')
-	                        		.append(i*sizeY+j+1).append(' ')
-	                        		.append(i*sizeY+j+2).append(' ')
-	                        		.append((i+1)*sizeY+j+2).append(' ')
-	                        		.append((i+1)*sizeY+j+1), chBuf);
+	                        		.append(i*sizeY+j+1).append('/').append(i*sizeY+j+1).append(' ')
+	                        		.append(i*sizeY+j+2).append('/').append(i*sizeY+j+2).append(' ')
+	                        		.append((i+1)*sizeY+j+2).append('/').append((i+1)*sizeY+j+2).append(' ')
+	                        		.append((i+1)*sizeY+j+1).append('/').append((i+1)*sizeY+j+1), chBuf);
 	                    }
 	                }
 	                outBuffer.flush();
 	                outBuffer.close();
 	                writer.close();
-	                break;	        		
+	                break;
 	        	}default:{
 	        		throw new IllegalArgumentException();
 	        	}
@@ -215,7 +224,7 @@ public class ObjectExporter {
 			            for (int i=0;i<faces.length;i += 3){
 		                	outBuffer.newLine();
 	                        chBuf = StringUtils.writeAndReset(outBuffer, strBuilder.append('f').append(' ').append(faces[i] + 1).append(' ').append(faces[i+1] + 1).append(' ').append(faces[i+2] + 1), chBuf);
-		                } 
+		                }
 		            }
 	                else if (mesh.getType() == SceneObjectMesh.QUAD)
 	                {
@@ -231,7 +240,7 @@ public class ObjectExporter {
 	                outBuffer.flush();
 	                outBuffer.close();
 	                writer.close();
-	                break;	        		
+	                break;
 	        	}default:{
 	        		throw new IllegalArgumentException();
 	        	}
