@@ -29,22 +29,22 @@ public class ParseUtil {
 		if (o instanceof String)          {return (String)o;}
 		throw new IllegalArgumentException("Class:" + o.getClass());
 	}
-	
+
 	public static final boolean parseBoolean(Object o)
 	{
 		if (o instanceof String)          {return Boolean.parseBoolean((String)o);}
-		if (o instanceof Boolean)         {return (boolean)o;}	
+		if (o instanceof Boolean)         {return (boolean)o;}
 		throw new IllegalArgumentException("Class:" + o.getClass());
 	}
-	
+
 	public static final int parseInteger(Object o)
 	{
 		if (o instanceof String)          {return Integer.valueOf((String)o);}
 		if (o instanceof Integer)         {return (int)o;}
 		throw new IllegalArgumentException("Class:" + o.getClass());
 	}
-	
-	public final void parseMat(Object o, Matrixd mat, VariableAmount variables, Controller controll) throws OperationParseException
+
+	public final void parseMat(Object o, Matrixd<?> mat, VariableAmount variables, Controller controll) throws OperationParseException
 	{
 		if (o instanceof double[][])
 		{
@@ -73,7 +73,7 @@ public class ParseUtil {
 		}
 		else if (o instanceof Matrixd)
 		{
-			mat.set((Matrixd)o);
+			mat.set((Matrixd<?>)o);
 			strB.setLength(0);
 			str = (op = new ArrayOperation(mat)).toString(strB).toString();
 		}
@@ -82,7 +82,7 @@ public class ParseUtil {
 			throw new IllegalArgumentException("Class:" + o.getClass());
 		}
 	}
-	
+
 	public final String[] parseStringArray(Object o, Controller controll) throws OperationParseException
 	{
 		if (o == null || o.equals(""))
@@ -97,7 +97,7 @@ public class ParseUtil {
 		}
 		throw new IllegalArgumentException("Class:" + o.getClass());
 	}
-	
+
 	public final File parseFileString(Object o, VariableAmount variables, Controller controll) throws OperationParseException
 	{
 		if (o == null || o.equals(""))
@@ -125,7 +125,7 @@ public class ParseUtil {
 		}
 		throw new IllegalArgumentException("Class:" + o.getClass());
 	}
-	
+
 	public final double parseDoubleString(Object o, VariableAmount variables, Controller controll) throws OperationParseException
 	{
 		if (o instanceof String)
@@ -147,7 +147,7 @@ public class ParseUtil {
 		}
 		throw new IllegalArgumentException("Class:" + o.getClass());
 	}
-	
+
 	public final Operation parseOperationString(Object o, VariableAmount variables, Controller controll) throws OperationParseException
 	{
 		if (o instanceof String)
@@ -172,7 +172,7 @@ public class ParseUtil {
 		}
 		throw new IllegalArgumentException("Class:" + o.getClass());
 	}
-	
+
 	public final int parseIntegerString(Object o, VariableAmount variables, Controller controll) throws OperationParseException
 	{
 		if (o instanceof String)
@@ -195,24 +195,15 @@ public class ParseUtil {
 		}
 		throw new IllegalArgumentException("Class:" + o.getClass());
 	}
-	
+
 	public static final double parseDouble(Object o)
 	{
-		if (o instanceof String)
-		{
-			return Double.parseDouble((String)o);
-		}
-		if (o instanceof Double)
-		{
-			return (double)o;
-		}
-		if (o instanceof Integer)
-		{
-			return (int)o;
-		}
+		if (o instanceof String)  {return Double.parseDouble((String)o);}
+		if (o instanceof Double)  {return (double)o;}
+		if (o instanceof Integer) {return (int)o;}
 		throw new IllegalArgumentException("Class:" + o.getClass());
 	}
-	
+
 	public final Color parseColor(Object o, VariableAmount variables, Controller controll) throws OperationParseException
 	{
 		if (o instanceof Color)
@@ -248,7 +239,7 @@ public class ParseUtil {
 		}
 		throw new IllegalArgumentException("Class:" + o.getClass());
 	}
-	
+
 	public static final String parsePositiontring(Object o, Vector3d vec, StringBuilder strB, VariableAmount variables, Controller controll) throws OperationParseException
 	{
 		if (o instanceof String)
@@ -274,7 +265,7 @@ public class ParseUtil {
 		}
 		throw new IllegalArgumentException("Class:" + o.getClass());
 	}
-	
+
 	public final Operation parsePositionString(Object o, Vector3d vec, VariableAmount variables, Controller controll) throws OperationParseException
 	{
 		if (o instanceof String)
@@ -301,7 +292,7 @@ public class ParseUtil {
 			op=new ArrayOperation(position);
 			str = op.toString(strB).toString();
 			return op;
-		}		
+		}
 		throw new IllegalArgumentException("Class:" + o.getClass());
 	}
 

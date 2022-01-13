@@ -36,18 +36,18 @@ public class VolumePipeline implements Runnable {
 	private final VolumeRunnable runnable = new VolumeRunnable();
 	private volatile int begin = 0;
 	public SortedIntegerArrayList vIds[] = SortedIntegerArrayList.EMPTY_SORTED_INTEGER_ARRAY_LIST_ARRAY;
-	
+
 	private class VolumePipelineTimedUpdater implements TimedUpdateHandler{
 		private final VariableStack.VariableObserver observer;
 		private final PendendList allChangedVariables;
 		private int modCount = scene.vs.modCount();
-		
+
 		public VolumePipelineTimedUpdater(RaytraceScene scene)
 		{
 			observer = scene.vs.createVaribleObserver();
 			allChangedVariables = observer.getPendentVariableList();
 		}
-		
+
 		@Override
 		public synchronized void update() {
 			scene.rayUpdateHandler.update();
@@ -72,19 +72,19 @@ public class VolumePipeline implements Runnable {
 				}
 			}
 		}
-		
+
 		@Override
 		public int getUpdateInterval() {
 			return 10;
 		}
-	};
-	
+	}
+
 	public VolumePipeline(RaytraceScene scene)
 	{
 		this.scene = scene;
 		updater = new VolumePipelineTimedUpdater(scene);
 	}
-	
+
 	private final class VolumeRunnable extends ThreadPool.RunnableObject {
 		public VolumeRunnable() {
 			super("VolumePipeline", null);
@@ -97,10 +97,10 @@ public class VolumePipeline implements Runnable {
             	logger.error("Exception at calculating Volume", e);
             }
         }
-    };
-	
+    }
+
 	public static class CalculationStep{}
-	
+
 	public static class GenerationCalculationStep extends CalculationStep{
 		public String size;
 		public GenerationCalculationStep(String size)
@@ -108,13 +108,13 @@ public class VolumePipeline implements Runnable {
 			this.size = size;
 		}
 	}
-	
+
 	public static class CalculationCalcuationStep extends CalculationStep{
 		public String ior;
 		public String translucency;
 		public String givenValues;
 		public String isGiven;
-		
+
 		public CalculationCalcuationStep(String ior, String translucency, String givenValues,String isGiven)
 		{
 			this.ior = ior;
@@ -123,21 +123,21 @@ public class VolumePipeline implements Runnable {
 			this.isGiven = isGiven;
 		}
 	}
-	
+
 	public void addListener(Runnable runnable)
 	{
 		ListTools.clean(updateListener);
-		updateListener.add(new WeakReference<Runnable>(runnable));
+		updateListener.add(new WeakReference<>(runnable));
 	}
-	
+
 	public void removeListener(Runnable runnable){ListTools.removeAll(updateListener, runnable);}
-	
+
 	public boolean isCalculating(){return calculating;}
-	
+
 	public int getCurrentCalculatingStep(){return begin - 1;}
-	
+
 	public void updateState(){ListTools.run(updateListener);}
-	
+
 	public void updateVariableIds()
     {
     	if (vIds.length != steps.size())
@@ -175,7 +175,7 @@ public class VolumePipeline implements Runnable {
 				}
 			}catch(OperationParseException e)
 			{
-				
+
 			}
 		}
     }
@@ -204,7 +204,7 @@ public class VolumePipeline implements Runnable {
 					if (current == steps.size())
 					{
 						ovo.setVolume(cachedSteps[cachedSteps.length - 1]);
-						ovo.triggerModificationEvents();	
+						ovo.triggerModificationEvents();
 						calculating = false;
 						notifyAll();
 						break;
@@ -223,7 +223,13 @@ public class VolumePipeline implements Runnable {
 						cachedSteps[0].readOrClone(ovo.getVolume());
 					}
 					CalculationCalcuationStep cps = (CalculationCalcuationStep)ps;
-					ovo.editValues(scene.copyActiveSurfaces(), OperationCompiler.compile(cps.ior, (Operation)null), OperationCompiler.compile(cps.translucency, (Operation)null), OperationCompiler.compile(cps.givenValues, (Operation)null), OperationCompiler.compile(cps.isGiven, (Operation)null), scene.vs, cachedSteps[current]);
+					ovo.editValues(
+					        scene.copyActiveSurfaces(),
+					        OperationCompiler.compile(cps.ior, (Operation)null),
+					        OperationCompiler.compile(cps.translucency, (Operation)null),
+					        OperationCompiler.compile(cps.givenValues, (Operation)null),
+					        OperationCompiler.compile(cps.isGiven, (Operation)null),
+					        scene.vs, cachedSteps[current]);
 				}
 				else if (ps instanceof GenerationCalculationStep)
 				{
@@ -242,10 +248,10 @@ public class VolumePipeline implements Runnable {
 				notifyAll();
 			}
 		}
-		
+
 		updateState();
 	}
-	
+
 	@Override
 	public void run() {
 		synchronized(this)
