@@ -423,8 +423,8 @@ public abstract class OpticalVolumeObject extends OpticalObject{
         control.calculateLoop(false);
         control.calculateRandom(false);
         control.connectEmptyVariables(true);
-        operationIOR = operationIOR.calculate(vs, control);
-        operationTranslucency = operationTranslucency.calculate(vs, control);
+        if (operationIOR != null) {operationIOR.calculate(vs, control);}
+        if (operationTranslucency != null) {operationTranslucency = operationTranslucency.calculate(vs, control);}
         control.calculateLoop(true);
         control.calculateRandom(true);
         System.out.println((System.nanoTime() - time)/1000000000f);
