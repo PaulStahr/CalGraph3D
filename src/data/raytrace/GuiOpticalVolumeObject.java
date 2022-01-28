@@ -1,12 +1,16 @@
 package data.raytrace;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import javax.swing.JFileChooser;
 import javax.swing.JMenu;
+import javax.swing.JMenuItem;
 import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -15,13 +19,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import data.DataHandler;
+import geometry.Geometry;
+import io.ObjectExporter;
 import jcomponents.raytrace.TextureView;
 import jcomponents.raytrace.Volume;
+import jcomponents.util.JFileChooserRecentFiles;
 import maths.Controller;
 import maths.data.ArrayOperation;
 import maths.exception.OperationParseException;
 import maths.variable.VariableAmount;
 import util.ArrayUtil;
+import util.JFrameUtils;
+import util.data.DoubleArrayList;
+import util.data.IntegerArrayList;
 
 public class GuiOpticalVolumeObject extends OpticalVolumeObject {
     public static final GuiOpticalVolumeObject EMPTY_VOLUME_ARRAY[] = new GuiOpticalVolumeObject[0];
@@ -184,19 +194,44 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 		parser.reset();
 	}
 
-	private class VolumeView extends TextureView implements ChangeListener
+	private class VolumeView extends TextureView implements ChangeListener, ActionListener
 	{
 		private static final long serialVersionUID = -6532309028252938768L;
 		JSlider sliderFrame = new JSlider();
+		JMenuItem exportAsMesh = new JMenuItem("Export as Mesh");
 		public VolumeView()
 		{
 			super(new BufferedImage(vol.width, vol.height, BufferedImage.TYPE_INT_ARGB));
 			JMenu menu = new JMenu("Volume");
 			addMenu(menu);
 			menu.add(sliderFrame);
+			menu.add(exportAsMesh);
 			sliderFrame.setMinimum(0);
 			sliderFrame.setMaximum(vol.depth - 1);
 			sliderFrame.addChangeListener(this);
+			exportAsMesh.addChangeListener(this);
+		}
+
+		@Override
+		public void actionPerformed(ActionEvent ae)
+		{
+		    Object source = ae.getSource();
+		    if (source == exportAsMesh)
+		    {
+		        IntegerArrayList ial = new IntegerArrayList();
+		        DoubleArrayList dal = new DoubleArrayList();
+		        Geometry.volumeToMesh(vol.data, vol.width, vol.height, vol.depth, (getRefractiveMin() + getRefractiveMax()) * 0.5, ial, dal);
+                JFileChooser fileChooser= new JFileChooserRecentFiles(".obj");
+                if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION)
+                {
+                    try {
+                        ObjectExporter.exportMesh(ObjectExporter.OBJ, dal,  ial, fileChooser.getSelectedFile());
+                    } catch (IOException ex) {
+                        JFrameUtils.logErrorAndShow("Can't export file", ex, logger);
+                    }
+                }
+		    }
+		    super.actionPerformed(ae);
 		}
 
 		private void updateGraphic()

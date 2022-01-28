@@ -90,6 +90,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSlider;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
@@ -97,6 +98,8 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
@@ -114,6 +117,7 @@ import org.slf4j.LoggerFactory;
 import data.DataHandler;
 import data.ObjectAttachmentContainer;
 import data.Options;
+import data.VideoImageSupplier;
 import data.raytrace.CameraViewRunnable;
 import data.raytrace.DataChangeListener;
 import data.raytrace.GuiOpticalSurfaceObject;
@@ -135,8 +139,10 @@ import data.raytrace.RaytraceSession;
 import data.raytrace.RaytraceSession.CommandExecutionListener;
 import data.raytrace.SurfaceObject;
 import data.raytrace.TextureMapping;
+import data.raytrace.VideoImageVolume;
 import data.raytrace.raygen.ImageRayGenerator;
 import data.raytrace.raygen.RayGenerator;
+import geometry.Geometry;
 import geometry.Geometry.NearestPointCalculator;
 import geometry.Matrix3x2d;
 import geometry.TransformConversion;
@@ -181,6 +187,8 @@ import util.StringUtils;
 import util.ThreadPool;
 import util.ThreadPool.ParallelRangeRunnable;
 import util.TimedUpdateHandler;
+import util.data.DoubleArrayList;
+import util.data.IntegerArrayList;
 import util.data.UniqueObjects;
 
 /**
@@ -658,13 +666,57 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		            }
 				}else if (type == SCENE_OBJECT_COLUMN_TYPE.VIEW)
 				{
-					final GuiTextureObject current = scene.textureObjectList.get(row);
-					TextureView tv = new TextureView(current.image);
+			        final JSlider sliderFrame = new JSlider();
+			        JMenuItem exportAsMesh = new JMenuItem("Export as Mesh");
+					JMenu menu = new JMenu("Volume");
+			        final GuiTextureObject current = scene.textureObjectList.get(row);
+					final TextureView tv = new TextureView(current.image);
+					tv.addMenu(menu);
+					sliderFrame.setMinimum(0);
+					final VideoImageSupplier imageObject = current.getImageObect();
+					sliderFrame.setMaximum(imageObject.count());
+					menu.add(sliderFrame);
+					menu.add(exportAsMesh);
+					sliderFrame.addChangeListener(new ChangeListener() {
+                        @Override
+                        public void stateChanged(ChangeEvent arg0) {
+                            try {
+                                tv.setImage(current.getImageObect().getFrame(sliderFrame.getValue()));
+                            } catch (IOException e) {
+                                tv.setImage(current.image);
+                            }
+                        }
+					});
+					exportAsMesh.addActionListener(new ActionListener() {
+					    @Override
+				        public void actionPerformed(ActionEvent ae)
+				        {
+				            IntegerArrayList ial = new IntegerArrayList();
+			                DoubleArrayList dal = new DoubleArrayList();
+			                try {
+                                VideoImageVolume viv = new VideoImageVolume(imageObject, 0, imageObject.count());
+                                Geometry.volumeToMesh(viv, viv.getWidth(), viv.getHeight(), viv.getDepth(), 32, ial, dal);
+                                JFileChooser fileChooser= new JFileChooserRecentFiles(".obj");
+                                if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION)
+                                {
+                                    try {
+                                        ObjectExporter.exportMesh(ObjectExporter.OBJ, dal,  ial, fileChooser.getSelectedFile());
+                                    } catch (IOException ex) {
+                                        JFrameUtils.logErrorAndShow("Can't export file", ex, logger);
+                                    }
+                                }                            } catch (IOException e) {
+                                // TODO Auto-generated catch block
+                                e.printStackTrace();
+                            }
+
+				        }
+                    });
+
 					final DataChangeListener tcl= new ImageComponent.AbstractTextureChangeListener(tv.getImageComponent()) {
 
 						@Override
 						public void dataChanged(ImageComponent comp) {
-							comp.setImage(current.image);
+							sliderFrame.setValue(current.getFrameNumber());
 						}
 
 					};
@@ -2264,9 +2316,10 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 				{
 					double r = (dotProdLowerBound * (16 - i) + dotProdUpperBound * i);
 					double z =  Math.sqrt(r * (2 - tmp0 * r));
-
-					draw.setPoint(x + z * vec.x - r * dx, y + z * vec.y - r * dy, 16 - i);
-					draw.setPoint(x - z * vec.x - r * dx, y - z * vec.y - r * dy, 16 + i);
+					double rx = x - r * dx;
+					double ry = y - r * dy;
+					draw.setPoint(rx + z * vec.x, ry + z * vec.y, 16 - i);
+					draw.setPoint(rx - z * vec.x, ry - z * vec.y, 16 + i);
 				}
 				draw.drawPolyLine();
 				break;

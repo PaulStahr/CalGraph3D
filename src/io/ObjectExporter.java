@@ -22,6 +22,7 @@
 package io;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
@@ -30,6 +31,8 @@ import scene.object.SceneObjectLine;
 import scene.object.SceneObjectMesh;
 import scene.object.SceneObjectPlane;
 import util.StringUtils;
+import util.data.DoubleList;
+import util.data.IntegerList;
 
 public class ObjectExporter {
 	public static final byte OFF = 0, OBJ = 1;
@@ -203,7 +206,7 @@ public class ObjectExporter {
 	                {
 	                	for (int i=0;i<faces.length;i += 4){
 		                	outBuffer.newLine();
-	                        chBuf = StringUtils.writeAndReset(outBuffer, strBuilder.append('3').append(' ').append(faces[i]).append(' ').append(faces[i+1]).append(' ').append(faces[i+2]).append(' ').append(faces[i+3]), chBuf);
+	                        chBuf = StringUtils.writeAndReset(outBuffer, strBuilder.append('4').append(' ').append(faces[i]).append(' ').append(faces[i+1]).append(' ').append(faces[i+2]).append(' ').append(faces[i+3]), chBuf);
 		                }
 	                }
 	                outBuffer.flush();
@@ -246,5 +249,35 @@ public class ObjectExporter {
 	        	}
         	}
 		}
+	}
+
+	public static void exportMesh(byte type, DoubleList vertices, IntegerList triangles, File file) throws IOException
+	{
+	    char chBuf[] = new char[1024];
+        final StringBuilder strBuilder = new StringBuilder();
+	    switch(type)
+	    {
+	    case OBJ:
+	        final FileWriter writer = new FileWriter (file);
+            final BufferedWriter outBuffer = new BufferedWriter (writer);
+            outBuffer.write("o graph");
+            for (int i = 0; i < vertices.size(); i += 3)
+            {
+                outBuffer.newLine();
+                chBuf = StringUtils.writeAndReset(outBuffer, strBuilder.append('v').append(' ').append(vertices.getD(i)).append(' ').append(vertices.getD(i + 1)).append(' ').append(vertices.getD(i + 2)), chBuf);
+            }
+            for (int i=0;i<triangles.size();i += 3){
+                outBuffer.newLine();
+                chBuf = StringUtils.writeAndReset(outBuffer, strBuilder.append('f').append(' ').append(triangles.getI(i) + 1).append(' ').append(triangles.getI(i + 1) + 1).append(' ').append(triangles.getI(i + 2) + 1), chBuf);
+            }
+            outBuffer.flush();
+            outBuffer.close();
+            writer.close();
+            break;
+            default:{
+                throw new IllegalArgumentException();
+            }
+
+	    }
 	}
 }

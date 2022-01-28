@@ -126,6 +126,8 @@ public class GuiTextureObject extends OpticalObject{
 		}
 	}
 
+    public int getFrameNumber() {return frameNumber;}
+
 	@Override
 	public void updateValue(SCENE_OBJECT_COLUMN_TYPE ct, VariableAmount variables, ParseUtil parser) throws OperationParseException
 	{
@@ -395,4 +397,8 @@ public class GuiTextureObject extends OpticalObject{
 	public File getFile() {
 		return filepath;
 	}
+
+    public VideoImageSupplier getImageObect() {
+        return imageObject;
+    }
 }

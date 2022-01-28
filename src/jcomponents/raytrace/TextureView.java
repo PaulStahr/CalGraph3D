@@ -36,7 +36,6 @@ import jcomponents.util.ImageUtil;
 import jcomponents.util.JMathTextField;
 import maths.Controller;
 import maths.Operation;
-import maths.Operation.CalculationController;
 import maths.algorithm.Calculate;
 import maths.data.ArrayOperation;
 import maths.variable.Variable;
@@ -242,7 +241,8 @@ public class TextureView extends JFrame implements ActionListener, ItemListener{
 			vs.add(blue);
 			Variable alpha = new Variable("a");
 			vs.add(alpha);
-			CalculationController controll = new Controller();
+			Controller controll = new Controller();
+			controll.connectEmptyVariables(true);
 			mapColorOp = mapColorOp.calculate(vs, controll);
 			float pixelf[] = new float[4];
 			for (int y = 0; y < outR.getHeight(); ++y)
