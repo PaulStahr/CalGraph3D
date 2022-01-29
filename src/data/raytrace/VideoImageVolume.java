@@ -114,4 +114,10 @@ public class VideoImageVolume implements DoubleList{
             return null;
         }
     }
+
+    @Override
+    public boolean addTuple(double xp, double yp, double zp) {throw new UnsupportedOperationException();}
+
+    @Override
+    public void setSize(int i) {throw new UnsupportedOperationException();}
 }

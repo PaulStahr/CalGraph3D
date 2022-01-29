@@ -31,8 +31,8 @@ import scene.object.SceneObjectLine;
 import scene.object.SceneObjectMesh;
 import scene.object.SceneObjectPlane;
 import util.StringUtils;
-import util.data.DoubleList;
 import util.data.IntegerList;
+import util.data.PrimitiveList;
 
 public class ObjectExporter {
 	public static final byte OFF = 0, OBJ = 1;
@@ -251,7 +251,7 @@ public class ObjectExporter {
 		}
 	}
 
-	public static void exportMesh(byte type, DoubleList vertices, IntegerList triangles, File file) throws IOException
+	public static void exportMesh(byte type, PrimitiveList vertices, IntegerList triangles, File file) throws IOException
 	{
 	    char chBuf[] = new char[1024];
         final StringBuilder strBuilder = new StringBuilder();
@@ -260,6 +260,8 @@ public class ObjectExporter {
 	    case OBJ:
 	        final FileWriter writer = new FileWriter (file);
             final BufferedWriter outBuffer = new BufferedWriter (writer);
+            StringUtils.writeAndReset(outBuffer, strBuilder.append("# Vertices ").append(vertices.size() / 3).append(" Faces " ).append(triangles.size() / 3), chBuf);
+            outBuffer.newLine();
             outBuffer.write("o graph");
             for (int i = 0; i < vertices.size(); i += 3)
             {

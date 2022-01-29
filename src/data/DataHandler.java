@@ -59,7 +59,7 @@ import org.slf4j.LoggerFactory;
 import geometry.Geometry;
 import geometry.Rotation3;
 import geometry.Vector3f;
-import geometry.Vectorf;
+import geometry.Vectord;
 import io.StreamUtil;
 import jcomponents.Graph;
 import jcomponents.Interface;
@@ -270,7 +270,7 @@ public abstract class DataHandler
                             else if (variable.equals("yR")) rot.setDegreesY(Float.parseFloat(value));
                             else if (variable.equals("zR")) rot.setDegreesZ(Float.parseFloat(value));
                             else if (variable.equals("pos")) Geometry.parse(value, pos);
-                            else if (variable.equals("rot")) Geometry.parse(value, (Vectorf)rot);
+                            else if (variable.equals("rot")) Geometry.parse(value, (Vectord)rot);
                         }
                     }
                     Interface.scene.setCameraPosition(pos, rot);

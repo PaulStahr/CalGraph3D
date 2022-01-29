@@ -221,7 +221,8 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 		        IntegerArrayList ial = new IntegerArrayList();
 		        DoubleArrayList dal = new DoubleArrayList();
 		        Geometry.volumeToMesh(vol.data, vol.width, vol.height, vol.depth, (getRefractiveMin() + getRefractiveMax()) * 0.5, ial, dal);
-                JFileChooser fileChooser= new JFileChooserRecentFiles(".obj");
+                Geometry.collapseShortEdges(dal, ial, 0.001);
+		        JFileChooser fileChooser= new JFileChooserRecentFiles(".obj");
                 if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION)
                 {
                     try {

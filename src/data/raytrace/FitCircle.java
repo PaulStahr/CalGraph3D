@@ -12,15 +12,15 @@ public class FitCircle extends Calculate.Optimizer
 	public static final byte LINEAR = 0, QUADRATIC = 1, GAUSS = 2;
 	public boolean surfaceDist = false;
 	public byte method = 0;
-	
-	
+
+
 	public double sigma = 0.1;
 	private double gaussMult = Double.NaN;
 	double spherePos[]; /*x, y, z, wight*/
 	int pointCount;
-	
 
-	
+
+
 	public FitCircle(int width, int height, int data[], TextureMapping tm)
 	{
 		super(2);
@@ -44,7 +44,7 @@ public class FitCircle extends Calculate.Optimizer
 			}
 		}
 	}
-	
+
 	public FitCircle(DoubleArrayList points) {
 		super(2);
 		setBound(0, 0, 2 * Math.PI);
@@ -63,7 +63,7 @@ public class FitCircle extends Calculate.Optimizer
 		{
 			double azimuth = points.getD(i);
 			double elevation = points.getD(i + 1);
-			
+
 			if (!(Double.isNaN(azimuth) || Double.isNaN(elevation)))
 			{
 				TextureMapping.SPHERICAL.mapSphericalToCart(azimuth, elevation, vec);
@@ -72,9 +72,9 @@ public class FitCircle extends Calculate.Optimizer
 				writeIndex += 4;
 			}
 		}
-		
+
 	}
-	
+
 	@Override
 	public void run()
 	{
@@ -84,9 +84,9 @@ public class FitCircle extends Calculate.Optimizer
 
 	/*private double sphereDist()
 	{
-		
+
 	}*/
-	
+
 	@Override
 	public double func(double[] data) {
 		double azimuth = data[0];
@@ -122,7 +122,7 @@ public class FitCircle extends Calculate.Optimizer
 						score -= Math.exp(-dist * dist * gaussMult) * spherePos[i + 3];
 					}
 					break;
-				
+
 			}
 		}
 		else
@@ -155,7 +155,7 @@ public class FitCircle extends Calculate.Optimizer
 		}
 		return score;
 	}
-	
+
 	public double getIncludingCircleSize(double fraction)
 	{
 		double azimuth = getD(0);
@@ -163,7 +163,7 @@ public class FitCircle extends Calculate.Optimizer
 		Vector3d vec = new Vector3d();
 		TextureMapping.SPHERICAL.mapSphericalToCart(azimuth, elevation, vec);
 		double x = vec.x, y = vec.y, z = vec.z;
-		
+
 		double distances[] = new double[spherePos.length / 4];
 		for (int i = 0; i < distances.length; ++i)
 		{
@@ -174,6 +174,10 @@ public class FitCircle extends Calculate.Optimizer
 		Arrays.sort(distances);
 		return distances[(int)(distances.length * fraction)];
 	}
+
+
+    @Override
+    public void setSize(int l) {throw new UnsupportedOperationException();}
 }
 
 

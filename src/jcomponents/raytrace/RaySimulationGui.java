@@ -187,7 +187,7 @@ import util.StringUtils;
 import util.ThreadPool;
 import util.ThreadPool.ParallelRangeRunnable;
 import util.TimedUpdateHandler;
-import util.data.DoubleArrayList;
+import util.data.FloatArrayList;
 import util.data.IntegerArrayList;
 import util.data.UniqueObjects;
 
@@ -692,23 +692,24 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 				        public void actionPerformed(ActionEvent ae)
 				        {
 				            IntegerArrayList ial = new IntegerArrayList();
-			                DoubleArrayList dal = new DoubleArrayList();
+				            FloatArrayList dal = new FloatArrayList();
 			                try {
                                 VideoImageVolume viv = new VideoImageVolume(imageObject, 0, imageObject.count());
                                 Geometry.volumeToMesh(viv, viv.getWidth(), viv.getHeight(), viv.getDepth(), 32, ial, dal);
+                                Geometry.collapseShortEdges(dal, ial, 0.001);
+                                Geometry.checkMesh(dal, ial);
                                 JFileChooser fileChooser= new JFileChooserRecentFiles(".obj");
-                                if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION)
+                                if (fileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION)
                                 {
                                     try {
                                         ObjectExporter.exportMesh(ObjectExporter.OBJ, dal,  ial, fileChooser.getSelectedFile());
                                     } catch (IOException ex) {
                                         JFrameUtils.logErrorAndShow("Can't export file", ex, logger);
                                     }
-                                }                            } catch (IOException e) {
-                                // TODO Auto-generated catch block
-                                e.printStackTrace();
+                                }
+                                } catch (IOException ex) {
+                                JFrameUtils.logErrorAndShow("Couldn't create mesh", ex, logger);
                             }
-
 				        }
                     });
 

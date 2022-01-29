@@ -60,7 +60,6 @@ public interface VideoImageSupplier {
 				return res;
 			}
 			res = load(frame);
-			System.out.println("load " + frame);
 			images[frame] = new WeakReference<>(res);
 			preload_adjacent();
 			return res;
@@ -98,7 +97,6 @@ public interface VideoImageSupplier {
 					WeakReference<BufferedImage> ref = (WeakReference<BufferedImage>)images[frame - 1];
 					if (ref == null || ref.get() == null)
 					{
-			            System.out.println("preload " + (frame - 1));
 						images[frame - 1] = new WeakReference<>(load(frame - 1));
 					}
 				}
@@ -108,7 +106,6 @@ public interface VideoImageSupplier {
 					WeakReference<BufferedImage> ref = (WeakReference<BufferedImage>)images[frame + 1];
 					if (ref == null || ref.get() == null)
 					{
-                        System.out.println("preload " + (frame + 1));
 						images[frame + 1] = new WeakReference<>(load(frame + 1));
 					}
 				}

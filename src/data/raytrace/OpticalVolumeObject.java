@@ -733,6 +733,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
             Geometry.volumeToMesh(vol.data, vol.width, vol.height, vol.depth, (refMinMax[0] + refMinMax[1]) * 0.5, faceIndices, vertexPositions);
             Geometry.volumeToMesh(vol.data, vol.width, vol.height, vol.depth, (refMinMax[0] * 0.25+ refMinMax[1] * 0.75), faceIndices, vertexPositions);
             Geometry.volumeToMesh(vol.data, vol.width, vol.height, vol.depth, (refMinMax[0] * 0.1+ refMinMax[1] * 0.9), faceIndices, vertexPositions);
+            Geometry.collapseShortEdges(vertexPositions, faceIndices, 0.001);
 	    }
 	}
 
