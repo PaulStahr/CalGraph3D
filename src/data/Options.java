@@ -516,12 +516,9 @@ public abstract class Options
     	public String stringValue() {return "void";}
 
 		public final OptionTreeNode getChild(String name)
-    	{//TODO no alloc
+    	{
 			int index = ListTools.binarySearch(children, 0, size, name, stringTreeNodeComparator);
-			if (index < 0)
-			{
-				return null;
-			}
+			if (index < 0){return null;}
     		return children[index];
     	}
 
@@ -601,18 +598,8 @@ public abstract class Options
     	OptionTreeNode otn = root;
     	for (int i = 0; i < str.length; ++i)
     	{
-    		if (otn == null)
-    		{
-    			return null;
-    		}
-    		if (i == str.length - 1)
-    		{
-    			otn = ((OptionTreeInnerNode)otn).getOrCreateChild(str[i], value);
-    		}
-    		else
-    		{
-    			otn = ((OptionTreeInnerNode)otn).getOrCreateChild(str[i], null);
-    		}
+    		if (otn == null){return null;}
+			otn = ((OptionTreeInnerNode)otn).getOrCreateChild(str[i], i == str.length - 1 ? value : null);
     	}
    		return otn;
    	}

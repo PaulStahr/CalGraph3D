@@ -72,7 +72,7 @@ public class OpticalVolumeTest {
         assertEquals(slope, Math.sqrt(n0/n1*n0/n1-1),0.0001);
         n1 -= eps;
         ovo.editValues(OpticalSurfaceObject.EMPTY_SURFACE_ARRAY,
-                OperationCompiler.compile("if(x > -0.5," + n1 + "," + n0 +")"),
+                OperationCompiler.compile("if(x > -0.5," + n1 + ',' + n0 +')'),
                 OperationCompiler.compile("0x7FFFFFFF"),
                 null, null, vs, ovo.getVolume());
 

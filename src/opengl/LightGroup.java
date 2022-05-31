@@ -1,16 +1,16 @@
 /*******************************************************************************
  * Copyright (c) 2019 Paul Stahr
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,6 +23,7 @@ package opengl;
 
 import java.awt.Color;
 import java.util.AbstractList;
+
 import data.Options;
 import opengl.Light.Type;
 
@@ -32,30 +33,32 @@ public class LightGroup extends AbstractList<Light>{
 	public LightGroup(int count){
 		lights = Light.create(count);
 	}
-	
-	public final Light get(int index){
+
+	@Override
+    public final Light get(int index){
 		return lights[index];
 	}
-	
-	public int size()
+
+	@Override
+    public int size()
 	{
 		return lights.length;
 	}
-	
+
 	public void useLights(boolean use){
 		useLights = use;
 	}
-	
+
 	public void loadFromOptions(){
 		StringBuilder stringBuilder = new StringBuilder(2);
 		stringBuilder.append('l');
 		Options.OptionTreeInnerNode node = Options.getInnerNode("light");
-		
+
         for (int i=0;i<8;i++){
         	final Light l = lights[i];
         	stringBuilder.setLength(1);
         	stringBuilder.append(i);
-        	Options.OptionTreeInnerNode child = Options.getInnerNode(node, stringBuilder.toString());
+        	Options.OptionTreeInnerNode child = Options.getInnerNode(node, stringBuilder);
             l.set(Options.getColor(child, "ambient", Color.BLACK), Type.AMBIENT);
             l.set(Options.getColor(child, "diffuse", Color.BLACK), Type.DIFFUSE);
             l.set(Options.getColor(child, "specular", Color.BLACK), Type.SPECULAR);

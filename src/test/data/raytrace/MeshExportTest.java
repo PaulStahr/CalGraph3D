@@ -9,6 +9,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import data.raytrace.GuiOpticalSurfaceObject;
 import data.raytrace.OpticalObject.SCENE_OBJECT_COLUMN_TYPE;
@@ -21,6 +23,7 @@ import maths.variable.VariableStack;
 
 @RunWith(Parameterized.class)
 public class MeshExportTest{
+    static final Logger logger = LoggerFactory.getLogger(MeshExportTest.class);
     @Parameters
     public static List<OpticalSurfaceObject> params() {
         ArrayList<OpticalSurfaceObject> surfaces = new ArrayList<>();
@@ -39,12 +42,8 @@ public class MeshExportTest{
                         oso.setValue(SCENE_OBJECT_COLUMN_TYPE.MAXRADIUS, 10, vs, p);
                         oso.setValue(SCENE_OBJECT_COLUMN_TYPE.DIRECTION, new Vector3d(i,0,0), vs, p);
                         oso.setValue(SCENE_OBJECT_COLUMN_TYPE.CONIC_CONSTANT, -j - 1, vs, p);
-                    } catch (NumberFormatException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    } catch (OperationParseException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
+                    } catch (OperationParseException | NumberFormatException e) {
+                        logger.error("Exception while setting value", e);
                     }
                     surfaces.add(oso);
                 }

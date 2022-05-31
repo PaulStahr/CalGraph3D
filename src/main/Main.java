@@ -94,7 +94,7 @@ public class Main
 	private static int forceActivateWindow = 0;
 	private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
-	public static final void main (String args[]){
+	    public static final void main (String args[]){
     	//Runtime.getRuntime().traceInstructions(false);
     	//Runtime.getRuntime().traceMethodCalls(false);
     	LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
@@ -136,12 +136,12 @@ public class Main
 						e.printStackTrace();
 					}
 					return;
-				}else if (sub.equals("console")){		console = true;
-				}else if (sub.equals("rayconsole")){	rayconsole = true;
-				}else if (sub.equals("raysim")) {		raysim = true;
-				}else if (sub.equals("load")){			loadNext = true;
-				}else if (sub.equals("calculator")){	calculator = true;
-				}else if (sub.equals("calgraph")){		raysim = false;
+				}else if (sub.equals("console")){		console      = true;
+				}else if (sub.equals("rayconsole")){	rayconsole   = true;
+				}else if (sub.equals("raysim")) {		raysim       = true;
+				}else if (sub.equals("load")){			loadNext     = true;
+				}else if (sub.equals("calculator")){	calculator   = true;
+				}else if (sub.equals("calgraph")){		raysim       = false;
 				}else if (sub.equals("exec")){			execList.add(args[++i]);
 				}else if (sub.equals("version")){
 					System.out.println("version" + ':' + ProgrammData.getVersion());

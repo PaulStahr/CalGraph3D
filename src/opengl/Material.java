@@ -1,16 +1,16 @@
 /*******************************************************************************
  * Copyright (c) 2019 Paul Stahr
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -21,13 +21,13 @@
  ******************************************************************************/
 package opengl;
 
+import java.awt.Color;
+import java.nio.FloatBuffer;
+
 import opengl.GlTextureHandler.GlTexture;
 import opengl.Light.Type;
 import util.Buffers;
-
-import java.awt.Color;
-import java.nio.FloatBuffer;
-/** 
+/**
 * @author  Paul Stahr
 * @version 04.02.2012
 */
@@ -38,7 +38,7 @@ public final class Material
 
     public String Name;
     public float Ns; //defines the hard of specular
-    private final FloatBuffer ambient;// = Buffers.createFloatBuffer(0.0f, 0.0f, 0.0f, 1.0f); 
+    private final FloatBuffer ambient;// = Buffers.createFloatBuffer(0.0f, 0.0f, 0.0f, 1.0f);
     private final FloatBuffer diffuse;// = Buffers.createFloatBuffer(0.0f, 0.0f, 0.0f, 1.0f);
     private final FloatBuffer specular;// = Buffers.createFloatBuffer(0.0f, 0.0f, 0.0f, 1.0f);
     private final FloatBuffer emission;// = Buffers.createFloatBuffer(0.0f, 0.0f, 0.0f, 1.0f);
@@ -46,10 +46,10 @@ public final class Material
     public final FloatBuffer diffuseReadOnly;// = diffuse.asReadOnlyBuffer();
     public final FloatBuffer specularReadOnly;// = specular.asReadOnlyBuffer();
     public final FloatBuffer emissionReadOnly;// = emission.asReadOnlyBuffer();
-    public float Ni; 
+    public float Ni;
     public int illum;
     public GlTexture texture;
-    
+
     public Material()
     {
     	FloatBuffer fb[] = Buffers.createFloatBuffer(4, 4);
@@ -57,8 +57,8 @@ public final class Material
     	diffuseReadOnly = (diffuse = fb[1]).asReadOnlyBuffer();
     	specularReadOnly = (specular = fb[2]).asReadOnlyBuffer();
     	emissionReadOnly = (emission = fb[3]).asReadOnlyBuffer();
-    }    
-    
+    }
+
     public static Material[] create(int count)
     {
     	Material res[] = new Material[count];
@@ -70,7 +70,7 @@ public final class Material
     	}
     	return res;
     }
-    
+
     private Material(FloatBuffer ambient, FloatBuffer diffuse, FloatBuffer specular, FloatBuffer emission)
     {
     	ambientReadOnly = (this.ambient = ambient).asReadOnlyBuffer();
@@ -78,27 +78,15 @@ public final class Material
     	specularReadOnly = (this.specular = specular).asReadOnlyBuffer();
     	emissionReadOnly = (this.emission = emission).asReadOnlyBuffer();
     }
-    
+
     public final void set(boolean ambient, boolean diffuse, boolean specular, boolean emission, final float r, final float g, final float b, final float a)
     {
-    	if (ambient)
-    	{
-    		this.ambient.put(0,r).put(1,g).put(2,b).put(3,a);
-    	}
-    	if (diffuse)
-    	{
-    		this.diffuse.put(0,r).put(1,g).put(2,b).put(3,a);
-    	}
-    	if (specular)
-    	{
-    		this.specular.put(0,r).put(1,g).put(2,b).put(3,a);
-    	}
-    	if (emission)
-    	{
-    		this.emission.put(0,r).put(1,g).put(2,b).put(3,a);
-    	}
+    	if (ambient)   {this.ambient.put(0,r).put(1,g).put(2,b).put(3,a);}
+    	if (diffuse)   {this.diffuse.put(0,r).put(1,g).put(2,b).put(3,a);}
+    	if (specular)  {this.specular.put(0,r).put(1,g).put(2,b).put(3,a);}
+    	if (emission)  {this.emission.put(0,r).put(1,g).put(2,b).put(3,a);}
     }
-    
+
     public final void set(byte type, final float r, final float g, final float b, final float a){
         FloatBuffer buf;
         switch (type){
@@ -127,7 +115,7 @@ public final class Material
         }
         return new Color(fb.get(0), fb.get(1), fb.get(2), fb.get(3));
     }
-    
+
     public final void set (GlTexture texture){
     	this.texture = texture;
     }
