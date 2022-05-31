@@ -387,7 +387,7 @@ public class MeshObject extends SurfaceObject {
 		case INVERT_INOUT:	return invertInsideOutside;
 		case COLOR:			return colorStr;
 		case SMOOTH:		return smooth;
-		case TEXTURE_OBJECT:		return textureObjectStr;
+		case TEXTURE_OBJECT:return textureObjectStr;
 		case SAVE_TO:		break;
 		case OPEN:			break;
 		default:			throw new IllegalArgumentException(ct.name);

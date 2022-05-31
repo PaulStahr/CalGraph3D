@@ -17,7 +17,9 @@ import geometry.Matrix4d;
 import geometry.Vector3d;
 import maths.Operation;
 import maths.algorithm.OperationCalculate;
+import maths.data.MapOperation;
 import maths.exception.OperationParseException;
+import maths.variable.Variable;
 import maths.variable.VariableAmount;
 import maths.variable.VariableStack.VariableObserver;
 import util.ArrayTools;
@@ -31,10 +33,11 @@ public abstract class OpticalObject {
 	public static final OpticalObject[] EMPTY_ARRAY = new OpticalObject[0];
 	private static int createdObjects = 0;
 	public final int iid = createdObjects++;
-	public String id = "";
+	protected String id = "";
 	public boolean active = true;
 	protected boolean isUpdating = false;
 	public final Vector3d midpoint = new Vector3d();
+	protected Variable v = new Variable("Unnamed", new MapOperation());
 	public final ObjectAttachmentContainer attachements = new ObjectAttachmentContainer();
 	public String successorArray[];
 	public String predessorArray[];
@@ -75,7 +78,6 @@ public abstract class OpticalObject {
 	{
 		return modCount;
 	}
-
 
 	protected final void updateIds(byte ordinal, Operation op)
 	{
@@ -300,8 +302,9 @@ public abstract class OpticalObject {
 				logger.error("Can't read number", e);
 			}catch (NullPointerException | IllegalArgumentException e){
 				logger.error("Can't set property " + SCENE_OBJECT_COLUMN_TYPE.get(i) + '-' + '>' + o.get(i), e);
+			}catch(RuntimeException e){
+                logger.error("Can't set property " + SCENE_OBJECT_COLUMN_TYPE.get(i) + '-' + '>' + o.get(i), e);
 			}
-
 		}
 		isUpdating = false;
 		valueChanged(null, parser);
@@ -327,6 +330,11 @@ public abstract class OpticalObject {
 	}
 
 	public final String getId(){return id;}
+
+    public void setId(String id) {
+        this.id = id;
+        v = new Variable(id, v.getValue());
+    }
 
 	@Override
 	public String toString(){return id;}

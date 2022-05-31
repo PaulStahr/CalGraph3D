@@ -74,7 +74,7 @@ public class CameraViewRunnable  extends RunnableObject{
 			}
 
 			float pixel[] = r.color;
-			pixel[3] = 1;
+			pixel[3] = 255;
    			int width = raster.getWidth();
    			for (int i = from; i < to; ++i)
    			{

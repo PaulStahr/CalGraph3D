@@ -592,6 +592,7 @@ public class RaytraceScene {
 		surfaceObjectList.add(goo);
 		valueChanged(OBJECT_ADD, goo);
 		goo.addChangeListener(osoc);
+		vs.add(goo.v);
 	}
 
 	public void add(GuiOpticalVolumeObject ovo) {
@@ -1251,7 +1252,7 @@ public class RaytraceScene {
 			direction.normalize();
 			nearest.object = null;
 			nearest.distance = Double.POSITIVE_INFINITY;
-			for (int l = 0; l < successor.length; ++l)
+        	for (int l = 0; l < successor.length; ++l)
 			{
 				successor[l].getIntersection(position, direction, nearest, epsilon, nearest.distance);//TODO: origin of null pointer exceptions
 			}
@@ -1431,6 +1432,9 @@ public class RaytraceScene {
 		}
 	};
 
+    private static final StringOperation FORCEENDSTRING = new StringOperation(FORCEEND);
+    private static final StringOperation FORCESTARTSTRING = new StringOperation(FORCESTART);
+
 	public void setId(String id) {
 		this.id = id;
 		if (sceneVariable != null)
@@ -1444,8 +1448,8 @@ public class RaytraceScene {
 		if (id != null)
 		{
 			sceneVariable = new Variable(id, new MapOperation());
-			sceneVariable.set(new StringOperation(FORCEEND), new StringOperation(getForceEndpointStr()));
-			sceneVariable.set(new StringOperation(FORCESTART), new StringOperation(getForceStartpointStr()));
+			sceneVariable.set(FORCEENDSTRING, new StringOperation(getForceEndpointStr()));
+			sceneVariable.set(FORCESTARTSTRING, new StringOperation(getForceStartpointStr()));
 			sceneVariable.addVariableListener(variableListener);
 			vs.add(sceneVariable);
 		}

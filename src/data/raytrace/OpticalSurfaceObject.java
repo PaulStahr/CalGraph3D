@@ -312,7 +312,7 @@ public abstract class OpticalSurfaceObject extends SurfaceObject{
 			{
 			    double mdir = this.directionNormalized.dot(x, y, z);
 			    double dirdot = directionLength - mdir;
-			    return dirdot * (2 * directionLength - dirdot * (1 + conicConstant)) - x * x - y * y - z * z + mdir * mdir;
+			    return -(dirdot * (2 * directionLength - dirdot * (1 + conicConstant)) - x * x - y * y - z * z + mdir * mdir);
 			}
 			case CYLINDER:
 			{
@@ -338,21 +338,21 @@ public abstract class OpticalSurfaceObject extends SurfaceObject{
 	}
 
 	@Override
-	public Intersection getIntersection(Vector3d position, Vector3d direction, Intersection intersection, double lowerBound, double upperBound)
+	public Intersection getIntersection(Vector3d ray_pos, Vector3d ray_dir, Intersection intersection, double ray_tmin, double ray_tmax)
 	{
-		final double x = position.x - this.midpoint.x, y = position.y - this.midpoint.y, z = position.z - this.midpoint.z;
+		final double x = ray_pos.x - this.midpoint.x, y = ray_pos.y - this.midpoint.y, z = ray_pos.z - this.midpoint.z;
 		switch (surf)
 		{
 			case FLAT:
 			{
-				double alpha = -this.direction.dot(x,y,z) / this.direction.dot(direction);
-				if (lowerBound < alpha && alpha < upperBound)
+				double alpha = -this.direction.dot(x,y,z) / this.direction.dot(ray_dir);
+				if (ray_tmin < alpha && alpha < ray_tmax)
 				{
 					//double distanceQ = tmp0.dot() + (directiondot *alpha + 2 * tmp0.dot(direction))*alpha;
-					double distanceQ = direction.distanceQ(-alpha, x, y, z);
+					double distanceQ = ray_dir.distanceQ(-alpha, x, y, z);
 					if ((this.minRadiusGeometricQ < distanceQ && distanceQ < this.radiusGeometricQ) != invertInsideOutside)
 					{
-						intersection.position.set(position, direction,alpha);
+						intersection.position.set(ray_pos, ray_dir,alpha);
 						intersection.normal.set(this.direction);
 						intersection.distance = alpha;
 						intersection.object = this;
@@ -365,21 +365,21 @@ public abstract class OpticalSurfaceObject extends SurfaceObject{
 			{
 				double dirproj = this.directionLength-this.directionNormalized.dot(x,y,z);
 				double c = x * x + y * y + z * z - 2 * dirproj * dirproj - this.directionLengthQ;
-				double scal = this.directionNormalized.dot(direction);
-				double b = direction.dot(x,y,z) + 2 * scal * dirproj;
+				double scal = this.directionNormalized.dot(ray_dir);
+				double b = ray_dir.dot(x,y,z) + 2 * scal * dirproj;
 				double a = 1 / (1 - 2 * scal * scal);
 				c *= a;
 				b *= a;
 				double sqrt = Math.sqrt(b*b-c);
 				do {
 					double alpha = -b- sqrt;
-					if (lowerBound < alpha && alpha < upperBound)
+					if (ray_tmin < alpha && alpha < ray_tmax)
 					{
 						double dotProd = dirproj - scal * alpha;
 						if (this.dotProdLowerBound2 <= dotProd && dotProd <= this.dotProdUpperBound2 )
 						{
-							double dax = direction.x * alpha, day = direction.y * alpha, daz = direction.z * alpha;
-							intersection.position.setAdd(position, dax, day, daz);
+							double dax = ray_dir.x * alpha, day = ray_dir.y * alpha, daz = ray_dir.z * alpha;
+							intersection.position.setAdd(ray_pos, dax, day, daz);
 							intersection.normal.set(x + dax,y + day ,z + daz, this.directionNormalized,2 * dotProd);
 							intersection.object = this;
 							intersection.distance = alpha;
@@ -393,21 +393,21 @@ public abstract class OpticalSurfaceObject extends SurfaceObject{
 			{
 				double dirproj = this.directionLength-this.directionNormalized.dot(x,y,z);
 				double c = x * x + y * y + z * z - this.directionLengthQ - dirproj * dirproj;
-				double scal = this.directionNormalized.dot(direction);
-				double b = direction.dot(x,y,z) + scal * dirproj;
+				double scal = this.directionNormalized.dot(ray_dir);
+				double b = ray_dir.dot(x,y,z) + scal * dirproj;
 				double a = 1 / (1 - scal * scal);
 				c *= a;
 				b *= a;
 				double sqrt = Math.sqrt(b*b-c);
 				do {
 					double alpha = -b- sqrt;
-					if (lowerBound < alpha && alpha < upperBound)
+					if (ray_tmin < alpha && alpha < ray_tmax)
 					{
 						double dotProd = dirproj - scal * alpha;
 						if (this.dotProdLowerBound2 <= dotProd && dotProd <= this.dotProdUpperBound2)
 						{
-							double dax = direction.x * alpha, day = direction.y * alpha, daz = direction.z * alpha;
-							intersection.position.setAdd(position, dax, day, daz);
+							double dax = ray_dir.x * alpha, day = ray_dir.y * alpha, daz = ray_dir.z * alpha;
+							intersection.position.setAdd(ray_pos, dax, day, daz);
 							intersection.normal.set(x + dax,y + day,z + daz, this.directionNormalized,dotProd);
 							intersection.object = this;
 							intersection.distance = alpha;
@@ -421,8 +421,8 @@ public abstract class OpticalSurfaceObject extends SurfaceObject{
 			{
 				double dirproj = this.directionLength - this.directionNormalized.dot(x,y,z);
 				double c = x * x + y * y + z * z + this.conicConstant * dirproj * dirproj - this.directionLengthQ;
-				double scal = this.directionNormalized.dot(direction);
-				double b = direction.dot(x,y,z) - this.conicConstant * scal * dirproj;
+				double scal = this.directionNormalized.dot(ray_dir);
+				double b = ray_dir.dot(x,y,z) - this.conicConstant * scal * dirproj;
 				double a = 1 / (1 + this.conicConstant * scal * scal);
 
 				c *= a;
@@ -430,12 +430,12 @@ public abstract class OpticalSurfaceObject extends SurfaceObject{
 				double sqrt = Math.sqrt(b*b-c);
 				do {
 					double alpha = -b- sqrt;
-					if (lowerBound < alpha && alpha < upperBound)
+					if (ray_tmin < alpha && alpha < ray_tmax)
 					{
 						double dotProd = dirproj - scal * alpha;
 						if (dotProd <= dotProdUpperBound2 && dotProd>= dotProdLowerBound2)
 						{
-							intersection.position.set(position, direction,alpha);
+							intersection.position.set(ray_pos, ray_dir,alpha);
 							intersection.normal.set(intersection.position, this.midpoint, this.directionNormalized,-this.conicConstant * dotProd);
 							intersection.object = this;
 							intersection.distance = alpha;
@@ -448,16 +448,16 @@ public abstract class OpticalSurfaceObject extends SurfaceObject{
 			case SPHERICAL:
 			{
 				double c = x * x + y * y + z * z - this.directionLengthQ;
-				double b = direction.dot(x,y,z);
+				double b = ray_dir.dot(x,y,z);
 				double sqrt = b * b - c;
 				if (sqrt >= 0)
 				{
 					sqrt = Math.sqrt(sqrt);
 					double dirproj = this.directionNormalized.dot(x,y,z);
-					double scal = this.directionNormalized.dot(direction);
+					double scal = this.directionNormalized.dot(ray_dir);
 					do {
 						double alpha = -b - sqrt;
-						if (lowerBound < alpha && alpha < upperBound)
+						if (ray_tmin < alpha && alpha < ray_tmax)
 						{
 							//intersection.normal.set(tmp0, direction,alpha);
 							//double dotProd = intersection.normal.dot(this.directionNormalized);
@@ -465,8 +465,8 @@ public abstract class OpticalSurfaceObject extends SurfaceObject{
 
 							if (dotProd >= dotProdUpperBound2 && dotProd <= dotProdLowerBound2)
 							{
-								double dax = direction.x * alpha, day = direction.y * alpha, daz = direction.z * alpha;
-								intersection.position.setAdd(position, dax, day, daz);
+								double dax = ray_dir.x * alpha, day = ray_dir.y * alpha, daz = ray_dir.z * alpha;
+								intersection.position.setAdd(ray_pos, dax, day, daz);
 								intersection.normal.set(x + dax,y + day,z + daz);
 								intersection.object = this;
 								intersection.distance = alpha;
@@ -480,24 +480,24 @@ public abstract class OpticalSurfaceObject extends SurfaceObject{
 			case CYLINDER:
 			{
 				double dirproj = -this.directionNormalized.dot(x,y,z);
-				double c = x * x + y * y + z * z - dirproj * dirproj - this.directionLengthQ;
-				double scal = this.directionNormalized.dot(direction);
-				double b = direction.dot(x,y,z) + dirproj * scal;
+				double q = x * x + y * y + z * z - dirproj * dirproj - this.directionLengthQ;
+				double scal = this.directionNormalized.dot(ray_dir);
+				double p = ray_dir.dot(x,y,z) + dirproj * scal;
 				double a = 1 / (1 - scal * scal);
-				c *= a;
-				b *= a;
-				double sqrt = Math.sqrt(b*b-c);
+				q *= a;
+				p *= a;
+				double sqrt = Math.sqrt(p*p-q);
 				do {
-					double alpha = -b- sqrt;
-					if (lowerBound < alpha && alpha < upperBound)
+					double ray_t = -p- sqrt;
+					if (ray_tmin < ray_t && ray_t < ray_tmax)
 					{
-						double dotProd = dirproj - scal * alpha;
+						double dotProd = dirproj - scal * ray_t;
 						if (dotProd >= dotProdUpperBound2 && dotProd<= dotProdLowerBound2)
 						{
-							intersection.position.set(position, direction,alpha);
+							intersection.position.set(ray_pos, ray_dir,ray_t);
 							intersection.normal.set(intersection.position, this.midpoint, this.directionNormalized, dotProd);
 							intersection.object = this;
-							intersection.distance = alpha;
+							intersection.distance = ray_t;
 							return intersection;
 						}
 					}

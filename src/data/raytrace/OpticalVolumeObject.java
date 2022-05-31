@@ -318,7 +318,14 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		}
 	}
 
-	public void editValues(OpticalSurfaceObject oso[], Operation operationIOR, Operation operationTranslucency, Operation givenValueOperation, Operation isGivenOperation, VariableStack variables, Volume vol)
+	public void editValues(
+	        OpticalSurfaceObject oso[],
+	        Operation operationIOR,
+	        Operation operationTranslucency,
+	        Operation givenValueOperation,
+	        Operation isGivenOperation,
+	        VariableStack variables,
+	        Volume vol)
 	{
 	    long time = System.nanoTime();
 		int width = vol.width, height = vol.height, depth = vol.depth;
@@ -428,7 +435,11 @@ public abstract class OpticalVolumeObject extends OpticalObject{
         control.calculateLoop(true);
         control.calculateRandom(true);
         System.out.println((System.nanoTime() - time)/1000000000f);
-
+        double translucencyf[] = null;
+        if (operationTranslucency != null)
+        {
+            translucencyf = new double[depth * height * width];
+        }
 		for (int z = 0, index = 0; z < depth; ++z)
 		{
 			for (int y = 0; y < height; ++y)
@@ -459,19 +470,19 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 					}
 					if (operationTranslucency != null)
 					{
-						long value = operationTranslucency.calculate(vs, control).longValue();
-						if (value > (long)Integer.MAX_VALUE - (long)Integer.MIN_VALUE)
-						{
-						    value = (long)Integer.MAX_VALUE - (long)Integer.MIN_VALUE;
-						}
-						else if (value < 0)
-						{
-						    value = 0;
-						}
-						translucency[index] = (int)value;
+					    translucencyf[index] = operationTranslucency.calculate(vs, control).doubleValue();
 					}
 				}
 			}
+		}
+		if (translucencyf != null)
+		{
+            double tLimits[] = ArrayUtil.minMax(translucencyf, new double[2]);
+            double mult = Integer.MAX_VALUE/Math.max(-tLimits[0], tLimits[1]);
+            for (int i = 0; i < translucency.length; ++i)
+            {
+                translucency[i] = (int)(Math.round(translucencyf[i] * mult)) + 0x7FFFFFFF;
+            }
 		}
 		logger.debug(new StringBuilder().append('(').append(min).append(',').append(max).append(')').append(' ').append((System.nanoTime() - time) / 1000000000f).toString());
 		ArrayUtil.minMax(vol.data, refMinMax);

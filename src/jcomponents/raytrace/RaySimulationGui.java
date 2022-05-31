@@ -770,7 +770,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 		if (source == menuItemAddSurface)
 		{
 			GuiOpticalSurfaceObject goo = new GuiOpticalSurfaceObject(scene.vs, parser);
-			goo.id = new StringBuilder().append('S').append(scene.surfaceObjectList.size()).toString();
+			goo.setId(new StringBuilder().append('S').append(scene.surfaceObjectList.size()).toString());
 			scene.add(goo);
 		}
 		else if (source == menuItemAddVolume)
@@ -794,7 +794,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 					}
  	        	}
 			}
-			ovo.id = new StringBuilder().append('V').append(scene.volumeObjectList.size()).toString();
+			ovo.setId(new StringBuilder().append('V').append(scene.volumeObjectList.size()).toString());
 			scene.add(ovo);
 		}
 		else if (source == menuItemAddMesh)
@@ -811,7 +811,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 					return;
 				}
 			}
-			mesh.id = new StringBuilder().append('M').append(scene.meshObjectList.size()).toString();
+			mesh.setId(new StringBuilder().append('M').append(scene.meshObjectList.size()).toString());
 			scene.add(mesh);
 		}
 		else if (source == menuItemAddTexture)
@@ -831,7 +831,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 					visibleErrorMessage("Can't read image", e1);
 				}
 			}
-			to.id = new StringBuilder().append('T').append(scene.textureObjectList.size()).toString();
+			to.setId(new StringBuilder().append('T').append(scene.textureObjectList.size()).toString());
 			scene.add(to);
 		}
 		else if (source == menuItemAddSlider)
@@ -896,7 +896,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 							for (int i = 0; i < scene.textureObjectList.size(); ++i)
 							{
 		                 		GuiTextureObject current = scene.textureObjectList.get(i);
-		                 		File imageFile = new File(dir.getAbsolutePath() + '/' + current.id + '.' + "png");
+		                 		File imageFile = new File(dir.getAbsolutePath() + '/' + current.getId() + '.' + "png");
 		                 		if (imageFile.exists())
 		                 		{
 		                 			current.load(imageFile, scene.vs, parser);
@@ -905,7 +905,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 							for (int i = 0; i < scene.volumeObjectList.size(); ++i)
 							{
 								GuiOpticalVolumeObject current = scene.volumeObjectList.get(i);
-								File volumeFile = new File(dir.getAbsolutePath() + '/' + current.id + '.' + "blob");
+								File volumeFile = new File(dir.getAbsolutePath() + '/' + current.getId() + '.' + "blob");
 								if (volumeFile.exists())
 								{
 									current.readBinaryFile(volumeFile.getPath());
@@ -914,7 +914,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 							for (int i = 0; i < scene.meshObjectList.size(); ++i)
 							{
 								MeshObject current = scene.meshObjectList.get(i);
-								File meshFile = new File(dir.getAbsolutePath() + '/' + current.id + '.' + "obj");
+								File meshFile = new File(dir.getAbsolutePath() + '/' + current.getId() + '.' + "obj");
 								if (meshFile.exists())
 								{
 									current.load(meshFile.getPath());
@@ -968,7 +968,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
              		{
              			GuiTextureObject current = scene.textureObjectList.get(i);
              			try {
-							current.saveTo(new File(dir.getAbsolutePath() + '/' + current.id + '.' + "png"));
+							current.saveTo(new File(dir.getAbsolutePath() + '/' + current.getId() + '.' + "png"));
 						} catch (IOException e1) {
 							visibleErrorMessage("Can't save image file", e1);
 						}
@@ -977,7 +977,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
              		{
              			MeshObject current = scene.meshObjectList.get(i);
              			try {
-             				current.saveTo(new File(dir.getAbsolutePath() + '/' + current.id + '.' + "obj"));
+             				current.saveTo(new File(dir.getAbsolutePath() + '/' + current.getId() + '.' + "obj"));
              			} catch (IOException e1) {
 							visibleErrorMessage("Can't save mesh file", e1);
 						}
@@ -986,7 +986,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
              		{
              			GuiOpticalVolumeObject current = scene.volumeObjectList.get(i);
              			try {
-             				current.writeBinaryFile(new File(dir.getAbsolutePath() + '/' + current.id + '.' + "blob"));
+             				current.writeBinaryFile(new File(dir.getAbsolutePath() + '/' + current.getId() + '.' + "blob"));
              			} catch (IOException e1) {
 							visibleErrorMessage("Can't save mesh file", e1);
 						}
@@ -2310,17 +2310,18 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 				double dy = at.rdotY(direction.x, direction.y);
 				double tmp0 = (1 + l.conicConstant);
 				x += dx; y += dy;
-				double dotProdLowerBound = (l.getDotProdLowerBound() + 1) / 16;
-				double dotProdUpperBound = (l.getDotProdUpperBound() + 1) / 16;
-				draw.setPointNumber(33);
-				for (int i = 0; i <= 16; ++i)
+				int intersections = 64;
+				double dotProdLowerBound = (l.getDotProdLowerBound() + 1) / intersections;
+				double dotProdUpperBound = (l.getDotProdUpperBound() + 1) / intersections;
+				draw.setPointNumber(intersections * 2 +1);
+				for (int i = 0; i <= intersections; ++i)
 				{
-					double r = (dotProdLowerBound * (16 - i) + dotProdUpperBound * i);
+					double r = (dotProdLowerBound * (intersections - i) + dotProdUpperBound * i);
 					double z =  Math.sqrt(r * (2 - tmp0 * r));
 					double rx = x - r * dx;
 					double ry = y - r * dy;
-					draw.setPoint(rx + z * vec.x, ry + z * vec.y, 16 - i);
-					draw.setPoint(rx - z * vec.x, ry - z * vec.y, 16 + i);
+					draw.setPoint(rx + z * vec.x, ry + z * vec.y, intersections - i);
+					draw.setPoint(rx - z * vec.x, ry - z * vec.y, intersections + i);
 				}
 				draw.drawPolyLine();
 				break;
@@ -2633,24 +2634,30 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 				for (int i = 0; i < scene.textureObjectList.size(); ++i)
 				{
 				    GuiTextureObject current = scene.textureObjectList.get(i);
-                    if (g instanceof Graphics2D && current.image != null)
+				    if (current.active)
 				    {
-				        AffineTransform gat = ((Graphics2D)g).getTransform();
-				        TransformConversion.copy(sceneToScreen, gat);
-				        ((Graphics2D)g).setTransform(gat);
-                        g.drawImage(current.image, 0, 0, current.image.getWidth(), current.image.getHeight(), 0, 0, current.image.getWidth(), current.image.getHeight(), null);
-                        gat.setToIdentity();
-                        ((Graphics2D)g).setTransform(gat);
+                        if (g instanceof Graphics2D && current.image != null)
+    				    {
+                            AffineTransform orig = ((Graphics2D)g).getTransform();
+                            AffineTransform gat = ((Graphics2D)g).getTransform();
+    				        TransformConversion.copy(sceneToScreen, gat);
+    				        gat.preConcatenate(orig);
+    				        gat.scale(current.direction.x, current.direction.y);
+    				        gat.translate(current.midpoint.x, current.midpoint.y);
+    				        ((Graphics2D)g).setTransform(gat);
+                            g.drawImage(current.image, 0, 0, current.image.getWidth(), current.image.getHeight(), 0, 0, current.image.getWidth(), current.image.getHeight(), null);
+                            ((Graphics2D)g).setTransform(orig);
+    				    }
+                        else
+                        {
+        					double x = sceneToScreen.rdotAffineX(current.midpoint.x,current.midpoint.y);
+                            double y = sceneToScreen.rdotAffineY(current.midpoint.x,current.midpoint.y);
+        					if (current.active && !current.midpoint.containsNaN() && !current.direction.containsNaN() && current.image != null)
+        					{
+        						g.drawImage(current.image, (int)x, (int)y, (int)(x + current.direction.x * scale), (int)(y+ current.direction.y * scale), 0, 0, current.image.getWidth(), current.image.getHeight(), null);
+        					}
+                        }
 				    }
-                    else
-                    {
-    					double x = sceneToScreen.rdotAffineX(current.midpoint.x,current.midpoint.y);
-                        double y = sceneToScreen.rdotAffineY(current.midpoint.x,current.midpoint.y);
-    					if (current.active && !current.midpoint.containsNaN() && !current.direction.containsNaN() && current.image != null)
-    					{
-    						g.drawImage(current.image, (int)x, (int)y, (int)(x + current.direction.x * scale), (int)(y+ current.direction.y * scale), 0, 0, current.image.getWidth(), current.image.getHeight(), null);
-    					}
-                    }
 				}
 			}
 	        for (int i = 0; i < scene.volumeObjectList.size(); ++i)

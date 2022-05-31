@@ -265,7 +265,7 @@ public class ErrorAnalysisFrame extends JFrame implements SceneChangeListener, A
 		for (int i = 0; i <= scene.getActiveSurfaceCount(); ++i)
 		{
 			GuiOpticalSurfaceObject current = (GuiOpticalSurfaceObject)(i ==scene.getActiveSurfaceCount() ? gen.getSource() : scene.getActiveSurface(i));
-			data[i][0] = current.id;
+			data[i][0] = current.getId();
 			for (int j = 1; j < headlines.length; ++j)
 			{
 				Object originalValue = null;

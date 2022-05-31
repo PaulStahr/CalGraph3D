@@ -32,7 +32,7 @@ public class PropertyOnLineCalculator {
 	{
 		this.scene = scene;
 	}
-	
+
 	public void paint(Vector3d position, Vector3d direction, double rangeBegin, double rangeEnd, int mode, boolean sphereArc, Drawer drawer)
 	{
 		dataPoints.clear();
@@ -104,10 +104,12 @@ public class PropertyOnLineCalculator {
 					else if (obj instanceof OpticalVolumeObject)
 					{
 						OpticalVolumeObject ovo = (OpticalVolumeObject)obj;
+						double start = dal.getD(i);
+						double steplength = (dal.getD(i + 1) - dal.getD(i))/99.;
 						for (int j = 0; j < 100; ++j)
 						{
-							double mult = (j / 99.) * (dal.getD(i + 1) - dal.getD(i)) + dal.getD(i);
-							double ior = (double)ovo.getRefractiveIndex(position.x + direction.x * mult, position.y + direction.y * mult, position.z + direction.z * mult) / 0x10000;
+							double mult = start + j * steplength;
+							double ior = ovo.getRefractiveIndex(position.x + direction.x * mult, position.y + direction.y * mult, position.z + direction.z * mult);
 							dataPoints.add(mult);
 							dataPoints.add(ior);
 							drawer.pushPoint(mult / 4 + 500, (2 - ior) * drawer.getHeight() / 2);
@@ -135,7 +137,7 @@ public class PropertyOnLineCalculator {
 					gen.threeDimensional = true;
 					gen.setSource(oso.get(i));
 					scene.calculateRays(0, num_rays, num_rays, gen, 0, 0, null, null, rsd.endpoints, rsd.enddirs, rsd.endcolor, null, rsd.accepted, rsd.bounces, rsd.lastObject, 10, false, rso, RaytraceScene.UNACCEPTED_MARK);
-					
+
 					double distances[] = ArrayUtil.fillEquidistant(rangeBegin, rangeEnd, new double[num_evaluations]);
 					double result[] = sphereArc ? Geometry.getVarianceOnSphere(rsd.endpoints, rsd.enddirs, rsd.accepted, position, direction, distances, new double[num_evaluations])
 							 : Geometry.getVariance(rsd.endpoints, rsd.enddirs, rsd.accepted, position, direction, distances, new double[num_evaluations]);
