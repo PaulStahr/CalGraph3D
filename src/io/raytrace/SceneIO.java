@@ -87,7 +87,7 @@ public class SceneIO {
     			if (version < 0)
     			{
     				int index = ctList.indexOf(SCENE_OBJECT_COLUMN_TYPE.PATH);
-    				valueList.set(index, "\"" + valueList.get(index) + "\"");
+    				valueList.set(index, '"' + valueList.get(index) + '"');
     			}														scene.add(new GuiTextureObject(	ctList, valueList, scene.vs, parser));break;
     			case "mesh":	readXMLValues(elem, ctList, valueList);	scene.add(new MeshObject(				ctList, valueList, scene.vs, parser));break;
     			case "Raybounds":
@@ -296,7 +296,7 @@ public class SceneIO {
 	    		elem.setAttribute("CalculateAtStartup", Boolean.toString(pipeline.calcuteAtCreation));
 	    		if (pipeline.ovo != null)
 	    		{
-	    			elem.setAttribute("Volume", pipeline.ovo.id);
+	    			elem.setAttribute("Volume", pipeline.ovo.getId());
 	    		}
     			root.addContent(elem);
 	    	}

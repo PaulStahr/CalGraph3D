@@ -164,9 +164,9 @@ public class VolumePipeline implements Runnable {
 				{
 					CalculationCalcuationStep cps = (CalculationCalcuationStep)ps;
 					OperationCalculate.getVariables(OperationCompiler.compile(cps.givenValues, (Operation)null), vIds[i]);
-					OperationCalculate.getVariables(OperationCompiler.compile(cps.ior, (Operation)null), vIds[i]);
-					OperationCalculate.getVariables(OperationCompiler.compile(cps.isGiven, (Operation)null), vIds[i]);
-					OperationCalculate.getVariables(OperationCompiler.compile(cps.translucency, (Operation)null), vIds[i]);
+					OperationCalculate.getVariables(OperationCompiler.compile(cps.ior,         (Operation)null), vIds[i]);
+					OperationCalculate.getVariables(OperationCompiler.compile(cps.isGiven,     (Operation)null), vIds[i]);
+					OperationCalculate.getVariables(OperationCompiler.compile(cps.translucency,(Operation)null), vIds[i]);
 				}
 				else if (ps instanceof GenerationCalculationStep)
 				{

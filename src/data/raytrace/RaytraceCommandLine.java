@@ -558,7 +558,7 @@ public class RaytraceCommandLine {
 							assert(independentRows == 3);
 							npc.get(vec);
 							try {
-								out.write("opt " + value + "->" + destination.evaluate_inner_outer(vec) + "\t" + vec + "\t" + npc.getCount() + "\n");
+								out.write("opt " + value + "->" + destination.evaluate_inner_outer(vec) + '\t' + vec + '\t' + npc.getCount() + '\n');
 								out.flush();
 							} catch (IOException e) {
 								logger.error("Can't write output", e);

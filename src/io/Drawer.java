@@ -455,11 +455,10 @@ public abstract class Drawer {
 
 		@Override
 		public void drawPolyLine() throws IOException{
-			if (points.length == 0)
+			if (index == 0)
 			{
 				return;
 			}
-
 			if (g instanceof Graphics2D)
 			{
 				Graphics2D g2d = (Graphics2D)g;
@@ -533,17 +532,16 @@ public abstract class Drawer {
 		@Override
 		public void setPointNumber(int count) {
 			index = count;
-			if (xPoints.length < index || yPoints.length < index)
+			if (points.length < count * 2)
 			{
-				xPoints = Arrays.copyOf(xPoints, index);
-				yPoints = Arrays.copyOf(yPoints, index);
+			    points = new double[count * 2];
 			}
 		}
 
 		@Override
 		public void setPoint(double x, double y, int i) {
-			xPoints[i] = (int)x;
-			yPoints[i] = (int)y;
+		    points[i * 2    ] = x;
+		    points[i * 2 + 1] = y;
 		}
 
 		@Override
