@@ -224,7 +224,7 @@ public abstract class OpticalObject {
 
 		private SCENE_OBJECT_COLUMN_TYPE(String name, String vname, byte optionType, Object defaultValue, String possibleValues[]) {
 			this.name = name;
-			this.vname = new StringOperation(vname);
+			this.vname = vname == null ? null : new StringOperation(vname);
 			this.optionType = optionType;
 			switch (optionType)
 			{
