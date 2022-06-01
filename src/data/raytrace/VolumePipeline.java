@@ -237,6 +237,7 @@ public class VolumePipeline implements Runnable {
 					Controller control = new Controller();
 					int values[] = OperationCalculate.toIntArray(OperationCompiler.compile(gps.size).calculate(scene.vs, control));
 					cachedSteps[current] = new Volume(values[0], values[1], values[2]);
+					ovo.setSize(values[0], values[1], values[2]);
 				}
 			}
 		}

@@ -133,7 +133,7 @@ public class SceneIO {
         				switch (child.getName())
         				{
         					case "Generate":			pipeline.steps.add(new VolumePipeline.GenerationCalculationStep(child.getAttributeValue("Bounds")));break;
-        					case "Calculate":            pipeline.steps.add(new VolumePipeline.CalculationCalcuationStep(child.getAttributeValue("Ior"), child.getAttributeValue("Translucency"), child.getAttributeValue("EqValue"), child.getAttributeValue("EqGiven")));break;
+        					case "Calculate":          pipeline.steps.add(new VolumePipeline.CalculationCalcuationStep(child.getAttributeValue("Ior"), child.getAttributeValue("Translucency"), child.getAttributeValue("EqValue"), child.getAttributeValue("EqGiven")));break;
 					        default:					logger.warn("Unknown option " + child.getName());
         				}
         			}
@@ -201,6 +201,15 @@ public class SceneIO {
 					}
 				}
     		}
+    	}
+    	scene.updateScene();
+    	for (VolumePipeline vp : scene.getVolumePipelines())
+    	{
+    	    if (vp.calcuteAtCreation)
+    	    {
+    	        vp.updateVariableIds();
+    	        vp.run();
+    	    }
     	}
     	JFrameUtils.runByDispatcher(new Runnable() {
     		@Override
