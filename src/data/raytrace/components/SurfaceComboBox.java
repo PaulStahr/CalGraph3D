@@ -39,7 +39,7 @@ public class SurfaceComboBox extends JComboBox<OpticalObject>implements GuiOptic
 	{
 		isQueued.set(false);
 		Object current = getSelectedItem();
-		setModel(new DefaultComboBoxModel<OpticalObject>(light ? scene.cloneActiveLights() : scene.getActiveSurfaces()));
+		setModel(new DefaultComboBoxModel<OpticalObject>(light ? scene.cloneActiveLights() : scene.copyActiveSurfaces()));
 		setSelectedItem(current);
 	}
 }

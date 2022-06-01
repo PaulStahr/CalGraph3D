@@ -780,7 +780,7 @@ public class RaytraceScene {
 		int count = countObjects(meshObjectList, MaterialType.EMISSION, false);
 		do {
 			if (res == null || res.length != count){res = new MeshObject[count];}
-			count = addObjects(meshObjectList, MaterialType.EMISSION, false, res, count);
+			count = addObjects(meshObjectList, MaterialType.EMISSION, false, res, 0);
 		}while(res.length != count);
 		return res;
 	}
@@ -964,19 +964,6 @@ public class RaytraceScene {
         }
     }
 
-
-	private static final void writeColor(float[] array, int offset, int color[])
-	{
-		if (array != null)
-		{
-			for (int k = 0, wr = offset; k < 4; ++k, ++wr)
-			{
-				array[wr] = color[k] * multColor;
-			}
-		}
-	}
-
-
     private static final void multColor(float[] sceneEndpointColor, int outIndex, float color[])
     {
         if (sceneEndpointColor != null)
@@ -987,18 +974,6 @@ public class RaytraceScene {
             }
         }
     }
-
-
-	private static final void multColor(float[] sceneEndpointColor, int outIndex, int color[])
-	{
-		if (sceneEndpointColor != null)
-		{
-			for (int k = 0, wr = outIndex * 4; k < 4; ++k, ++wr)
-			{
-				sceneEndpointColor[wr] *= color[k] * multColor;
-			}
-		}
-	}
 
 
     private static final void mixColor(float[] sceneEndpointColor, int outIndex, float color[])
@@ -1013,19 +988,6 @@ public class RaytraceScene {
             }
         }
     }
-
-	private static final void mixColor(float[] sceneEndpointColor, int outIndex, int color[])
-	{
-		float alpha = (1 - sceneEndpointColor[outIndex + 3]) * color[3] * (multColor * multColor);
-
-		if (sceneEndpointColor != null)
-		{
-			for (int k = 0, wr = outIndex * 3; k < 3; ++k, ++wr)
-			{
-				sceneEndpointColor[wr] += color[k] * alpha;
-			}
-		}
-	}
 
 	public final int calculateRays(
 			int beginRay,
@@ -1383,7 +1345,6 @@ public class RaytraceScene {
 	public OpticalSurfaceObject[] copyActiveSurfaces() {return activeSurfaces.clone();}
 	public OpticalObject[] cloneActiveLights() {return activeLights.clone();}
 	public void getActiveLights(List<OpticalObject> list){ListTools.add(activeLights, list);}
-	public OpticalObject[] getActiveSurfaces() {return activeSurfaces.clone();}
 	public OpticalObject[] getActiveVolumes() {return activeVolumes.clone();}
 	public OpticalObject[] getActiveMeshes() {return activeMeshes.clone();}
 	public void setTextureMapping(TextureMapping selectedItem) {environment_mapping = selectedItem;}
@@ -1391,6 +1352,10 @@ public class RaytraceScene {
 	public int getSurfaceCount() {return surfaceObjectList.size();}
 	public GuiOpticalSurfaceObject getSurfaceObject(int index){return surfaceObjectList.get(index);}
 	public void add(VolumePipeline pipeline) {volumePipelines.add(pipeline);}
+
+	public VolumePipeline[] getVolumePipelines() {
+	    return volumePipelines.toArray(new VolumePipeline[volumePipelines.size()]);
+	}
 
 	public void blockOnPipelineCalculations() {
 		for (int i = 0; i < volumePipelines.size(); ++i)

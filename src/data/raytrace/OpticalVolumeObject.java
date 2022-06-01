@@ -186,7 +186,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		private VolumeScene(IntBuffer bounds, IntBuffer ior, IntBuffer translucency, VolumeRaytraceOptions opt)   {pointer = new_instance(bounds, ior, translucency, opt.pointer);}
 		private VolumeScene(IntBuffer bounds, FloatBuffer ior, IntBuffer translucency, VolumeRaytraceOptions opt) {pointer = new_instance(bounds, ior, translucency, opt.pointer);}
 
-		public void traceRays(IntBuffer start_position, ShortBuffer start_direction, IntBuffer end_iteration, FloatBuffer scale, float minimum_brightness, int iterations, IntBuffer path, VolumeRaytraceOptions options)
+		/*public void traceRays(IntBuffer start_position, ShortBuffer start_direction, IntBuffer end_iteration, FloatBuffer scale, float minimum_brightness, int iterations, IntBuffer path, VolumeRaytraceOptions options)
 		{
 			running.incrementAndGet();
 			trace_rays(pointer, start_position, start_direction, end_iteration, scale, minimum_brightness, iterations, path != null, path, options.pointer);
@@ -194,7 +194,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 			{
 				finalize();
 			}
-		}
+		}*/
 
 		public void traceRays(IntBuffer start_position, FloatBuffer start_direction, IntBuffer end_iteration, FloatBuffer scale, float minimum_brightness, int iterations, IntBuffer path, VolumeRaytraceOptions options)
 		{
@@ -434,7 +434,6 @@ public abstract class OpticalVolumeObject extends OpticalObject{
         if (operationTranslucency != null) {operationTranslucency = operationTranslucency.calculate(vs, control);}
         control.calculateLoop(true);
         control.calculateRandom(true);
-        System.out.println((System.nanoTime() - time)/1000000000f);
         double translucencyf[] = null;
         if (operationTranslucency != null)
         {
@@ -513,7 +512,6 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 		Vector3d vec = new Vector3d();
 		unitVolumeToGlobal.getColDot3(vec);
 		vec.sqrt();
-		System.out.println(vec);
 		vol = new Volume(inBuf);
 		unitVolumeToGlobal.preScale((vol.width - 1)* 0.5, (vol.height - 1) * 0.5, (vol.depth - 1) * 0.5);
         applyMatrix();

@@ -45,11 +45,11 @@ import util.io.IOUtil;
 
 public class StackPositionProcessorWindow extends JFrame implements ActionListener, TimedUpdateHandler{
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = 1554159079180249250L;
 	private static final Logger logger = LoggerFactory.getLogger(JFrame.class);
-	
+
 	private final JLabel labelPositionInput = new JLabel("Position input");
 	private final JButton buttonPositionInput = new JButton();
 	private final JLabel labelOutputFolder = new JLabel("Image Output");
@@ -95,7 +95,7 @@ public class StackPositionProcessorWindow extends JFrame implements ActionListen
 			progressBar.setValue(progress.get());
 		}
 	};
-	
+
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		Object source = e.getSource();
@@ -132,7 +132,7 @@ public class StackPositionProcessorWindow extends JFrame implements ActionListen
 				DoubleArrayList dal = IOUtil.readPositionFile(buttonPositionInput.getText());
 				PointCloudVisualization pcv = new PointCloudVisualization(dal);
 				pcv.setVisible(true);
-				
+
 			} catch (IOException ex) {
 				logger.error("Can't read position file", ex);
 			}
@@ -157,10 +157,10 @@ public class StackPositionProcessorWindow extends JFrame implements ActionListen
 			}
 		}
 	}
-	
+
 	private final DoubleArrayList dal = new DoubleArrayList();
 	private RaytraceSession session;
-	
+
 	@Override
 	public void update() {
 		Vector3f pos = Interface.scene.cameraPosition;
@@ -170,12 +170,12 @@ public class StackPositionProcessorWindow extends JFrame implements ActionListen
 		dal.add(rot.getYRadians());
 		dal.add(rot.getZRadians());
 	}
-	
+
 	@Override
 	public int getUpdateInterval() {
 		return 50;
 	}
-	
+
 	public StackPositionProcessorWindow(final RaytraceScene scene, RaytraceSession session)
 	{
 		this.scene = scene;
@@ -183,30 +183,30 @@ public class StackPositionProcessorWindow extends JFrame implements ActionListen
 		GroupLayout layout = new GroupLayout(getContentPane());
 		getContentPane().setLayout(layout);
 		comboBoxEvaluationTexture = new TextureComboBox(scene);
-		comboBoxEvaluationTexture.setModel(new DefaultComboBoxModel<GuiTextureObject>(scene.textureObjectList.toArray(new GuiTextureObject[scene.textureObjectList.size()])));
+		comboBoxEvaluationTexture.setModel(new DefaultComboBoxModel<>(scene.textureObjectList.toArray(new GuiTextureObject[scene.textureObjectList.size()])));
 		comboBoxlightSource = new SurfaceComboBox(scene, true);
-		comboBoxlightSource.setModel(new DefaultComboBoxModel<OpticalObject>(scene.cloneActiveLights()));
+		comboBoxlightSource.setModel(new DefaultComboBoxModel<>(scene.cloneActiveLights()));
 		comboBoxEvaluationObject = new SurfaceComboBox(scene, false);
-		comboBoxEvaluationObject.setModel(new DefaultComboBoxModel<OpticalObject>(scene.getActiveSurfaces()));
-		
+		comboBoxEvaluationObject.setModel(new DefaultComboBoxModel<OpticalObject>(scene.copyActiveSurfaces()));
+
 		labelPositionInput.setToolTipText("Position file with <azimuth>tap<elevation>");
 		buttonPositionInput.setToolTipText(labelPositionInput.getToolTipText());
-		
+
 		labelOutputFolder.setToolTipText("Folder to write the selected texture");
 		buttonOutputFolder.setToolTipText(labelOutputFolder.getToolTipText());
 		comboBoxEvaluationTexture.setToolTipText(labelOutputFolder.getToolTipText());
-		
+
 		buttonProgress.setToolTipText("Start Processing");
-		
+
 		labelRange.setToolTipText("Leave empty for calculating all frames");
 		textFieldRangeBegin.setToolTipText(labelRange.getToolTipText());
 		textFieldRangeEnd.setToolTipText(labelRange.getToolTipText());
-		
+
 		labelPositionOutput.setToolTipText("Write out texture coordinates to a text File");
 		buttonPositionOutput.setToolTipText(labelPositionOutput.getToolTipText());
-		
+
 		labelMode.setToolTipText("Array: Create an image for each timeframe, SINGLE: Create one image for all frames, CAMERA_TRACK: Create a raytraced image for each frame");
-		
+
 		layout.setHorizontalGroup(
 			layout.createParallelGroup().addGroup(
 					layout.createSequentialGroup().addGroup(
@@ -237,7 +237,7 @@ public class StackPositionProcessorWindow extends JFrame implements ActionListen
 			.addComponent(checkBoxBackward)
 			.addComponent(progressBar).addGroup(layout.createSequentialGroup()
 							.addComponent(buttonProgress).addComponent(buttonPrintTrajectory).addComponent(buttonPrintDensity).addComponent(toggleButtonRecordPath)));
-		
+
 		layout.setVerticalGroup(
 				layout.createSequentialGroup()
 					.addGroup(layout.createParallelGroup().addComponent(labelPositionInput, Alignment.CENTER).addComponent(buttonPositionInput, Alignment.CENTER))
@@ -254,17 +254,17 @@ public class StackPositionProcessorWindow extends JFrame implements ActionListen
 					.addComponent(checkBoxBackward)
 					.addComponent(progressBar)
 					.addGroup(layout.createParallelGroup().addComponent(buttonProgress).addComponent(buttonPrintTrajectory).addComponent(buttonPrintDensity).addComponent(toggleButtonRecordPath)));
-		
+
 		buttonPositionInput.addActionListener(JFrameUtils.selectFileButtonActionListener);
 		buttonOutputFolder.addActionListener(JFrameUtils.selectFolderButtonActionListener);
 		buttonPositionOutput.addActionListener(JFrameUtils.selectFileButtonActionListener);
-		
+
 		buttonProgress.addActionListener(this);
 		buttonPrintTrajectory.addActionListener(this);
 		buttonPrintDensity.addActionListener(this);
 		toggleButtonRecordPath.addActionListener(this);
 		final StackPositionProcessorWindow frame = this;
-		
+
 		addWindowListener(new WindowAdapter() {
 		    @Override
 		    public void windowClosed(java.awt.event.WindowEvent windowEvent) {
@@ -272,10 +272,10 @@ public class StackPositionProcessorWindow extends JFrame implements ActionListen
 		        scene.removeObjectChangeListener((GuiOpticalSurfaceObject.OpticalSurfaceObjectChangeListener)frame);
 		    }
 		});
-		
+
 		setSize(450, 500);
 	}
-	
+
 	public void evaluate() throws OperationParseException
 	{
 		double tmpd = Double.NaN;
@@ -303,10 +303,10 @@ public class StackPositionProcessorWindow extends JFrame implements ActionListen
 				buttonPositionOutput.getText(),
 				checkBoxBackward.isSelected(),
 				session);
-	
+
 		TextureView tv = new TextureView(spp.getImg());
 		tv.setVisible(true);
 	}
-	
+
 
 }

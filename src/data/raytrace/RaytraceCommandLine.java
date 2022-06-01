@@ -665,7 +665,10 @@ public class RaytraceCommandLine {
 						{
 							case "tableout" :
 							{
-								FileWriter writer = new FileWriter(split.get(i + 1));
+							    File f = new File(split.get(i + 1));
+							    File p = f.getParentFile();
+							    if (!p.exists()){p.mkdirs();}
+								FileWriter writer = new FileWriter(f);
 								BufferedWriter outBuf = new BufferedWriter(writer);System.out.println("Elevation " + Arrays.toString(fc.sourceElevations));
 								IOUtil.writeColumnTable(new String[] 	{"elevation", 			"destination_elevation_average", "destination_elevation_variance", 	"destination_eucledean_variance", 	"accepted_ratio", 	"focal_distance", 	"hitpoint_distance"},
 										new Object[] 					{fc.sourceElevations, 	fc.destinationElevationAveraged, fc.destinationElevationVariance, 	fc.destinationEucledeanVariance,	fc.acceptedRatio, 	fc.focusToDestinationDistances, 	fc.focusToHitpointDistances}, outBuf);

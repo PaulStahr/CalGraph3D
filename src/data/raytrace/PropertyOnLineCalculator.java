@@ -40,7 +40,7 @@ public class PropertyOnLineCalculator {
 		//ArrayList<IntersectionPoint> list = new ArrayList<>();
 		ArrayList<OpticalObject> objects = new ArrayList<>();
 		DoubleArrayList dal = new DoubleArrayList();
-		OpticalObject nextSurfaces[] = scene.getActiveSurfaces();
+		OpticalObject nextSurfaces[] = scene.copyActiveSurfaces();
 		OpticalObject nextVolumes[] = scene.getActiveVolumes();
 		OpticalObject nextMeshes[] = scene.getActiveMeshes();
 		intersection.distance = 1e-10;

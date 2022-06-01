@@ -18,7 +18,6 @@ import javax.swing.event.ChangeListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import data.DataHandler;
 import geometry.Geometry;
 import io.ObjectExporter;
 import jcomponents.raytrace.TextureView;
@@ -161,8 +160,7 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 			case POSITION:
 			{
 				parser.parsePositionString(positionStr, midpoint, variables, controll);
-				DataHandler.globalVariables.setGlobal(id.concat("_pos"), parser.op);
-	    		unitVolumeToGlobal.setCol(3,midpoint);
+				unitVolumeToGlobal.setCol(3,midpoint);
 	    		applyMatrix();
 				break;
 			}
@@ -191,6 +189,10 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 		} catch (NumberFormatException e) {
 			logger.error("Can't read number");
 		}
+        if (ct.vname != null)
+        {
+            v.set(ct.vname, parser.op);
+        }
 		parser.reset();
 	}
 
@@ -303,7 +305,6 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 			{
 				parser.parsePositionString(o, midpoint, variables, controll);
 				positionStr = parser.str;
-				DataHandler.globalVariables.setGlobal(id.concat("_pos"), parser.op);
 	    		unitVolumeToGlobal.setCol(3,midpoint);
 	    		applyMatrix();
 				break;
@@ -339,6 +340,10 @@ public class GuiOpticalVolumeObject extends OpticalVolumeObject {
 		} catch (NumberFormatException e) {
 			logger.error("Can't read number");
 		}
+        if (ct.vname != null)
+        {
+            v.set(ct.vname, parser.op);
+        }
 		parser.reset();
 	}
 

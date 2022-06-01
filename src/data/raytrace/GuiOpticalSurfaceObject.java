@@ -31,8 +31,6 @@ import data.raytrace.RaySimulation.MaterialType;
 import data.raytrace.RaySimulation.SurfaceType;
 import geometry.Vector3d;
 import maths.Controller;
-import maths.Operation;
-import maths.data.StringOperation;
 import maths.exception.OperationParseException;
 import maths.variable.VariableAmount;
 
@@ -224,9 +222,6 @@ public class GuiOpticalSurfaceObject extends OpticalSurfaceObject {
 	private ANCHOR_POINT_ENUM anchorPoint = ANCHOR_POINT_ENUM.NORMAL_INTERSECTION;
 	private String colorStr;
 
-    private static final Operation POSITION_STRING_OP = new StringOperation("position");
-    private static final Operation DIRECTION_STRING_OP = new StringOperation("direction");
-
 	@Override
 	public void updateValue(SCENE_OBJECT_COLUMN_TYPE ct, VariableAmount variables, ParseUtil parser) throws OperationParseException
 	{
@@ -237,9 +232,8 @@ public class GuiOpticalSurfaceObject extends OpticalSurfaceObject {
 			case DIFFUSE:diffuse = parser.parseDoubleString(diffuseStr, variables, controll);break;
 			case DIRECTION:
 			{
-			    Operation op = parser.parsePositionString(directionStr, direction, variables, controll);
+			    parser.parsePositionString(directionStr, direction, variables, controll);
                 updateMidpoint();
-                v.set(DIRECTION_STRING_OP, op);
                 break;
 			}
 			case ID:break;
@@ -249,9 +243,8 @@ public class GuiOpticalSurfaceObject extends OpticalSurfaceObject {
 			case ANCHOR_POINT:break;
 			case POSITION:
 			{
-				Operation op = parser.parsePositionString(positionStr, position, variables, controll);
+				parser.parsePositionString(positionStr, position, variables, controll);
 				updateMidpoint();
-				v.set(POSITION_STRING_OP, op);
 				break;
 			}
 			case MAXRADIUS:maxRadiusGeometric = parser.parseDoubleString(maxRadiusStr, variables, controll);break;
@@ -273,6 +266,10 @@ public class GuiOpticalSurfaceObject extends OpticalSurfaceObject {
 			default:
 				break;
 		}
+		if (ct.vname != null)
+		{
+		    v.set(ct.vname, parser.op);
+		}
 		valueChanged(ct, parser);
 		parser.reset();
 	}
@@ -292,7 +289,6 @@ public class GuiOpticalSurfaceObject extends OpticalSurfaceObject {
 				parser.parsePositionString(o, direction, variables, controll);
 				directionStr = parser.str;
 				updateMidpoint();
-	            v.set(DIRECTION_STRING_OP, parser.op);
 				break;
 			case ID:
 				setId(ParseUtil.parseString(o));
@@ -316,7 +312,6 @@ public class GuiOpticalSurfaceObject extends OpticalSurfaceObject {
 				parser.parsePositionString(o, position, variables, controll);
 				updateMidpoint();
 				positionStr = parser.str;
-                v.set(POSITION_STRING_OP, parser.op);
 				break;
 			case MAXRADIUS:
 				maxRadiusGeometric = parser.parseDoubleString(o, variables, controll);
@@ -390,6 +385,10 @@ public class GuiOpticalSurfaceObject extends OpticalSurfaceObject {
 
 			}
 		updateIds((byte)ct.ordinal(), parser.op);
+        if (ct.vname != null)
+        {
+            v.set(ct.vname, parser.op);
+        }
 		valueChanged(ct, parser);
 		parser.reset();
 

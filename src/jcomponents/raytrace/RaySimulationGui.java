@@ -170,6 +170,7 @@ import maths.algorithm.Calculate;
 import maths.algorithm.DoubleMatrixUtil;
 import maths.data.ArrayOperation;
 import maths.exception.OperationParseException;
+import maths.variable.Variable;
 import opengl.Camera;
 import opengl.jogamp.JoglCanvas;
 import scene.OpenGlKeyHandler;
@@ -297,6 +298,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 	public final RaytraceScene scene;
 	private final GuiTextureObject previewTexture;
 	private static final ArrayList<WeakReference<RaySimulationGui> > openGuis = new ArrayList<>();
+	private static final Variable guiVar = new Variable("gui");
 
    	private static final Runnable optionRunnable = new Runnable() {
 		@Override
@@ -615,9 +617,9 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 					if(fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION)
 		            {
 						try {
-							current.setValue(SCENE_OBJECT_COLUMN_TYPE.PATH, fileChooser.getSelectedFile().getAbsolutePath(), scene.vs, parser);
+							current.setValue(SCENE_OBJECT_COLUMN_TYPE.PATH, '"' + fileChooser.getSelectedFile().getAbsolutePath() + '"', scene.vs, parser);
 						} catch (OperationParseException e1) {
-							logger.error("Can't set filepath");
+							logger.error("Can't set filepath", e1);
 						}
 						if (current.image == null)
 						{
@@ -2116,72 +2118,75 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
         if (!v.active) {
             return vertices;
         }
-        Graphics g = ((Drawer.GraphicsDrawer)gd).getOutput();
-        if (g instanceof Graphics2D)
+        if (gd instanceof Drawer.GraphicsDrawer)
         {
-            int minX = Integer.MAX_VALUE, maxX = Integer.MIN_VALUE, minY = Integer.MAX_VALUE, maxY = Integer.MIN_VALUE;
-            Vector3d v3 = new Vector3d();
-            for (int i = 0; i < 8; ++i)
+            Graphics g = ((Drawer.GraphicsDrawer)gd).getOutput();
+            if (g instanceof Graphics2D)
             {
-                v.unitVolumeToGlobal.rdotAffine((i / 4) * 2 - 1, ((i / 2) % 2) * 2 - 1, (i % 2) * 2 - 1, v3);
-                v3.z = 1;
-                sceneToScreen.rdot(v3);
-                minX = Math.min((int)Math.floor(v3.x), minX); maxX = Math.max((int)Math.ceil(v3.x), minX);
-                minY = Math.min((int)Math.floor(v3.y), minY); maxY = Math.max((int)Math.ceil(v3.y), minY);
-            }
-            Rectangle r = g.getClipBounds();
-            minX = Math.max(r.x, minX); maxX = Math.min(r.x + r.width, maxX);
-            minY = Math.max(r.y, minY); maxY = Math.min(r.y + r.height, maxY);
-            if (minX >= maxX || minY >= maxY) {return vertices;}
-            BufferedImage bi = new BufferedImage(maxX - minX, maxY - minY, BufferedImage.TYPE_INT_ARGB);
-            WritableRaster raster = bi.getRaster();
-            float refractiveMin = v.getRefractiveMin(), refractiveMax = v.getRefractiveMax();
-            float refractiveScale = 255 / (refractiveMax - refractiveMin);
-            int data[] = new int[raster.getWidth() * raster.getHeight()*4];
-            for (int y = minY, idx = 0; y < maxY; ++y)
-            {
-                for (int x = minX; x < maxX; ++x, ++idx)
+                int minX = Integer.MAX_VALUE, maxX = Integer.MIN_VALUE, minY = Integer.MAX_VALUE, maxY = Integer.MIN_VALUE;
+                Vector3d v3 = new Vector3d();
+                for (int i = 0; i < 8; ++i)
                 {
-                    double xf = screenToScene.rdotAffineX(x,y), yf = screenToScene.rdotAffineY(x,y);
-                    float opacity = v.getOpacity(xf, yf, 0);
-                    data[idx * 4 + 3] = opacity > 0x7FFFFFFF ? 196 : 0;
-                    if (data[idx * 4 + 3] != 0)
+                    v.unitVolumeToGlobal.rdotAffine((i / 4) * 2 - 1, ((i / 2) % 2) * 2 - 1, (i % 2) * 2 - 1, v3);
+                    v3.z = 1;
+                    sceneToScreen.rdot(v3);
+                    minX = Math.min((int)Math.floor(v3.x), minX); maxX = Math.max((int)Math.ceil(v3.x), minX);
+                    minY = Math.min((int)Math.floor(v3.y), minY); maxY = Math.max((int)Math.ceil(v3.y), minY);
+                }
+                Rectangle r = g.getClipBounds();
+                minX = Math.max(r.x, minX); maxX = Math.min(r.x + r.width, maxX);
+                minY = Math.max(r.y, minY); maxY = Math.min(r.y + r.height, maxY);
+                if (minX >= maxX || minY >= maxY) {return vertices;}
+                BufferedImage bi = new BufferedImage(maxX - minX, maxY - minY, BufferedImage.TYPE_INT_ARGB);
+                WritableRaster raster = bi.getRaster();
+                float refractiveMin = v.getRefractiveMin(), refractiveMax = v.getRefractiveMax();
+                float refractiveScale = 255 / (refractiveMax - refractiveMin);
+                int data[] = new int[raster.getWidth() * raster.getHeight()*4];
+                for (int y = minY, idx = 0; y < maxY; ++y)
+                {
+                    for (int x = minX; x < maxX; ++x, ++idx)
                     {
-                        float refractiveIndex = v.getRefractiveIndex(xf,yf, 0);
-                        data[idx * 4] = data[idx * 4 + 2] = (int)((refractiveIndex - refractiveMin) * refractiveScale);
-                        data[idx * 4 + 1] = 255 - data[idx * 4];
+                        double xf = screenToScene.rdotAffineX(x,y), yf = screenToScene.rdotAffineY(x,y);
+                        float opacity = v.getOpacity(xf, yf, 0);
+                        data[idx * 4 + 3] = opacity > 0x7FFFFFFF ? 128 : 0;
+                        if (data[idx * 4 + 3] != 0)
+                        {
+                            float refractiveIndex = v.getRefractiveIndex(xf,yf, 0);
+                            data[idx * 4] = data[idx * 4 + 2] = (int)((refractiveIndex - refractiveMin) * refractiveScale);
+                            data[idx * 4 + 1] = 255 - data[idx * 4];
+                        }
                     }
                 }
+                raster.setPixels(0, 0, raster.getWidth(), raster.getHeight(), data);
+                //AffineTransform gat = ((Graphics2D)g).getTransform();
+                //AffineTransform affineSceneToScreen = new AffineTransform();
+                //TransformConversion.copy(sceneToScreen, affineSceneToScreen);
+                //affineSceneToScreen.preConcatenate(gat);
+                //((Graphics2D)g).setTransform(affineSceneToScreen);
+                g.drawImage(bi, minX, minY, null);
+                //g.drawImage(bi, minX, minY, minX + bi.getWidth(), minY + bi.getHeight(), 0, 0, bi.getWidth(), bi.getHeight(), null);
+                //((Graphics2D)g).setTransform(gat);
             }
-            raster.setPixels(0, 0, raster.getWidth(), raster.getHeight(), data);
-            //AffineTransform gat = ((Graphics2D)g).getTransform();
-            //AffineTransform affineSceneToScreen = new AffineTransform();
-            //TransformConversion.copy(sceneToScreen, affineSceneToScreen);
-            //affineSceneToScreen.preConcatenate(gat);
-            //((Graphics2D)g).setTransform(affineSceneToScreen);
-            g.drawImage(bi, minX, minY, null);
-            //g.drawImage(bi, minX, minY, minX + bi.getWidth(), minY + bi.getHeight(), 0, 0, bi.getWidth(), bi.getHeight(), null);
-            //((Graphics2D)g).setTransform(gat);
-        }
-    	/*
-    	vertices = ArrayUtil.ensureLength(vertices, v.numMeshVertices() * 3);
-		v.getMeshVertices(vertices);
-		for (int i = 0; i < 8; ++i)
-		{
-			int x0 = (int)((vertices[i * 3] + translation.x) * scale);
-			int y0 = (int)((vertices[i * 3 + 1] + translation.y) * scale);
+        	/*
+        	vertices = ArrayUtil.ensureLength(vertices, v.numMeshVertices() * 3);
+    		v.getMeshVertices(vertices);
+    		for (int i = 0; i < 8; ++i)
+    		{
+    			int x0 = (int)((vertices[i * 3] + translation.x) * scale);
+    			int y0 = (int)((vertices[i * 3 + 1] + translation.y) * scale);
 
-			for (int b = 0; b < 3; ++b)
-			{
-				int j = i | (1 << b);
-				if (j < 8 && j != i)
-				{
-					int x1 = (int)((vertices[j * 3] + translation.x) * scale);
-					int y1 = (int)((vertices[j * 3 + 1] + translation.y) * scale);
-					g.drawLine(x0,y0,x1,y1);
-				}
-			}
-		}*/
+    			for (int b = 0; b < 3; ++b)
+    			{
+    				int j = i | (1 << b);
+    				if (j < 8 && j != i)
+    				{
+    					int x1 = (int)((vertices[j * 3] + translation.x) * scale);
+    					int y1 = (int)((vertices[j * 3 + 1] + translation.y) * scale);
+    					g.drawLine(x0,y0,x1,y1);
+    				}
+    			}
+    		}*/
+        }
 		return vertices;
     }
 

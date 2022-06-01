@@ -18,6 +18,7 @@ import geometry.Vector3d;
 import maths.Operation;
 import maths.algorithm.OperationCalculate;
 import maths.data.MapOperation;
+import maths.data.StringOperation;
 import maths.exception.OperationParseException;
 import maths.variable.Variable;
 import maths.variable.VariableAmount;
@@ -160,46 +161,46 @@ public abstract class OpticalObject {
 
 	public static final byte TYPE_TEXTFIELD = 0, TYPE_CHECKBOX = 1, TYPE_COMBOBOX = 2, TYPE_BUTTON = 3, TYPE_COLOR = 4;
 
-	public enum SCENE_OBJECT_COLUMN_TYPE{
-		ID("Id", TYPE_TEXTFIELD, "Unnamed", null),
-		ACTIVE("Visible", TYPE_CHECKBOX, true, null),
-		PATH("Path", TYPE_TEXTFIELD, "", null),
-		POSITION("Position", TYPE_TEXTFIELD, new Vector3d(), null),
-		TRANSFORMATION("Transformation", TYPE_TEXTFIELD, new Matrix4d(1), null),
-		DIRECTION("Direction", TYPE_TEXTFIELD, new Vector3d(1,0,0), null),
-		LOAD("Load", TYPE_BUTTON, "Load", null),
-		VIEW("View", TYPE_BUTTON, "View", null),
-		OPEN("Open", TYPE_BUTTON, "Open", null),
-		SAVE("Save", TYPE_BUTTON, "Save", null),
-		SAVE_TO("SaveTo", TYPE_BUTTON, "SaveTo", null),
-		FRAME("Frame", TYPE_TEXTFIELD, "undef", null),
-		ANCHOR_POINT("AnchorPoint", TYPE_COMBOBOX, ANCHOR_POINT_ENUM.NORMAL_INTERSECTION.name, ANCHOR_POINT_ENUM.names()),
-		MATERIAL("Material", TYPE_COMBOBOX, MaterialType.REFLECTION.name, MaterialType.names()),
-		SURFACE("Surface", TYPE_COMBOBOX, SurfaceType.FLAT.name, SurfaceType.names()),
-		MAXRADIUS("Radius", TYPE_TEXTFIELD, 10, null),
-		MINRADIUS("MinimumRadius", TYPE_TEXTFIELD,0,null),
-		IOR0("Ior0", TYPE_TEXTFIELD, 1, null),
-		IOR1("Ior1", TYPE_TEXTFIELD, 1, null),
-		DIFFUSE("Diffuse", TYPE_TEXTFIELD, 0, null),
-		TRACED_RAYS("TracedRays", TYPE_TEXTFIELD, 100, null),
-		UNTRACED_RAYS("UntracedRays", TYPE_TEXTFIELD, 10000, null),
-		BIDIRECTIONAL("Bidirectional", TYPE_CHECKBOX, false, null),
-		SMOOTH("Smooth", TYPE_CHECKBOX, false, null),
-		INVERT_INOUT("InvertInsideOutside", TYPE_CHECKBOX, false, null),
-		CONIC_CONSTANT("ConicConstant", TYPE_TEXTFIELD, 1, null),
-		PREVIOUS_OBJECTS("PreviousObjects", TYPE_TEXTFIELD, null, null),
-		FOLLOWING_OBJECTS("FollowingObjects", TYPE_TEXTFIELD, null, null),
-		END_OBJECTS("EndObjects", TYPE_TEXTFIELD, null, null),
-		VOLUME_SCALING("VolumeScaling", TYPE_TEXTFIELD, 1000, null),
-		MAX_STEPS("MaxSteps", TYPE_TEXTFIELD, 8000, null),
-		COLOR("Color", TYPE_COLOR, new int[] {255,255,255,255}, null),
-		TEXTURE_OBJECT("TextureObject", TYPE_TEXTFIELD, null, null),
-		TEXTURE_MAPPING("TextureMapping", TYPE_COMBOBOX, TextureMapping.SPHERICAL.name, TextureMapping.names()),
-		INVERT_NORMAL("InvertNormal", TYPE_CHECKBOX, false, null),
-		ALPHA_CALCULATION("AlphaCalculation", TYPE_COMBOBOX, AlphaCalculation.MULT.name, AlphaCalculation.names()),
-		INNER_POINT_TRAJECTORY_COUNT("InnerPoints", TYPE_TEXTFIELD, 10, null),
-		DELETE("Delete", TYPE_BUTTON, "Delete", null),
-		ALPHA_TO_RADIUS("AlphaToRadius", TYPE_CHECKBOX, false, null);
+  	public enum SCENE_OBJECT_COLUMN_TYPE{
+		ID                ("Id",          null,   TYPE_TEXTFIELD, "Unnamed", null),
+		ACTIVE            ("Visible",     null,   TYPE_CHECKBOX, true, null),
+		PATH              ("Path",        null,   TYPE_TEXTFIELD, "", null),
+		POSITION          ("Position",    "position",   TYPE_TEXTFIELD, new Vector3d(), null),
+		TRANSFORMATION    ("Transformation", null,   TYPE_TEXTFIELD, new Matrix4d(1), null),
+		DIRECTION         ("Direction",   "direction",   TYPE_TEXTFIELD, new Vector3d(1,0,0), null),
+		LOAD              ("Load",        null,   TYPE_BUTTON, "Load", null),
+		VIEW              ("View",        null,   TYPE_BUTTON, "View", null),
+		OPEN              ("Open",        null,   TYPE_BUTTON, "Open", null),
+		SAVE              ("Save",        null,   TYPE_BUTTON, "Save", null),
+		SAVE_TO           ("SaveTo",      null,   TYPE_BUTTON, "SaveTo", null),
+		FRAME             ("Frame",       null,   TYPE_TEXTFIELD, "undef", null),
+		ANCHOR_POINT      ("AnchorPoint", null,   TYPE_COMBOBOX, ANCHOR_POINT_ENUM.NORMAL_INTERSECTION.name, ANCHOR_POINT_ENUM.names()),
+		MATERIAL          ("Material",    null,   TYPE_COMBOBOX, MaterialType.REFLECTION.name, MaterialType.names()),
+		SURFACE           ("Surface",     null,   TYPE_COMBOBOX, SurfaceType.FLAT.name, SurfaceType.names()),
+		MAXRADIUS         ("Radius",      null,   TYPE_TEXTFIELD, 10, null),
+		MINRADIUS         ("MinimumRadius", null,   TYPE_TEXTFIELD,0,null),
+		IOR0              ("Ior0",        null,   TYPE_TEXTFIELD, 1, null),
+		IOR1              ("Ior1",        null,   TYPE_TEXTFIELD, 1, null),
+		DIFFUSE           ("Diffuse",     null,   TYPE_TEXTFIELD, 0, null),
+		TRACED_RAYS       ("TracedRays",  null,   TYPE_TEXTFIELD, 100, null),
+		UNTRACED_RAYS     ("UntracedRays", null,   TYPE_TEXTFIELD, 10000, null),
+		BIDIRECTIONAL     ("Bidirectional", null,   TYPE_CHECKBOX, false, null),
+		SMOOTH            ("Smooth",      null,   TYPE_CHECKBOX, false, null),
+		INVERT_INOUT      ("InvertInsideOutside", null,   TYPE_CHECKBOX, false, null),
+		CONIC_CONSTANT    ("ConicConstant", null,   TYPE_TEXTFIELD, 1, null),
+		PREVIOUS_OBJECTS  ("PreviousObjects", null,   TYPE_TEXTFIELD, null, null),
+		FOLLOWING_OBJECTS ("FollowingObjects", null,   TYPE_TEXTFIELD, null, null),
+		END_OBJECTS       ("EndObjects",  null,   TYPE_TEXTFIELD, null, null),
+		VOLUME_SCALING    ("VolumeScaling", null,   TYPE_TEXTFIELD, 1000, null),
+		MAX_STEPS         ("MaxSteps",    null,   TYPE_TEXTFIELD, 8000, null),
+		COLOR             ("Color",       null,   TYPE_COLOR, new int[] {255,255,255,255}, null),
+		TEXTURE_OBJECT    ("TextureObject", null,   TYPE_TEXTFIELD, null, null),
+		TEXTURE_MAPPING   ("TextureMapping", null,   TYPE_COMBOBOX, TextureMapping.SPHERICAL.name, TextureMapping.names()),
+		INVERT_NORMAL     ("InvertNormal",null,   TYPE_CHECKBOX, false, null),
+		ALPHA_CALCULATION ("AlphaCalculation", null,   TYPE_COMBOBOX, AlphaCalculation.MULT.name, AlphaCalculation.names()),
+		INNER_POINT_TRAJECTORY_COUNT("InnerPoints", null,   TYPE_TEXTFIELD, 10, null),
+		DELETE            ("Delete",      null,   TYPE_BUTTON, "Delete", null),
+		ALPHA_TO_RADIUS   ("AlphaToRadius", null,   TYPE_CHECKBOX, false, null);
 
 	    private static final SCENE_OBJECT_COLUMN_TYPE ct[] = SCENE_OBJECT_COLUMN_TYPE.values();
 	    private static final String[] columnNames = new String[SCENE_OBJECT_COLUMN_TYPE.ct.length];
@@ -215,13 +216,15 @@ public abstract class OpticalObject {
 	    }
 
 		public final String name;
+		public final Operation vname;
 		public final Class<?> cl;
 		public final byte optionType;
 		public final Object defaultValue;
 		public final UnmodifiableArrayList<String> possibleValues;
 
-		private SCENE_OBJECT_COLUMN_TYPE(String name, byte optionType, Object defaultValue, String possibleValues[]) {
+		private SCENE_OBJECT_COLUMN_TYPE(String name, String vname, byte optionType, Object defaultValue, String possibleValues[]) {
 			this.name = name;
+			this.vname = new StringOperation(vname);
 			this.optionType = optionType;
 			switch (optionType)
 			{

@@ -39,7 +39,7 @@ public class OpticalSurfaceTest {
             rso.position.set(-10,i/100.,0);
             rso.direction.set(1, 0,0);
             rso.numBounces = 0;
-            rs.calculateRay(rso, 10, null, 0, rs.getActiveSurfaces(), null, 0);
+            rs.calculateRay(rso, 10, null, 0, rs.copyActiveSurfaces(), null, 0);
             rso.position.sub(expectedPoint);
             rso.position.add(rso.direction, -rso.direction.dot(rso.position)/rso.direction.dot());
             assertEquals(0,rso.position.norm(), 1E-5);
@@ -67,7 +67,7 @@ public class OpticalSurfaceTest {
             rso.position.set(-1,i/100.,0);
             rso.direction.set(1, -1e-4,0);
             rso.numBounces = 0;
-            rs.calculateRay(rso, 1, null, 0, rs.getActiveSurfaces(), null, 0);
+            rs.calculateRay(rso, 1, null, 0, rs.copyActiveSurfaces(), null, 0);
             rso.position.sub(expectedPoint);
             rso.position.add(rso.direction, -rso.direction.dot(rso.position)/rso.direction.dot());
             assertEquals(0,rso.position.norm(), 4E-4);
