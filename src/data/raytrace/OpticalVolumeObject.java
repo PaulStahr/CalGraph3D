@@ -114,7 +114,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 	{
 		private long pointer;
 		enum VolumeRaytraceOptionType {
-			LOGLEVEL(0), WRITE_INSTANCE(1);
+			LOGLEVEL(0), WRITE_INSTANCE(1), MINIMUM_GPU(2);
 			private final int id;
 			VolumeRaytraceOptionType(int id) { this.id = id; }
 		    public int getValue() { return id; }
@@ -127,8 +127,10 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 
 		public int getLoglevel()                      {return get_option_valuei(pointer, VolumeRaytraceOptionType.LOGLEVEL.id);}
 		public void setLoglevel(int value)            {set_option_valuei(pointer, VolumeRaytraceOptionType.LOGLEVEL.id, value);}
-		public boolean getWriteInstance()             {return get_option_valueb(pointer, VolumeRaytraceOptionType.WRITE_INSTANCE.id);}
-		public void setWriteInstance(boolean value)   {set_option_valueb(pointer, VolumeRaytraceOptionType.WRITE_INSTANCE.id, value);}
+        public boolean getWriteInstance()             {return get_option_valueb(pointer, VolumeRaytraceOptionType.WRITE_INSTANCE.id);}
+        public void setWriteInstance(boolean value)   {set_option_valueb(pointer, VolumeRaytraceOptionType.WRITE_INSTANCE.id, value);}
+        public int getMinimumGpu()                    {return get_option_valuei(pointer, VolumeRaytraceOptionType.MINIMUM_GPU.id);}
+        public void setMinimumGpu(int value)          {set_option_valuei(pointer, VolumeRaytraceOptionType.MINIMUM_GPU.id, value);}
 
 		@Override
 		protected void finalize()
@@ -861,6 +863,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
         }
         options.setWriteInstance(raytraceWriteInstance);
         options.setLoglevel(raytraceLoglevel);
+        //options.setMinimumGpu(0);
     }
 
 	public void calculateRays(Object position, Object direction, int directionBegin, int directionEnd, OpticalObject object[], int objectBegin, Object path, int iteration[])

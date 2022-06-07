@@ -2698,6 +2698,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 			gd.setColor(LENSE_INVISIBLE);
 			int sceneTrajectoryWriteIndex = 0;
 			gen.threeDimensional = false;
+            Vector2d v2 = new Vector2d();
 
 			for (int i = 0; i < scene.getActiveLightCount(); ++i)
 			{
@@ -2737,25 +2738,11 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 	                    gd.setColor(Color.BLACK);
 	                    gd.drawArc((npc.get(0) + globalPaintOffset.x) * scale-5, (npc.get(1) + globalPaintOffset.y) * scale-5, 10, 10, 0, 360);
 					}
+                    gd.setColor(Color.RED);
+                    sceneToScreen.rdotAffine(npc.getAverage(0), npc.getAverage(1), v2);
+                    gd.drawArc(v2.x - 5, v2.y - 5, 10, 10, 0, 360);
+                    v0.set(0,0,0);
 					npc.reset();
-				}
-				if (true)
-				{
-					int count = 0;
-					for (int j = 0; j < source.numTracedRays; ++j)
-					{
-						if (accepted[j] == RaytraceScene.STATUS_ACCEPTED && (scene.forceEndpoint == null || scene.forceEndpoint == endObject[j]))
-						{
-							v0.add(endpos, j * 3);
-							++count;
-						}
-					}
-					gd.setColor(Color.RED);
-					v0.multiply(1./count);
-					v0.z = 1;
-					sceneToScreen.rdot(v0);
-					gd.drawArc(v0.x - 5, v0.y - 5, 10, 10, 0, 360);
-					v0.set(0,0,0);
 				}
 				for (int j = 0, trajectoryIndex = 0; j < source.numTracedRays; ++j)
 				{
