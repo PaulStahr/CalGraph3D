@@ -1,8 +1,8 @@
 import numpy as np
-from optical_object import OpticalObject
-from surface_type import SurfaceType
-from texture_mapping import TextureMapping
-from geometry import Geometry
+from calgraph3d.data.raytrace.OpticalObject import OpticalObject
+from calgraph3d.data.raytrace.SurfaceType import SurfaceType
+from calgraph3d.data.raytrace.TextureMapping import TextureMapping
+from calgraph3d.data.raytrace.Geometry import Geometry
 import math
 
 
