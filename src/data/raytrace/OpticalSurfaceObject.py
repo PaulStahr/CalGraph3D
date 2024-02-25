@@ -2,7 +2,7 @@ import numpy as np
 from calgraph3d.data.raytrace.OpticalObject import OpticalObject
 from calgraph3d.data.raytrace.SurfaceType import SurfaceType
 from calgraph3d.data.raytrace.TextureMapping import TextureMapping
-from calgraph3d.data.raytrace.Geometry import Geometry
+from jsymmath.geometry.Geometry import Geometry
 import math
 
 
@@ -193,9 +193,12 @@ class OpticalSurfaceObject(OpticalObject):
             dirdot = self.directionLength - mdir
 
             res = posdot + self.conicConstant * np.square(dirdot) - self.directionLengthQ
-            if normalize:
-                res /= 2 * xp.sqrt(xp.square(posdot) + dirdot * (
-                        self.conicConstant * 2 * mdir + self.conicConstant ** 2 * dirdot))
+            if normalize != False:
+                div = 2 * xp.sqrt(posdot - dirdot * (
+                        self.conicConstant * 2 * mdir - self.conicConstant ** 2 * dirdot))
+                if normalize == 'seperate':
+                    return res, div
+                res /= div
             return res
 
         elif surf == SurfaceType.CYLINDER:
