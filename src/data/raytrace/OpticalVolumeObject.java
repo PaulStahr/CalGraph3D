@@ -416,7 +416,7 @@ public abstract class OpticalVolumeObject extends OpticalObject{
 					}
 				}
 			}
-			Armadillo.solveDiffusionEquation(width, height, depth, equalityOperationResult, notGivenIndices, notGivenCount);
+			Armadillo.solveDiffusionEquation(width, height, depth, equalityOperationResult, notGivenIndices, notGivenCount, Armadillo.Backend.ARMADILLO);
 			vs.add(equalityOperationResVar = new Variable("lres"));
 			double eqLimits[] = ArrayUtil.minMax(equalityOperationResult, new double[2]);
 			Variable minEqVar = new Variable("eqmin", eqLimits[0]);

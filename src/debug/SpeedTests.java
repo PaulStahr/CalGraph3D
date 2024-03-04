@@ -1,16 +1,16 @@
 /*******************************************************************************
  * Copyright (c) 2019 Paul Stahr
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -46,7 +46,7 @@ import util.Buffers;
 
 
 public class SpeedTests {
-	
+
 	private static final void compare(int count, int runPerCount, Runnable ...run)
 	{
 		long time = 0;
@@ -70,11 +70,10 @@ public class SpeedTests {
 			strB.setLength(0);
 		}
 	}
-	
+
 	public static void test(){
-		System.out.println("result: " + Arrays.toString(Armadillo.solveDiffusionEquation(4,1,1,new double[] {3,0,0,5}, new boolean[] {true, false, false, true})));
-		
-		
+		System.out.println("result: " + Arrays.toString(Armadillo.solveDiffusionEquation(4,1,1,new double[] {3,0,0,5}, new boolean[] {true, false, false, true}, Armadillo.Backend.ARMADILLO)));
+
 		for (int i = 0; i < 10; ++i)
 		{
 			compare(10000, 1000, new arrayAdditionTest());
@@ -84,37 +83,37 @@ public class SpeedTests {
 		//compare(100, 10, new FillFloatBuffer2(), new FillFloatBuffer());
 		//VariableStack vs = new VariableStack();
 		//compare(100,200000,new CallChangeListener(vs.variableListenerHeap), new CallChangeListener(vs));
-		
+
 	}
-	
+
 	public static class FillFloatBuffer implements Runnable{
 		FloatBuffer fb = Buffers.createFloatBuffer(1);
 		float vertices[] = new float[300000];
 		float color[] = new float[400000];
-		
+
 		@Override
         public final void run()
 		{
 			BufferUtils.fillWithVertexAndColorData(vertices, color, fb);
 		}
 	}
-	
+
 	public static class FillFloatBuffer2 implements Runnable{
 		FloatBuffer fb = Buffers.createFloatBuffer(1);
 		float vertices[] = new float[300000];
 		float color[] = new float[400000];
-		
+
 		@Override
         public final void run()
 		{
 			BufferUtils.fillWithVertexAndColorData2(vertices, color, fb);
 		}
 	}
-	
+
 	public static class ByteBufferPut0 implements Runnable{
 		FloatBuffer fb = Buffers.createFloatBuffer(1000000);
 		int count = fb.capacity() / 2;
-		
+
 		@Override
         public final void run()
 		{
@@ -126,11 +125,11 @@ public class SpeedTests {
 			}
 		}
 	}
-	
+
 	public static class ByteBufferPut1 implements Runnable{
 		FloatBuffer fb = Buffers.createFloatBuffer(1000000);
 		int count = fb.capacity() / 2;
-		
+
 		@Override
         public final void run()
 		{
@@ -142,12 +141,12 @@ public class SpeedTests {
 			}
 		}
 	}
-	
+
 	public static class ByteBufferPut2 implements Runnable{
 		IntBuffer fb = Buffers.createIntBuffer(1000000);
 		int array[] = new int[1000000];
 		int count = fb.capacity() / 2;
-		
+
 		@Override
         public final void run()
 		{
@@ -166,7 +165,7 @@ public class SpeedTests {
 		IntBuffer fb = Buffers.createIntBuffer(1000000);
 		int array[] = new int[1000000];
 		int count = fb.capacity() / 2;
-		
+
 		@Override
         public final void run()
 		{
@@ -186,44 +185,44 @@ public class SpeedTests {
 
 
 
-	
+
 	public static class ObjectOrganicationTest implements Runnable
 	{
 		float verticesf[] = new float[300000];
 		float normalsf[] = new float[300000];
-		
+
 		@Override
         public void run()
 		{
-			Geometry.calcVertexNormals(1000, 100, verticesf, normalsf, false, false);	
+			Geometry.calcVertexNormals(1000, 100, verticesf, normalsf, false, false);
 		}
 	}
-	
+
 	public static class ObjectOrganicationTest2 implements Runnable
 	{
 		FloatVectorObject vertices = new FloatVectorObject(100000);
 		FloatVectorObject normals = new FloatVectorObject(100000);
 		@Override
         public void run()
-		{	
+		{
 			Geometry.calcVertexNormals(1000, 100, vertices, normals, false, false);
-		}	
+		}
 	}
-	
+
 	public static class GarbageCollectionTestFinalize implements Runnable{
-		
-		private static final ArrayList<Object> finalizedObjects = new ArrayList<Object>();
-		
+
+		private static final ArrayList<Object> finalizedObjects = new ArrayList<>();
+
 		private static class FinalizerObject extends Object{
 			@Override
             public void finalize()
 			{
 				synchronized (finalizedObjects) {
-					finalizedObjects.add(this);		
+					finalizedObjects.add(this);
 				}
 			}
 		}
-		
+
 		FinalizerObject array[] = new FinalizerObject[2000000];
 		public GarbageCollectionTestFinalize()
 		{
@@ -232,7 +231,7 @@ public class SpeedTests {
 				array[i] = new FinalizerObject();
 			}
 		}
-		
+
 		@Override
 		public void run() {
 			for (int j = 0; j < 500000; ++j)
@@ -248,29 +247,29 @@ public class SpeedTests {
 						throw new NullPointerException();
 					}
 				}
-				finalizedObjects.clear();	
+				finalizedObjects.clear();
 				finalizedObjects.trimToSize();
 			}
 		}
 	}
-	
+
 	public static final void garbageCollectionTestReference()
 	{
-		ReferenceQueue<Object> referenceQueue = new ReferenceQueue<Object>();
+		ReferenceQueue<Object> referenceQueue = new ReferenceQueue<>();
 		Object array[] = new Object[2000000];
 		@SuppressWarnings("unchecked")
 		Reference<Object> ref[] = new WeakReference[array.length];
 		for (int i = 0; i < array.length; ++i)
 		{
 			array[i] = new Object();
-			ref[i] = new WeakReference<Object>(array[i]);
+			ref[i] = new WeakReference<>(array[i]);
 		}
 		for (int i = 0; i < 10; ++i)
 		{
 			for (int j = 0; j < 500000; ++j)
 			{
 				array[j] = new Object();
-				ref[j] = new WeakReference<Object>(array[j]);				
+				ref[j] = new WeakReference<>(array[j]);
 			}
 			long time = System.nanoTime();
 			System.gc();
@@ -278,12 +277,12 @@ public class SpeedTests {
 			while (referenceQueue.poll() != null);
 		}
 	}
-	
+
 	@SuppressWarnings("unused")
 	private static class normalCalculationTest1 implements Runnable {
 		FloatVectorObject fv0 = new FloatVectorObject(1000000);
 		FloatVectorObject fv1 = new FloatVectorObject(1000000);
-		
+
 		@Override
         public void run()
 		{
@@ -294,14 +293,14 @@ public class SpeedTests {
 	public static class normalCalculationTest2 implements Runnable {
 		FloatVectorObject fv0 = new FloatVectorObject(1000000);
 		FloatVectorObject fv1 = new FloatVectorObject(1000000);
-		
+
 		@Override
         public void run()
 		{
 				Geometry.calcVertexNormals2(1000, 1000, fv0, fv1, false, false);
 		}
 	}
-	
+
 	public static class additionTest
 	{
 		Operation op;
@@ -327,7 +326,7 @@ public class SpeedTests {
 			}
 		}
 	}
-	
+
 	public static final void ggtTest(){
 		for (int i=-1000;i<1000;i++){
 			for (int j=-1000;j<1000;j++){
@@ -337,7 +336,7 @@ public class SpeedTests {
 			}
 		}
 	}
-	
+
 	public class ggtTest{
 		long res = 0;
 		public void run()
@@ -349,29 +348,29 @@ public class SpeedTests {
 			}
 		}
 	}
-	
+
 	public static class HypotTest implements Runnable{
 		double erg=0;
-		
+
 		@Override
         public void run()
 		{
 			final double x = Math.random(), y = Math.random();
-			erg += Math.atan(x/y);			
+			erg += Math.atan(x/y);
 		}
 	}
-	
+
 	public static class HypotTest2 implements Runnable{
 		double erg=0;
-		
+
 		@Override
         public void run()
 		{
 			final double x = Math.random(), y = Math.random();
-			erg += Math.atan2(x,y);			
+			erg += Math.atan2(x,y);
 		}
 	}
-	
+
 	public static class RationalNumber0 implements Runnable
 	{
 		double erg = 0;
@@ -382,7 +381,7 @@ public class SpeedTests {
 			for (int i=0;i<op1.length;i++)
 				op1[i]= new DivisionOperation(new RealDoubleOperation((double)304/43), new RealDoubleOperation((double)32/12));
 		}
-		
+
 		@Override
         public void run()
 		{
@@ -391,7 +390,7 @@ public class SpeedTests {
 			}
 		}
 	}
-	
+
 	public static class RationalNumber1 implements Runnable
 	{
 		double erg = 0;
@@ -401,7 +400,7 @@ public class SpeedTests {
 			for (int i=0;i<op2.length;i++)
 				op2[i]= new DivisionOperation(RealRationalOperation.getInstance(304,43), RealRationalOperation.getInstance(32,12));
 		}
-		
+
 		@Override
         public void run()
 		{
@@ -410,7 +409,7 @@ public class SpeedTests {
 			}
 		}
 	}
-	
+
 	public static class doubleToString0 implements Runnable{
 		StringBuilder res = new StringBuilder(100);
 		double d = 60.005;
@@ -424,8 +423,8 @@ public class SpeedTests {
 			}
 		}
 	}
-	
-	public static class doubleToString1 implements Runnable{ 
+
+	public static class doubleToString1 implements Runnable{
 		StringBuilder erg = new StringBuilder(100);
 		double d = 60.005;
 		@Override
@@ -435,9 +434,9 @@ public class SpeedTests {
 				erg.setLength(0);
 				erg.append(d);
 			}
-		}		
+		}
 	}
-	
+
 	public static final StringBuilder toString(double d, StringBuilder str){
 		long bits = Double.doubleToLongBits(d);
 		int exponent = (int)((bits >> 52) & 0x7ffL);
@@ -445,8 +444,8 @@ public class SpeedTests {
 		/*Number negative*/
 		if ((bits >> 63) != 0)
 			str.append('-');
-		
-		
+
+
 		int e2 = exponent-1075;
 		long erg = m;
 		long pointDivisor = 1;
@@ -454,9 +453,9 @@ public class SpeedTests {
 			erg = (erg * 1000) >> 10;
 			pointDivisor *= 1000;
 		}
-		
+
 		erg >>= -e2 % 10;
-			
+
 		str.append(m>>-e2).append('.');
 		long behindPoint = erg % pointDivisor;
 		/*erzeuge fuehrende Nullern*/
@@ -467,7 +466,7 @@ public class SpeedTests {
 			behindPoint /=10;
 		return str.append(behindPoint);
 	}
-	
+
 	public static void getVariableTest(){
 		try {
 			StringId.StringIdObject str0[] = {StringId.getStringAndId("a"), StringId.getStringAndId("b")};
@@ -475,15 +474,15 @@ public class SpeedTests {
 			System.out.println(Arrays.toString(str0));
 			OperationCompiler.compile("a+b+c+d+i+k+l+o+p+q+r+s+t");
 			Operation op = OperationCompiler.compile("l+o+p+q+r+s+t+a+b+c+d+i+k");
-			ArrayList<StringId.StringIdObject> erg = new ArrayList<StringId.StringIdObject>();
+			ArrayList<StringId.StringIdObject> erg = new ArrayList<>();
 			for (int j=0;j<2;j++){
 				long time = System.nanoTime();
 				for (int i=0;i<10000000;i++){
 					erg.clear();
 					OperationCalculate.getVariables(op, erg);
 				}
-				System.out.println((System.nanoTime()-time)/1000000000f + "-->" + erg);		
-			}			
+				System.out.println((System.nanoTime()-time)/1000000000f + "-->" + erg);
+			}
 			for (int j=0;j<2;j++){
 				long time = System.nanoTime();
 				for (int i=0;i<10000000;i++){
@@ -492,18 +491,18 @@ public class SpeedTests {
 					OperationCalculate.getVariables(op, erg);
 					}
 				}
-				System.out.println((System.nanoTime()-time)/1000000000f + "-->" + erg);		
+				System.out.println((System.nanoTime()-time)/1000000000f + "-->" + erg);
 			}
 		} catch (OperationParseException e) {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public static class MultiplicationTest implements Runnable{
 		double erg = 0;
 		Controller control = new Controller();
 		Operation op;
-		
+
 		public MultiplicationTest()
 		{
 			Calculate.init();
@@ -511,16 +510,16 @@ public class SpeedTests {
 				op = OperationCompiler.compile("sqrt(2.0)");
 			} catch (OperationParseException e) {
 				e.printStackTrace();
-			}	
+			}
 		}
-			
+
 		@Override
         public void run()
 		{
-			erg += op.calculate(null, control).doubleValue();		
+			erg += op.calculate(null, control).doubleValue();
 		}
 	}
-	
+
 	public static class arrayAdditionTest implements Runnable{
 		Operation op;
 		long erg=0;
@@ -531,9 +530,9 @@ public class SpeedTests {
 				op = OperationCompiler.compile("{1.,2.,3.,4.,5.}+{6,7,8,9,0}");
 			} catch (OperationParseException e) {
 				e.printStackTrace();
-			}	
+			}
 		}
-		
+
 		@Override
         public void run()
 		{
@@ -541,21 +540,21 @@ public class SpeedTests {
 			for (int j=0;j<a.size();j++){
 				erg += a.get(j).longValue();
 			}
-		}		
+		}
 	}
-	
+
 	public static class powTest0 implements Runnable{
 		long erg=0;
 		public powTest0()
 		{
 			Calculate.init();
 		}
-		
+
 		@Override
         public void run()
 		{
 			for (long k=-100;k<100;k++)
-				erg = erg+(Long)Calculate.pow(k, 6);		
+				erg = erg+(Long)Calculate.pow(k, 6);
 		}
 	}
 
@@ -565,12 +564,12 @@ public class SpeedTests {
 		{
 			Calculate.init();
 		}
-		
+
 		@Override
         public void run()
 		{
 			for (long k=-100;k<100;k++)
-				erg = erg+(Long)Calculate.pow2(k, 6);		
+				erg = erg+(Long)Calculate.pow2(k, 6);
 		}
 	}
 }
