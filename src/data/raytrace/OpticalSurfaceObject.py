@@ -2,6 +2,7 @@ import numpy as np
 from calgraph3d.data.raytrace.OpticalObject import OpticalObject
 from calgraph3d.data.raytrace.SurfaceType import SurfaceType
 from calgraph3d.data.raytrace.TextureMapping import TextureMapping
+from calgraph3d.data.raytrace.Intersection import Intersection
 from jsymmath.geometry.Geometry import Geometry
 import math
 
@@ -95,15 +96,15 @@ class OpticalSurfaceObject(OpticalObject):
         elif self.surf == SurfaceType.SPHERICAL:
             if self.maxRadiusGeometric < self.directionLength:
                 self.dotProdUpperBound = np.sqrt(1 - maxRatio)
-                self.maxArcOpen = np.asin(self.maxRadiusGeometric * self.invDirectionLength)
+                self.maxArcOpen = np.arcsin(self.maxRadiusGeometric * self.invDirectionLength)
             else:
-                self.maxArcOpen = math.pi - np.asin(self.directionLength / self.maxRadiusGeometric)
+                self.maxArcOpen = math.pi - np.arcsin(self.directionLength / self.maxRadiusGeometric)
                 self.dotProdUpperBound = -np.sqrt(1 - 1 / maxRatio)
 
             if self.minRadiusGeometric < self.directionLength:
-                self.minArcOpen = np.asin(self.minRadiusGeometric * self.invDirectionLength)
+                self.minArcOpen = np.arcsin(self.minRadiusGeometric * self.invDirectionLength)
             else:
-                self.minArcOpen = np.pi - np.asin(self.directionLength / self.minRadiusGeometric)
+                self.minArcOpen = np.pi - np.arcsin(self.directionLength / self.minRadiusGeometric)
 
             self.dotProdLowerBound = np.cos(self.minArcOpen)
 
@@ -186,7 +187,11 @@ class OpticalSurfaceObject(OpticalObject):
         if surf == SurfaceType.FLAT:
             return -self.directionNormalized.dot(pos)
         elif surf == SurfaceType.SPHERICAL:
-            return np.sum(np.square(pos), axis=-1) / self.directionLengthQ - 1
+            res = np.sum(np.square(pos), axis=-1)
+            if normalize:
+                np.sqrt(res, out=res)
+                return res - self.directionLength
+            return res - self.directionLengthQ
         elif surf == SurfaceType.CUSTOM:
             posdot = xp.sum(xp.square(pos), axis=-1)
             mdir = xp.inner(xp.asarray(self.directionNormalized, dtype=pos.dtype), pos)
@@ -216,14 +221,142 @@ class OpticalSurfaceObject(OpticalObject):
         else:
             return float('nan')
 
-    def getIntersection(self, ray_pos, ray_dir, intersection, ray_tmin, ray_tmax):
-        x = ray_pos.x - self.midpoint.x
-        y = ray_pos.y - self.midpoint.y
-        z = ray_pos.z - self.midpoint.z
+    def getIntersection(self, ray_pos, ray_dir, intersection, ray_tmin, ray_tmax, xp=np):
+        xyz = ray_pos - self.midpoint
 
-        surf = self.surf
+        if self.surf == SurfaceType.FLAT:
+            alpha = -self.direction.dot(x, y, z) / self.direction.dot(ray_dir)
+            if ray_tmin < alpha < ray_tmax:
+                distanceQ = ray_dir.distanceQ(-alpha, x, y, z)
+                if (self.minRadiusGeometricQ < distanceQ < self.radiusGeometricQ) != self.invertInsideOutside:
+                    intersection.position.set(ray_pos, ray_dir, alpha)
+                    intersection.normal.set(self.direction)
+                    intersection.distance = alpha
+                    intersection.object = self
+                    return intersection
 
-        # Remaining implementation depends on the method implementations of this class.
+        elif self.surf == SurfaceType.HYPERBOLIC:
+            dirproj = self.directionLength - self.directionNormalized.dot(x, y, z)
+            c = x * x + y * y + z * z - 2 * dirproj * dirproj - self.directionLengthQ
+            scal = self.directionNormalized.dot(ray_dir)
+            b = ray_dir.dot(x, y, z) + 2 * scal * dirproj
+            a = 1 / (1 - 2 * scal * scal)
+            c *= a
+            b *= a
+            sqrt = math.sqrt(b * b - c)
+            while sqrt >= 0:
+                alpha = -b - sqrt
+                if ray_tmin < alpha < ray_tmax:
+                    dotProd = dirproj - scal * alpha
+                    if self.dotProdLowerBound2 <= dotProd <= self.dotProdUpperBound2:
+                        dax = ray_dir.x * alpha
+                        day = ray_dir.y * alpha
+                        daz = ray_dir.z * alpha
+                        intersection.position.setAdd(ray_pos, dax, day, daz)
+                        intersection.normal.set(x + dax, y + day, z + daz, self.directionNormalized, 2 * dotProd)
+                        intersection.object = self
+                        intersection.distance = alpha
+                        return intersection
+                sqrt = -sqrt
+
+        elif self.surf == SurfaceType.PARABOLIC:
+            dirproj = self.directionLength - self.directionNormalized.dot(x, y, z)
+            c = x * x + y * y + z * z - self.directionLengthQ - dirproj * dirproj
+            scal = self.directionNormalized.dot(ray_dir)
+            b = ray_dir.dot(x, y, z) + scal * dirproj
+            a = 1 / (1 - scal * scal)
+            c *= a
+            b *= a
+            sqrt = math.sqrt(b * b - c)
+            while sqrt >= 0:
+                alpha = -b - sqrt
+                if ray_tmin < alpha < ray_tmax:
+                    dotProd = dirproj - scal * alpha
+                    if self.dotProdLowerBound2 <= dotProd <= self.dotProdUpperBound2:
+                        dax = ray_dir.x * alpha
+                        day = ray_dir.y * alpha
+                        daz = ray_dir.z * alpha
+                        intersection.position.setAdd(ray_pos, dax, day, daz)
+                        intersection.normal.set(x + dax, y + day, z + daz, self.directionNormalized, dotProd)
+                        intersection.object = self
+                        intersection.distance = alpha
+                        return intersection
+                sqrt = -sqrt
+        elif self.surf == SurfaceType.CUSTOM:
+            dirproj = self.directionLength - self.directionNormalized.dot(x, y, z)
+            c = x * x + y * y + z * z + self.conicConstant * dirproj * dirproj - self.directionLengthQ
+            scal = self.directionNormalized.dot(ray_dir)
+            b = ray_dir.dot(x, y, z) - self.conicConstant * scal * dirproj
+            a = 1 / (1 + self.conicConstant * scal * scal)
+            c *= a
+            b *= a
+            sqrt = math.sqrt(b * b - c)
+            while sqrt >= 0:
+                alpha = -b - sqrt
+                if ray_tmin < alpha < ray_tmax:
+                    dotProd = dirproj - scal * alpha
+                    if dotProd <= self.dotProdUpperBound2 and dotProd >= self.dotProdLowerBound2:
+                        intersection.position.set(ray_pos, ray_dir, alpha)
+                        intersection.normal.set(intersection.position, self.midpoint, self.directionNormalized,
+                                                -self.conicConstant * dotProd)
+                        intersection.object = self
+                        intersection.distance = alpha
+                        return intersection
+                sqrt = -sqrt
+        elif self.surf == SurfaceType.SPHERICAL:
+            c_a = xp.sum(xp.square(xyz), axis=-1) - self.directionLengthQ
+            b_a = xp.sum(ray_dir * xyz, axis=-1)
+            sqrt_a = xp.square(b_a) - c_a
+            mask_b2a = np.nonzero(sqrt_a >= 0)[0]
+            if len(mask_b2a) > 0:
+                sqrt_b = xp.sqrt(sqrt_a[mask_b2a])
+                b_b = b_a[mask_b2a]
+                dirproj_b = xp.inner(self.directionNormalized, xyz[mask_b2a])
+                scal_b = xp.inner(self.directionNormalized, ray_dir[mask_b2a])
+                mask_c2b = np.arange(len(mask_b2a),dtype=int)
+                while True:
+                    alpha_c = -b_b[mask_c2b] - sqrt_b[mask_c2b]
+                    mask_d2c = xp.nonzero(np.logical_and(ray_tmin < alpha_c, alpha_c < ray_tmax))[0]
+                    if len(mask_d2c) > 0:
+                        mask_d2b = mask_c2b[mask_d2c]
+                        alpha_d = alpha_c[mask_d2c]
+                        dotProd_d = dirproj_b[mask_d2b] + scal_b[mask_d2b] * alpha_d
+                        mask_e2d = xp.nonzero(xp.logical_and(self.dotProdUpperBound2 <= dotProd_d, dotProd_d <= self.dotProdLowerBound2))[0]
+                        if len(mask_e2d) > 0:
+                            alpha_e = alpha_d[mask_e2d]
+                            mask_e2a = mask_b2a[mask_d2b[mask_e2d]]
+                            print('replace', mask_e2a)
+                            da_e = ray_dir[mask_e2a] * alpha_e[:,np.newaxis]
+                            intersection.position[mask_e2a] = ray_pos[mask_e2a] + da_e
+                            intersection.normal[mask_e2a] = xyz[mask_e2a] + da_e
+                            intersection.object[mask_e2a] = self
+                            intersection.distance[mask_e2a] = alpha_e
+                            mask_c2b = np.nonzero(intersection.object[mask_b2a] != self)[0]
+                    sqrt_b = -sqrt_b
+                    if not xp.any(sqrt_b[mask_c2b] < 0):
+                        break
+        elif self.surf == SurfaceType.CYLINDER:
+            dirproj = -self.directionNormalized.dot(x, y, z)
+            q = x * x + y * y + z * z - dirproj * dirproj - self.directionLengthQ
+            scal = self.directionNormalized.dot(ray_dir)
+            p = ray_dir.dot(x, y, z) + dirproj * scal
+            a = 1 / (1 - scal * scal)
+            q *= a
+            p *= a
+            sqrt = math.sqrt(p * p - q)
+            while sqrt >= 0:
+                ray_t = -p - sqrt
+                if ray_tmin < ray_t < ray_tmax:
+                    dotProd = dirproj - scal * ray_t
+                    if dotProd >= self.dotProdUpperBound2 and dotProd <= self.dotProdLowerBound2:
+                        intersection.position.set(ray_pos, ray_dir, ray_t)
+                        intersection.normal.set(intersection.position, self.midpoint, self.directionNormalized,
+                                                dotProd)
+                        intersection.object = self
+                        intersection.distance = ray_t
+                        return intersection
+                sqrt = -sqrt
+        return None
 
     def densityCompensation(self, width, height, imageColorArray, channels, stride):
         self.textureMapping.densityCompensation(width, height, imageColorArray, channels, stride)
