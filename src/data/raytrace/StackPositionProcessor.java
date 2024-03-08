@@ -196,11 +196,9 @@ public class StackPositionProcessor {
 			gen.setSource(lightSource);
 			if (gto != null)
 			{
-				ParseUtil parser = new ParseUtil();
-				gto.load(scene.vs, parser);
+				gto.load(scene.vs, new ParseUtil());
 			}
-			OpticalObject source = gen.getSource();
-			final Matrix4d mat = gen.getSource() instanceof MeshObject ? ((MeshObject)source).meshToGlobal : null;
+			final Matrix4d mat = lightSource instanceof MeshObject ? ((MeshObject)lightSource).meshToGlobal : null;
 			final ThreadPool.ThreadLocal<SingleThreadLocal> stl = DataHandler.runnableRunner.new ThreadLocal<>();
 
 			if (outputResolution == null)
@@ -369,7 +367,7 @@ public class StackPositionProcessor {
 							break;
 						}
 						//gto.setImage(ImageUtil.deepCopy(bi));
-						if (source instanceof OpticalSurfaceObject)
+						if (lightSource instanceof OpticalSurfaceObject)
 						{
 							if (dal != null)
 							{
@@ -382,9 +380,9 @@ public class StackPositionProcessor {
 								gen.setArcs(elevation, azimuth);
 							}
 						}
-						else if (source instanceof MeshObject)
+						else if (lightSource instanceof MeshObject)
 						{
-							MeshObject mesh = (MeshObject)source;
+							MeshObject mesh = (MeshObject)lightSource;
 							mesh.meshToGlobal.set(mat);
 							setTransformation(tmp, dal.getD(i * 6), dal.getD(i * 6 + 1), dal.getD(i * 6 + 2) * scale, dal.getD(i * 6 + 3), dal.getD(i * 6 + 4), dal.getD(i * 6 + 5) * scale);
 							mesh.meshToGlobal.dotr(tmp);
@@ -412,7 +410,6 @@ public class StackPositionProcessor {
 									//threadLocal.rso.textureDrawMode = TextureDrawMode.ALPHA_ADDITIVE;
 									threadLocal.rso.readColorGen = true;
 									threadLocal.rso.readColorBack = false;
-									threadLocal.rso.readColorFront = false;
 									threadLocal.rso.readColorGen = true;
 									threadLocal.rsd = new RaySimulationData(blocksize, bidir);
 									threadLocal.startdirs = new float[threadLocal.rsd.enddirs.length];
@@ -422,6 +419,7 @@ public class StackPositionProcessor {
 								}
 								RaySimulationData rsd = threadLocal.rsd;
 								RaySimulationObject currentRay = threadLocal.rso;
+								currentRay.readColorFront = backward;
 								OpticalObject lastObject[] = threadLocal.rsd.lastObject;
 
 								if (rsd == null)
@@ -432,27 +430,29 @@ public class StackPositionProcessor {
 								scene.calculateRays(0, toCalculate, numRays, gen, 0, 0, threadLocal.startpoints, threadLocal.startdirs, rsd.endpoints, rsd.enddirs, rsd.endcolor, null, rsd.accepted, rsd.bounces, lastObject, 10, bidir, currentRay, RaytraceScene.UNACCEPTED_DELETE);
 
 								Vector2d v2 = currentRay.v3;
+                                float color[] = threadLocal.color;
 								for (int j = 0; j < toCalculate; ++j)
 								{
 									if (lastObject[j] == evaluationObject && rsd.accepted[j] == RaytraceScene.STATUS_ACCEPTED)
 									{
 										if (backward)
 										{
-											currentRay.position.set(threadLocal.startpoints, j * 3);
-											currentRay.direction.set(threadLocal.startdirs, j * 3);
-											RaytraceScene.readColor((SurfaceObject)source, currentRay.position, currentRay.direction, v2, threadLocal.color);
-											currentRay.position.set(rsd.endpoints, j * 3);
-											currentRay.direction.set(rsd.enddirs, j * 3);
-											threadLocal.color[4] = 1;
-											ImageUtil.addToPixel(v2.x * trWidth, v2.y * trHeight, trWidth, trHeight, threadLocal.color, 0, 5, 1, imageColorArray);
+										    //Read from endpoint, write to source
+											System.arraycopy(rsd.endcolor, 4*j, threadLocal.color, 0, 4);
+                                            color[4] = 1;
+                                            currentRay.position.set(threadLocal.startpoints, j * 3);
+                                            currentRay.direction.set(threadLocal.startdirs, j * 3);
+                                            ((OpticalSurfaceObject)source).getTextureCoordinates(currentRay.position, currentRay.direction, v2);
+											ImageUtil.addToPixel(v2.x * trWidth, v2.y * trHeight, trWidth, trHeight, color, 0, 5, 1, imageColorArray);
 										}
 										else
 										{
+										    //Read from source, write to endpoint
 											currentRay.position.set(rsd.endpoints, j * 3);
 											currentRay.direction.set(rsd.enddirs, j * 3);
-											evaluationObject.getTextureCoordinates(currentRay.position, currentRay.direction, v2);
 											System.arraycopy(rsd.endcolor, 4*j, threadLocal.color, 0, 4);
 											threadLocal.color[4] = 1;
+                                            evaluationObject.getTextureCoordinates(currentRay.position, currentRay.direction, v2);
 											ImageUtil.addToPixel(v2.x * trWidth, v2.y * trHeight, trWidth, trHeight, threadLocal.color, 0, 5, 1, imageColorArray);
 										}
 									}
@@ -469,7 +469,6 @@ public class StackPositionProcessor {
 						DataHandler.runnableRunner.run(new Runnable() {
 							final int imageColorArrayCopy[] = imageColorArray.clone();
 							final String filename = strB.append(outputFolder).append('/').append(index).append('c').append('.').append("png").toString();
-							final int pixel[] = new int[4];
 
 							@Override
 							public void run()
@@ -477,22 +476,21 @@ public class StackPositionProcessor {
 								evaluationObject.densityCompensation(trWidth, trHeight, imageColorArrayCopy, 5, 5);
 								ArrayUtil.normalizeTo(imageColorArrayCopy, 0, imageColorArrayCopy.length, 255);
 								BufferedImage img2 = new BufferedImage(trWidth, trHeight, BufferedImage.TYPE_4BYTE_ABGR);
-								for (int i = 0; i < imageColorArrayCopy.length; ++i)
+								for (int i = 0; i * 5 < imageColorArrayCopy.length; ++i)
 								{
 									if (imageColorArrayCopy[i * 5 + 4] != 0)
 									{
 										imageColorArrayCopy[i * 5 + 3] = 255;
 									}
 								}
-								ImageUtil.setRGB(img2.getRaster(), imageColorArrayCopy, pixel, 4, 5);
+								ImageUtil.setRGB(img2.getRaster(), imageColorArrayCopy, new int[4], 4, 5);
 								try {
 									ImageIO.write(img2, "png", new File(filename));
 								} catch (IOException e) {
-									logger.error("Can't write image", e);
+									logger.error("Can't write image " + filename, e);
 								}
 							}
 						}, "ImageSaving");
-
 						//DataHandler.runnableRunner.run(new ImageSaver(ImageUtil.deepCopy(gto.image), new File(strB.append(outputFolder).append('/').append(index).append('.').append("png").toString())), "Image Saving");
 						//strB.setLength(0);
 					}

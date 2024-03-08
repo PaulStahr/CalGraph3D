@@ -56,7 +56,7 @@ public class StackPositionProcessorWindow extends JFrame implements ActionListen
 	private final JButton buttonOutputFolder = new JButton();
 	private final JLabel labelPositionOutput = new JLabel("PositionOutput");
 	private final JButton buttonPositionOutput = new JButton();
-	private final JLabel labelLightSource = new JLabel("Light source");
+	private final JLabel labelLightSource = new JLabel("Ray source");
 	private final JLabel labelEvaluationObject = new JLabel("Evaluation object");
 	private final JLabel labelRange = new JLabel("Frame Range");
 	private final JTextField textFieldRangeBegin = new JTextField();
