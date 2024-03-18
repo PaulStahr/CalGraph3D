@@ -46,23 +46,44 @@ class TestOpticalSurface(unittest.TestCase):
                 np.testing.assert_allclose(np.linalg.norm(TestOpticalSurface.multiderivative(func_normed, location, dx)), 0.5, atol=1.1)
 
 
+    def sphere_tests(self, oso):
+        intersection = Intersection(10)
+        position = np.zeros(shape=(10, 3))
+        position[:, 0] = -2
+        position[:, 1] = 0.1 * np.arange(1, 11)
+        direction = np.zeros(shape=(10, 3))
+        direction[:, 0] = 1
+        oso.getIntersection(position, direction, intersection, 0, 100)
+        expectedPoint = np.asarray((-np.sqrt(4 - np.square(position[:, 1])), position[:, 1], np.zeros(10))).T
+        np.testing.assert_allclose(intersection.position, expectedPoint, atol=1e-5)
+        intersection = Intersection(10)
+        position[:, 0] = 0
+        position[:, 1] = 0.1 * np.arange(1, 11)
+        oso.getIntersection(position, direction, intersection, 0, 100)
+        expectedPoint = np.asarray((np.sqrt(4 - np.square(position[:, 1])), position[:, 1], np.zeros(10))).T
+        np.testing.assert_allclose(intersection.position, expectedPoint, atol=1e-5)
+
+    def test_conical(self):
+        oso = OpticalSurfaceObject()
+        oso.surf = SurfaceType.CUSTOM
+        oso.direction[:] = [2, 0, 0]
+        oso.midpoint[:] = [0, 0, 0]
+        oso.minRadiusGeometric = 0
+        oso.maxRadiusGeometric = 100
+        oso.conicConstant = 0
+        oso.update()
+        self.sphere_tests(oso)
+
+
     def test_spherical(self):
         oso = OpticalSurfaceObject()
         oso.surf = SurfaceType.SPHERICAL
-        oso.direction[:] = [1,0,0]
+        oso.direction[:] = [2,0,0]
         oso.midpoint[:] = [0,0,0]
         oso.minRadiusGeometric = 0
         oso.maxRadiusGeometric = 100
         oso.update()
-        intersection = Intersection(10)
-        position = np.zeros(shape=(10,3))
-        position[:,0] = -1
-        position[:,1] = 0.01 * np.arange(1,11)
-        direction = np.zeros(shape=(10,3))
-        direction[:,0] = 1
-        oso.getIntersection(position, direction, intersection, 0, 100)
-        expectedPoint = np.asarray((-np.sqrt(1 - np.square(position[:,1])), position[:,1], np.zeros(10))).T
-        np.testing.assert_allclose(intersection.position, expectedPoint,atol=1e-5)
+        self.sphere_tests(oso)
 
 if __name__ == '__main__':
     unittest.main()
