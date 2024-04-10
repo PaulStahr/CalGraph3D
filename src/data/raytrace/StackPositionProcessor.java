@@ -94,7 +94,7 @@ public class StackPositionProcessor {
 			final RaytraceScene scene,
 			final double scale,
 			String positionFile,
-			boolean surfaceCompensationMode,
+			final boolean surfaceCompensationMode,
 			final String outputFolder,
 			final AtomicInteger progress,
 			Mode mode,
@@ -343,7 +343,7 @@ public class StackPositionProcessor {
 				}
 				case ARRAY:
 				{
-					final int imageColorArray[] = new int[trWidth * trHeight * 5];
+					final long imageColorArray[] = new long[trWidth * trHeight * 5];
 
 					//BufferedImage bi = gto.image;
 					/*if (bi == null)
@@ -431,29 +431,28 @@ public class StackPositionProcessor {
 
 								Vector2d v2 = currentRay.v3;
                                 float color[] = threadLocal.color;
-								for (int j = 0; j < toCalculate; ++j)
+                                color[4] = 255;
+                                for (int j = 0; j < toCalculate; ++j)
 								{
 									if (lastObject[j] == evaluationObject && rsd.accepted[j] == RaytraceScene.STATUS_ACCEPTED)
 									{
 										if (backward)
 										{
 										    //Read from endpoint, write to source
-											System.arraycopy(rsd.endcolor, 4*j, threadLocal.color, 0, 4);
-                                            color[4] = 1;
+											System.arraycopy(rsd.endcolor, 4*j, color, 0, 4);
                                             currentRay.position.set(threadLocal.startpoints, j * 3);
                                             currentRay.direction.set(threadLocal.startdirs, j * 3);
                                             ((OpticalSurfaceObject)source).getTextureCoordinates(currentRay.position, currentRay.direction, v2);
-											ImageUtil.addToPixel(v2.x * trWidth, v2.y * trHeight, trWidth, trHeight, color, 0, 5, 1, imageColorArray);
+											ImageUtil.addToPixel(v2.x * trWidth, v2.y * trHeight, trWidth, trHeight, color, 0, 5, 1f/255, imageColorArray);
 										}
 										else
 										{
 										    //Read from source, write to endpoint
 											currentRay.position.set(rsd.endpoints, j * 3);
 											currentRay.direction.set(rsd.enddirs, j * 3);
-											System.arraycopy(rsd.endcolor, 4*j, threadLocal.color, 0, 4);
-											threadLocal.color[4] = 1;
-                                            evaluationObject.getTextureCoordinates(currentRay.position, currentRay.direction, v2);
-											ImageUtil.addToPixel(v2.x * trWidth, v2.y * trHeight, trWidth, trHeight, threadLocal.color, 0, 5, 1, imageColorArray);
+											System.arraycopy(rsd.endcolor, 4*j, color, 0, 4);
+								            evaluationObject.getTextureCoordinates(currentRay.position, currentRay.direction, v2);
+											ImageUtil.addToPixel(v2.x * trWidth, v2.y * trHeight, trWidth, trHeight, color, 0, 5, 1f/255, imageColorArray);
 										}
 									}
 								}
@@ -464,23 +463,41 @@ public class StackPositionProcessor {
 							@Override
 							public void finished() {}
 						}, "StackPositionProcessor", null, 0, numRays, blocksize, true);
-
 						strB.setLength(0);
 						DataHandler.runnableRunner.run(new Runnable() {
-							final int imageColorArrayCopy[] = imageColorArray.clone();
+							final long imageColorArrayCopy[] = imageColorArray.clone();
 							final String filename = strB.append(outputFolder).append('/').append(index).append('c').append('.').append("png").toString();
 
 							@Override
 							public void run()
 							{
-								evaluationObject.densityCompensation(trWidth, trHeight, imageColorArrayCopy, 5, 5);
-								ArrayUtil.normalizeTo(imageColorArrayCopy, 0, imageColorArrayCopy.length, 255);
+							    if (surfaceCompensationMode)
+							    {
+							        evaluationObject.densityCompensation(trWidth, trHeight, imageColorArrayCopy, 5, 5);
+							    }
+
+							    if (backward)
+							    {
+							        ArrayUtil.normalizeTo(imageColorArrayCopy, 0, imageColorArrayCopy.length, 255);
+							    }
+							    else
+							    {
+					                for (int i = 0; i < trWidth * trHeight; ++i)
+				                    {
+				                        if (imageColorArray[i * 5 + 4] > 255)
+				                        {
+				                            ArrayUtil.divide(imageColorArrayCopy, i * 5, i * 5 + 4, imageColorArrayCopy[i * 5 + 3] / 255);
+				                        }
+				                    }
+							    }
+
 								BufferedImage img2 = new BufferedImage(trWidth, trHeight, BufferedImage.TYPE_4BYTE_ABGR);
-								for (int i = 0; i * 5 < imageColorArrayCopy.length; ++i)
+
+								for (int i = 0; i < imageColorArrayCopy.length; i += 5)
 								{
-									if (imageColorArrayCopy[i * 5 + 4] != 0)
+									if (imageColorArrayCopy[i + 4] != 0)
 									{
-										imageColorArrayCopy[i * 5 + 3] = 255;
+										//imageColorArrayCopy[i + 3] = 255;
 									}
 								}
 								ImageUtil.setRGB(img2.getRaster(), imageColorArrayCopy, new int[4], 4, 5);
