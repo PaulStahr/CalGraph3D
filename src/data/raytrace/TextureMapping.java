@@ -93,7 +93,7 @@ public enum TextureMapping
 				}
 			}
 		}
-		
+
 		@Override
 		public void mapSphericalToCart(double azimuth, double elevation, Vector3d out)
 		{
@@ -115,7 +115,7 @@ public enum TextureMapping
 			out.set(Calculate.modToZeroOne(azimuth / (2 * Math.PI)), elevation / Math.PI);
 			return 1 / Math.sin(elevation);
 		}
-		
+
 		@Override
 		public int defaultAspect()
 		{
@@ -131,7 +131,7 @@ public enum TextureMapping
 			out.y = y * len + 0.5;
 			return Math.sin(len) / len;
 		}
-		
+
         @Override
         public double mapTexToCart(double x, double y, Vector3d out) {
             x -= 0.5;
@@ -154,7 +154,7 @@ public enum TextureMapping
             double det = rad == 0 ? Calculate.TWO_PI : sin / rad;
             return Calculate.TWO_PI * det;
         }
-        
+
 		@Override
 		public void densityCompensation(WritableRaster r) {
 			int pixelValue[] = new int[4];
@@ -197,7 +197,7 @@ public enum TextureMapping
 			out.add(0.5,0.5);
 			return elevation / Math.sin(elevation);
 		}
-		
+
 	}, FISHEYE_EQUIDISTANT_HALF("Equidistant half") {
 		@Override
 		public double mapCartToTex(double x, double y, double z, Vector2d out) {
@@ -216,7 +216,7 @@ public enum TextureMapping
 
 			//System.out.println(out);
 		}
-		
+
 		@Override
 		public void densityCompensation(WritableRaster r) {
 			int pixelValue[] = new int[4];
@@ -256,7 +256,7 @@ public enum TextureMapping
 			out.y = y * det;
 			return Math.PI * det;
 		}
-		
+
 		@Override
 		public double mapTexToCart(double x, double y) {
 			x -= 0.5;
@@ -266,7 +266,7 @@ public enum TextureMapping
 			double det = rad == 0 ? Math.PI : sin / rad;
 			return Math.PI * det;
 		}
-		
+
 		@Override
 		public double mapTexToSpherical(double x, double y, Vector2d out)
 		{
@@ -284,7 +284,7 @@ public enum TextureMapping
 			out.add(0.5,0.5);
 			return elevation / Math.sin(elevation);
 		}
-		
+
 	}, FLAT("Flat") {
 		@Override
 		public double mapCartToTex(double x, double y, double z, Vector2d out) {
@@ -299,14 +299,14 @@ public enum TextureMapping
 			out.y = y = (y - 0.5) * 2;
 			return 4 / (out.z = Math.sqrt(1 - x * x - y * y));
 		}
-		
+
 		@Override
 		public double mapTexToCart(double x, double y) {
             x -= 0.5;
             y -= 0.5;
 			return 2 / Math.sqrt(0.25 - x * x - y * y);
 		}
-		
+
 		@Override
 		public double mapTexToSpherical(double x, double y, Vector2d out)
 		{
@@ -338,7 +338,7 @@ public enum TextureMapping
 				{
 					r.getPixel(x, y, pixelValue);
 					double xp = (x * 2 - r.getWidth()) * invW;
-					
+
 					pixelValue[3] = (int)(pixelValue[3] / Math.asin(Math.sqrt(xp * xp + yp * yp)));
 					pixelValue[3] = Math.min(255, pixelValue[3]);
 					r.setPixel(x,y,pixelValue);
@@ -346,11 +346,11 @@ public enum TextureMapping
 			}
 		}
 	};
-	
+
 	public static final int size() {
 		return tm.length;
 	}
-	
+
 	public void mapSphericalToCart(double x, double y, Vector3d out) {
 		throw new RuntimeException();
 	}
@@ -363,7 +363,7 @@ public enum TextureMapping
 	{
 		this.name = name;
 	}
-	
+
 	public abstract double mapCartToTex(double x, double y, double z, Vector2d out);
 	public abstract double mapTexToCart(double x, double y, Vector3d out);
 	public abstract double mapTexToCart(double x, double y);
@@ -371,7 +371,7 @@ public enum TextureMapping
 	public abstract double mapSphericalToTex(double azimuth, double elevation, Vector2d out);
 	public abstract void densityCompensation(WritableRaster r);
 
-	
+
 	private static final TextureMapping tm[] = TextureMapping.values();
 	public static String[] names (){
 		 String res[] = new String[tm.length];
@@ -381,12 +381,12 @@ public enum TextureMapping
 		 }
 		 return res;
 	 }
-	
+
 	public int defaultAspect()
 	{
 		return 1;
 	}
-	
+
 	public static final TextureMapping getByName(String name)
 	{
 		for (TextureMapping current : tm)
@@ -423,7 +423,23 @@ public enum TextureMapping
 			}
 		}
 	}
-	
+
+
+    public void densityCompensation(int width, int height, long[] imageColorArray, int channels, int stride)
+    {
+        for (int y = 0, index = 0; y < height; ++y)
+        {
+            for (int x = 0; x < width; ++x)
+            {
+                for (int i = 0; i < channels; ++i)
+                {
+                    imageColorArray[index + i] *= mapTexToCart(x, y);
+                }
+                index += stride;
+            }
+        }
+    }
+
 	public void inverseDensityCompensation(int width, int height, int[] imageColorArray, int channels, int stride)
 	{
 		for (int y = 0, index = 0; y < height; ++y)

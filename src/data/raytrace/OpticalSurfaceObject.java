@@ -116,7 +116,7 @@ public abstract class OpticalSurfaceObject extends SurfaceObject{
 			double tmp = 1 - (1 + conicConstant) * minRatio;
 			dotProdLowerBound = minRatio / (1 + (tmp > 0 ? Math.sqrt(tmp) : -Math.sqrt(-tmp))) - 1;
 			tmp = 1 - (1 + conicConstant) * maxRatio;
-			dotProdUpperBound = maxRatio / (1 + (tmp > 0 ? Math.sqrt(tmp) : -Math.sqrt(-Math.max(tmp, -1)))) - 1;
+			dotProdUpperBound = maxRatio / (1 + (tmp > 0 ? Math.sqrt(tmp) : -Math.sqrt(Math.min(-tmp, 1)))) - 1;
 			if ((dotProdUpperBound + 1) * (1 + conicConstant) > 2)
 			{
 				dotProdUpperBound = 2 / (1 + conicConstant) - 1;
@@ -311,8 +311,8 @@ public abstract class OpticalSurfaceObject extends SurfaceObject{
 			case CUSTOM:
 			{
 			    double mdir = this.directionNormalized.dot(x, y, z);
-			    double dirdot = directionLength - mdir;
-			    return -(dirdot * (2 * directionLength - dirdot * (1 + conicConstant)) - x * x - y * y - z * z + mdir * mdir);
+			    double dirdot = mdir - directionLength;
+			    return x * x + y * y + z * z - directionLengthQ + conicConstant * dirdot * dirdot;
 			}
 			case CYLINDER:
 			{
@@ -447,25 +447,25 @@ public abstract class OpticalSurfaceObject extends SurfaceObject{
 			}
 			case SPHERICAL:
 			{
-				double c = x * x + y * y + z * z - this.directionLengthQ;
-				double b = ray_dir.dot(x,y,z);
+				final double c = x * x + y * y + z * z - this.directionLengthQ;
+				final double b = ray_dir.dot(x,y,z);
 				double sqrt = b * b - c;
 				if (sqrt >= 0)
 				{
 					sqrt = Math.sqrt(sqrt);
-					double dirproj = this.directionNormalized.dot(x,y,z);
-					double scal = this.directionNormalized.dot(ray_dir);
+					final double dirproj = this.directionNormalized.dot(x,y,z);
+					final double scal = this.directionNormalized.dot(ray_dir);
 					do {
-						double alpha = -b - sqrt;
+						final double alpha = -b - sqrt;
 						if (ray_tmin < alpha && alpha < ray_tmax)
 						{
 							//intersection.normal.set(tmp0, direction,alpha);
 							//double dotProd = intersection.normal.dot(this.directionNormalized);
-							double dotProd = dirproj + scal * alpha;
+							final double dotProd = dirproj + scal * alpha;
 
-							if (dotProd >= dotProdUpperBound2 && dotProd <= dotProdLowerBound2)
+							if (dotProdUpperBound2 <= dotProd  && dotProd <= dotProdLowerBound2)
 							{
-								double dax = ray_dir.x * alpha, day = ray_dir.y * alpha, daz = ray_dir.z * alpha;
+								final double dax = ray_dir.x * alpha, day = ray_dir.y * alpha, daz = ray_dir.z * alpha;
 								intersection.position.setAdd(ray_pos, dax, day, daz);
 								intersection.normal.set(x + dax,y + day,z + daz);
 								intersection.object = this;
@@ -516,6 +516,11 @@ public abstract class OpticalSurfaceObject extends SurfaceObject{
 	{
 		textureMapping.densityCompensation(width, height, imageColorArray, channels, stride);
 	}
+
+    @Override
+    public void densityCompensation(int width, int height, long[] imageColorArray, int channels, int stride) {
+        textureMapping.densityCompensation(width, height, imageColorArray, channels, stride);
+    }
 
 	public void inverseDensityCompensation(int width, int height, int imageColorArray[], int channels, int stride)
 	{

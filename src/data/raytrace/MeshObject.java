@@ -573,8 +573,13 @@ public class MeshObject extends SurfaceObject {
 		throw new RuntimeException("not implemented");
 	}
 
-	@Override
-	public void densityCompensation(int trWidth, int trHeight, int[] imageColorArray, int channels, int stride) {
-		throw new RuntimeException("not implemented");
-	}
+    @Override
+    public void densityCompensation(int trWidth, int trHeight, int[] imageColorArray, int channels, int stride) {
+        throw new RuntimeException("not implemented");
+    }
+
+    @Override
+    public void densityCompensation(int trWidth, int trHeight, long[] imageColorArray, int channels, int stride) {
+        throw new RuntimeException("not implemented");
+    }
 }

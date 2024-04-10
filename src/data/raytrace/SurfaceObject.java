@@ -25,7 +25,7 @@ public abstract class SurfaceObject extends OpticalObject{
 	public int numUntracedRays;
 	public boolean invertInsideOutside = false;
 	public AlphaCalculation alphaCalculation = AlphaCalculation.MULT;
-	
+
 	public final void updateIOR()
 	{
 		double ior0 = this.ior0.doubleValue();
@@ -46,5 +46,7 @@ public abstract class SurfaceObject extends OpticalObject{
 
 	public abstract void getTextureCoordinates(Vector3d position, Vector3d direction, Vector2d v3);
 
-	public abstract void densityCompensation(int trWidth, int trHeight, int[] imageColorArray, int channels, int stride);
+    public abstract void densityCompensation(int trWidth, int trHeight, int[] imageColorArray, int channels, int stride);
+
+    public abstract void densityCompensation(int trWidth, int trHeight, long[] imageColorArray, int channels, int stride);
 }

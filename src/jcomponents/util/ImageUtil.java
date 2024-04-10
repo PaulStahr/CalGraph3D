@@ -42,6 +42,38 @@ public class ImageUtil {
 		}
 	}
 
+   public static void addToPixel(double xf, double yf, int width, int height, float add[], int addBegin, int addEnd, float multiplier, long image[])
+    {//TODO add test
+        int x = (int)(xf * 0x100);
+        int y = (int)(yf * 0x100);
+        int xMod = x % 0x100;
+        int yMod = y % 0x100;
+        x /= 0x100;
+        y /= 0x100;
+        if (x + 1 == width)
+        {
+            --x;
+            xMod = 255;
+        }
+        if (y + 1 == height)
+        {
+            --y;
+            yMod = 255;
+        }
+
+        int ch = addEnd - addBegin;
+        int pIndex = (y * width + x) * ch;
+        for (int i = 0; i < ch; ++i)
+        {
+            int addIndex = i + addBegin;
+            float toAdd =  add[addIndex] * multiplier;
+            image[pIndex + i]                   += ((0x100 - xMod) * (0x100 - yMod)) * toAdd;
+            image[pIndex + ch + i]              += (xMod           * (0x100 - yMod)) * toAdd;
+            image[pIndex + width * ch + i]      += ((0x100 - xMod) * yMod)           * toAdd;
+            image[pIndex + width * ch + ch + i] += (xMod           * yMod)           * toAdd;
+        }
+    }
+
 	public static final void addToPixel(double xf, double yf, int width, int height, float add[], int addBegin, int addEnd, float multiplier, float image[])
 	{//TODO add test
 		int x = (int)(xf * 0x100);
@@ -325,17 +357,29 @@ public class ImageUtil {
 		}
 	}
 
-	public static void setRGB(WritableRaster raster, int[] imageColorArray, int[] pixel, int channels, int stride) {
-		final int width = raster.getWidth(), height = raster.getHeight();
-		for (int y = 0; y < height; ++y)
-		{
-			for (int x = 0; x < width; ++x)
-			{
-				System.arraycopy(imageColorArray, (y * width + x) * stride, pixel, 0, channels);
-				raster.setPixel(x, y, pixel);
-			}
-		}
-	}
+    public static void setRGB(WritableRaster raster, int[] imageColorArray, int[] pixel, int channels, int stride) {
+        final int width = raster.getWidth(), height = raster.getHeight();
+        for (int y = 0; y < height; ++y)
+        {
+            for (int x = 0; x < width; ++x)
+            {
+                System.arraycopy(imageColorArray, (y * width + x) * stride, pixel, 0, channels);
+                raster.setPixel(x, y, pixel);
+            }
+        }
+    }
+
+    public static void setRGB(WritableRaster raster, long[] imageColorArray, int[] pixel, int channels, int stride) {
+        final int width = raster.getWidth(), height = raster.getHeight();
+        for (int y = 0; y < height; ++y)
+        {
+            for (int x = 0; x < width; ++x)
+            {
+                ArrayUtil.arraycopy(imageColorArray, (y * width + x) * stride, pixel, 0, channels);
+                raster.setPixel(x, y, pixel);
+            }
+        }
+    }
 
 	public static void setRGB(WritableRaster raster, float[] imageColorArray, int[] pixel, int channels, int stride) {
 		final int width = raster.getWidth(), height = raster.getHeight();
