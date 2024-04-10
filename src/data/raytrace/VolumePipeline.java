@@ -241,7 +241,7 @@ public class VolumePipeline implements Runnable {
 				}
 			}
 		}
-		catch(final Exception ex)
+		catch(final Throwable ex)
 		{
 			JFrameUtils.logErrorAndShow("Can't pipe calculations", ex, logger);
 			synchronized(this) {

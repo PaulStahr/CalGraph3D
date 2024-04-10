@@ -103,6 +103,7 @@ public class GuiTextureObject extends OpticalObject{
 		}
 		else
 		{
+		    result[3] = 255;
 			raster.getPixel(xi, yi, result);
 		}
 	}
@@ -307,7 +308,7 @@ public class GuiTextureObject extends OpticalObject{
 		{
 			String fileType = StringUtils.getFileType(file.getName());
 
-			if (fileType.equals("avi") || fileType.equals("mjpeg"))
+			if (fileType.equals("avi") || fileType.equals("mjpeg") || fileType.equals("mp4"))
 			{
 				ImagePlus ip = ij.plugin.AVI_Reader.open(file.getPath(), true);
 				ij.io.Opener.setOpenUsingPlugins(true);

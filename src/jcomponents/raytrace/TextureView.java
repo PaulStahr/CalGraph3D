@@ -327,7 +327,7 @@ public class TextureView extends JFrame implements ActionListener, ItemListener{
 					try {
 						setImage(ImageIO.read(selectedFile));
 					} catch (IOException e) {
-						logger.error("Can't save texture", e);
+						logger.error("Can't read texture", e);
 					}
 				}
 	        }
