@@ -84,6 +84,7 @@ public class RaytraceScene {
 	private String id;
    	public final CameraViewRunnable cameraViewRunnable = new CameraViewRunnable(this);
 	private Variable sceneVariable;
+	public SpatialUnit spatialUnit = null;
 
 	private int updateCount = 0;
 	private int lastSceneUpdate = 0;

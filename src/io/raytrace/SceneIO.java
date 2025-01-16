@@ -29,6 +29,7 @@ import data.raytrace.OpticalObject.SCENE_OBJECT_COLUMN_TYPE;
 import data.raytrace.OpticalVolumeObject;
 import data.raytrace.ParseUtil;
 import data.raytrace.RaytraceScene;
+import data.raytrace.SpatialUnit;
 import data.raytrace.TextureMapping;
 import data.raytrace.VolumePipeline;
 import data.raytrace.VolumePipeline.CalculationCalcuationStep;
@@ -76,6 +77,9 @@ public class SceneIO {
     	ArrayList<String> valueList = new ArrayList<>();
     	String versionString = root.getAttributeValue("version");
     	int version = versionString == null ? -1 : Integer.parseInt(versionString);
+
+    	ArrayList<VolumePipeline> activateAutoUpdatePipelines = new ArrayList<>();
+
     	for (Element elem : root.getChildren())
     	{
     		switch( elem.getName())
@@ -147,13 +151,18 @@ public class SceneIO {
         				switch (attr.getName())
         				{
         					case "Volume":				pipeline.ovo = scene.getVolumeObject(attr.getValue());break;
-        					case "AutoUpdate":			pipeline.setAutoUpdate(Boolean.parseBoolean(attr.getValue()));break;
+        					case "AutoUpdate":
+        					    if(Boolean.parseBoolean(attr.getValue())) {
+        					        activateAutoUpdatePipelines.add(pipeline);
+        					    }
+        					    break;
         					case "CalculateAtStartup":	pipeline.calcuteAtCreation = Boolean.parseBoolean(attr.getValue());break;
         					default:					logger.warn("Unknown option "+ attr.getName());
         				}
         			}
         			pipeline.updateState();
         			break;
+    			case "Unit":        scene.spatialUnit = SpatialUnit.valueOf(elem.getText());
     			case "Author":		scene.author = elem.getText();break;
     			case "Epsilon":		scene.epsilon = Double.parseDouble(elem.getText());break;
     			case "Description": gui.textAreaProjectInformation.setText(elem.getValue());break;
@@ -203,6 +212,13 @@ public class SceneIO {
     		}
     	}
     	scene.updateScene();
+        JFrameUtils.runByDispatcher(new Runnable() {
+            @Override
+            public void run() {
+                gui.updateAllTables();
+            }
+        });
+
     	for (VolumePipeline vp : scene.getVolumePipelines())
     	{
     	    if (vp.calcuteAtCreation)
@@ -211,12 +227,10 @@ public class SceneIO {
     	        vp.run();
     	    }
     	}
-    	JFrameUtils.runByDispatcher(new Runnable() {
-    		@Override
-			public void run() {
-            	gui.updateAllTables();
-    		}
-    	});
+        for (VolumePipeline vp :activateAutoUpdatePipelines)
+        {
+            vp.setAutoUpdate(true);
+        }
     }
 
     private static final void writeXmlValues(OpticalObject oso, Element elem) {
@@ -252,6 +266,7 @@ public class SceneIO {
     	writeXmlList(root, scene.volumeObjectList,  gui.tableVolumes, "volume", onlySelected);
     	writeXmlList(root, scene.textureObjectList, gui.tableTextures, "texture", onlySelected);
     	writeXmlList(root, scene.meshObjectList, 	gui.tableMeshes, "mesh", onlySelected);
+
     	if (!onlySelected)
     	{
 	    	Element elem = new Element("Raybounds");
@@ -309,6 +324,9 @@ public class SceneIO {
 	    		}
     			root.addContent(elem);
 	    	}
+	        if (scene.spatialUnit != null) {
+	            root.addContent(new Element("Unit").setText(scene.spatialUnit.name()));
+	        }
 	    	root.addContent(new Element("Author").setText(scene.author));
 	    	root.addContent(new Element("Epsilon").setText(Double.toString(scene.epsilon)));
     		elem = new Element("Variables");
