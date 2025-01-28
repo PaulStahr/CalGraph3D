@@ -137,6 +137,7 @@ import data.raytrace.RaytraceScene;
 import data.raytrace.RaytraceScene.RaySimulationObject;
 import data.raytrace.RaytraceSession;
 import data.raytrace.RaytraceSession.CommandExecutionListener;
+import data.raytrace.SpatialUnit;
 import data.raytrace.SurfaceObject;
 import data.raytrace.TextureMapping;
 import data.raytrace.VideoImageVolume;
@@ -1034,13 +1035,32 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
      		String path = file.getAbsolutePath();
      		File dir = new File(path.substring(0, path.lastIndexOf('.')));
      		dir.mkdir();
+
+     		for (int i = 0; i < scene.surfaceObjectList.size(); ++i)
+     		{
+     		    GuiOpticalSurfaceObject surface = scene.surfaceObjectList.get(i);
+                Object attachement = surface.attachements.get(glObjectAttachementId);
+                if (attachement == null)
+                {
+                    continue;
+                }
+                SceneObject obj = (SceneObject)attachement;
+                if (exportInvisible || obj.isVisible())
+                {
+                    try {
+                        ObjectExporter.export(ObjectExporter.OBJ, dir.getAbsolutePath() + '/' + surface.getId() + '.' + "obj", obj);
+                    } catch (IOException e1) {
+                        visibleErrorMessage("Can't export object", e1);
+                    }
+                }
+            }
      		for (int i = 0; i < glScene.getObjectCount(); ++i)
      		{
      			SceneObject obj = glScene.getObject(i);
      			if (exportInvisible || obj.isVisible())
      			{
          			try {
-						ObjectExporter.export(ObjectExporter.OBJ, dir.getAbsolutePath() + '/' + i + '.' + "obj", obj);
+						ObjectExporter.export(ObjectExporter.OBJ, dir.getAbsolutePath() + '/' + obj.getId() + '.' + "obj", obj);
 					} catch (IOException e1) {
 						visibleErrorMessage("Can't export object", e1);
 					}
@@ -2706,23 +2726,14 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 				gen.setSource(source);
 
 				int bidirCount = source.numTracedRays * (source.bidirectional ? 2 : 1);
-				if (trajectory.length < (maxBounces * 3 + 6) * bidirCount)
-				{
-					trajectory = new double[(maxBounces * 3 + 6) * bidirCount];
-				}
-				if (enddir.length < bidirCount * 3)
-				{
-					enddir = new float[bidirCount * 3];
-					endpos = new float[bidirCount * 3];
-					endpointColors = new float[bidirCount * 4];
-					endObject = new OpticalObject[bidirCount];
-				}
-				if (accepted.length < source.numTracedRays)
-				{
-					accepted = new byte[source.numTracedRays];
-					bounces = new int[source.numTracedRays];
-				}
-				Arrays.fill(trajectory, 0, (maxBounces * 3 + 6) * source.numTracedRays * (source.bidirectional ? 2 : 1), Double.NaN);
+				trajectory = ArrayUtil.ensureLength(trajectory, (maxBounces * 3 + 6) * bidirCount);
+				enddir = ArrayUtil.ensureLength(enddir, bidirCount * 3);
+				endpos = ArrayUtil.ensureLength(endpos, bidirCount * 3);
+				endpointColors = ArrayUtil.ensureLength(endpointColors, bidirCount * 4);
+				endObject = ArrayUtil.ensureLength(endObject, bidirCount);
+				accepted = ArrayUtil.ensureLength(accepted, source.numTracedRays);
+				bounces = ArrayUtil.ensureLength(bounces, source.numTracedRays);
+				Arrays.fill(trajectory, 0, (maxBounces * 3 + 6) * bidirCount, Double.NaN);
 				scene.calculateRays(0, source.numTracedRays, source.numTracedRays, gen, 0, 0, null, null, endpos, enddir, endpointColors, trajectory, accepted, bounces, endObject, maxBounces, source.bidirectional, rayObject, RaytraceScene.UNACCEPTED_MARK);
 				if (drawFocalpoints)
 				{
@@ -2739,7 +2750,7 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 	                    gd.drawArc((npc.get(0) + globalPaintOffset.x) * scale-5, (npc.get(1) + globalPaintOffset.y) * scale-5, 10, 10, 0, 360);
 					}
                     gd.setColor(Color.RED);
-                    sceneToScreen.rdotAffine(npc.getAverage(0), npc.getAverage(1), v2);
+                    sceneToScreen.rdotAffine(npc.getAveragePos(0), npc.getAveragePos(1), v2);
                     gd.drawArc(v2.x - 5, v2.y - 5, 10, 10, 0, 360);
                     v0.set(0,0,0);
 					npc.reset();
@@ -2817,7 +2828,24 @@ public class RaySimulationGui extends JFrame implements GuiTextureObject.Texture
 				gd.drawLine(x0, 20, x1, 20);
 				gd.drawLine(x0, 10, x0, 30);
 				gd.drawLine(x1, 10, x1, 30);
-				strB.append(getScale(power));
+				double scale = getScale(power);
+				if (scene.spatialUnit != null)
+				{
+				    SpatialUnit spatialUnits[] = SpatialUnit.values();
+				    for (int i = spatialUnits.length - 1; true; --i)
+				    {
+				        double newScale = scale / Math.pow(10, spatialUnits[i].magnitude - scene.spatialUnit.magnitude);
+				        if (newScale >= 1 || i == 0)
+				        {
+				            strB.append(newScale).append(' ').append(spatialUnits[i].name());
+				            break;
+				        }
+				    }
+				}
+				else
+				{
+				    strB.append(scale);
+				}
 				gd.drawChars(strB, 0, strB.length(), maxWidth / 2 - 10, 15);
 				strB.setLength(0);
 			}

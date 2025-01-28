@@ -46,7 +46,7 @@ import util.StringUtils;
 
 public class PropertyOnLineVisualization extends JFrame implements ActionListener, ItemListener{
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = 2118109937042606456L;
 	private static final Logger logger = LoggerFactory.getLogger(PropertyOnLineVisualization.class);
@@ -61,15 +61,15 @@ public class PropertyOnLineVisualization extends JFrame implements ActionListene
 	private final JPanel panelSettings = new JPanel();
 	private final JCheckBoxMenuItem menuItemAutoUpdate = new JCheckBoxMenuItem("Auto update");
 	private final JCheckBox checkBoxSphereArc = new JCheckBox("Sphere Arc");
-	private final JComboBox<String> comboBoxMode = new JComboBox<String>(new String[] {"Rafractive Index", "Divergence"});
+	private final JComboBox<String> comboBoxMode = new JComboBox<>(new String[] {"Rafractive Index", "Focal Distance", "Divergence"});
 	public final PropertyOnLineCalculator polc;
-	
+
 	private void addTo(JMenu menu, JMenuItem item)
 	{
 		menu.add(item);
 		item.addActionListener(this);
 	}
-	
+
 	public PropertyOnLineVisualization(RaytraceScene scene)
 	{
 		polc = new PropertyOnLineCalculator(scene);
@@ -106,7 +106,7 @@ public class PropertyOnLineVisualization extends JFrame implements ActionListene
 			visualization.repaint();
 		}
 	}
-	
+
 	@Override
 	public void actionPerformed(ActionEvent ae)
 	{
@@ -116,7 +116,7 @@ public class PropertyOnLineVisualization extends JFrame implements ActionListene
 			JFileChooser fileChooser= new JFileChooser();
             JPanel panel = new JPanel();
             panel.add(new RecentFileList(fileChooser, DataHandler.getRecentFiles()));
-            JCheckBox checkBox = new JCheckBox("Export Data Objects"); 
+            JCheckBox checkBox = new JCheckBox("Export Data Objects");
             panel.add(checkBox);
             panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
             fileChooser.setAccessory(panel);
@@ -141,11 +141,11 @@ public class PropertyOnLineVisualization extends JFrame implements ActionListene
 			visualization.setAutoUpdate(menuItemAutoUpdate.isSelected());
 		}
 	}
-	
+
 	private class LineIntersectionVisalizationPanel extends JPanel implements OpticalSurfaceObjectChangeListener, OpticalVolumeObjectChangeListener, MeshObjectChangeListener
 	{
 		/**
-		 * 
+		 *
 		 */
 		private static final long serialVersionUID = 236757326914804667L;
 		private final Vector3d position = new Vector3d(0,0,0);
@@ -153,10 +153,10 @@ public class PropertyOnLineVisualization extends JFrame implements ActionListene
 		Controller controll = new Controller();
 		private final Drawer.GraphicsDrawer drawer = new Drawer.GraphicsDrawer(null);
 		RaytraceScene scene;
-		
+
 		public LineIntersectionVisalizationPanel()
 		{
-			
+
 		}
 
 		public void setAutoUpdate(boolean selected) {
@@ -170,7 +170,7 @@ public class PropertyOnLineVisualization extends JFrame implements ActionListene
 			{
 				scene.removeObjectChangeListener((OpticalSurfaceObjectChangeListener)this);
 				scene.removeObjectChangeListener((OpticalVolumeObjectChangeListener)this);
-				scene.removeObjectChangeListener((MeshObjectChangeListener)this);				
+				scene.removeObjectChangeListener((MeshObjectChangeListener)this);
 			}
 		}
 
@@ -185,7 +185,15 @@ public class PropertyOnLineVisualization extends JFrame implements ActionListene
 			Operation op = textFieldRange.get().calculate(scene.vs, controll);
 			double rangeBegin = op.get(0).doubleValue();
 			double rangeEnd = op.get(1).doubleValue();
-			polc.paint(position, direction, rangeBegin, rangeEnd, comboBoxMode.getSelectedIndex(), checkBoxSphereArc.isSelected(), drawer);
+			PropertyOnLineCalculator.VisualizationMode mode;
+			switch (comboBoxMode.getSelectedIndex())
+			{
+			    case 0: mode = PropertyOnLineCalculator.VisualizationMode.REFRACTIVE_INDEX;break;
+			    case 1: mode = PropertyOnLineCalculator.VisualizationMode.FOCAL_DISTANCE;break;
+			    case 2: mode = PropertyOnLineCalculator.VisualizationMode.DIVERGENCE;break;
+			    default: throw new RuntimeException();
+			}
+			polc.paint(position, direction, rangeBegin, rangeEnd, mode, checkBoxSphereArc.isSelected(), drawer);
 		}
 
 		@Override

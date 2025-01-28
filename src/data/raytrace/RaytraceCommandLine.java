@@ -104,6 +104,7 @@ public class RaytraceCommandLine {
 		if (split.get(0).equals("if"))
 		{
 			String exp = split.get(1);
+			System.out.println(exp);
 			if (exp.equals("true") || exp.equals("1"))
 			{
 				env.interpreterState.add(InterpreterState.TRUE_IF);
@@ -112,9 +113,23 @@ public class RaytraceCommandLine {
 			{
 				env.interpreterState.add(InterpreterState.FALSE_IF);
 			}
-			else
-			{
-	            throw new RuntimeException("Can't interpret " + exp + " as boolean expression");
+			else {
+                try {
+                    Operation op = OperationCompiler.compile(exp);
+                    System.out.println(op);
+                    op = op.calculate(DataHandler.globalVariables, control);
+                    System.out.println(op);
+                    if (op.isBoolean())
+                    {
+                        env.interpreterState.add(op.booleanValue() ? InterpreterState.TRUE_IF : InterpreterState.FALSE_IF);
+                    }
+                    else
+                    {
+                        throw new RuntimeException("Can't interpret " + exp + " as boolean expression");
+                    }
+                } catch (OperationParseException e) {
+                    throw new RuntimeException("Can't interpret " + exp + " as boolean expression");
+                }
 			}
 		}
 		else if (split.get(0).equals("else"))
@@ -592,7 +607,7 @@ public class RaytraceCommandLine {
 							Operation op = OperationCompiler.compile(split.get(4)).calculate(scene.vs, controll);
 							double rangeBegin = op.get(0).doubleValue();
 							double rangeEnd = op.get(1).doubleValue();
-							polc.paint(position, direction, rangeBegin, rangeEnd, Integer.parseInt(split.get(5)), Boolean.parseBoolean(split.get(6)), drawer);
+							polc.paint(position, direction, rangeBegin, rangeEnd, PropertyOnLineCalculator.VisualizationMode.values()[Integer.parseInt(split.get(5))], Boolean.parseBoolean(split.get(6)), drawer);
 							String type = StringUtils.getFileType(split.get(7));
 				            if (type.equals("dat") || type.equals("csv"))
 				        	{

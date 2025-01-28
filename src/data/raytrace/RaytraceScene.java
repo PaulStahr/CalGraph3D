@@ -810,9 +810,10 @@ public class RaytraceScene {
 	public static class RaySimulationObject{
 		public final Vector3d position = new Vector3d();
 		public final Vector3d direction = new Vector3d();
-		private final Intersection nearest = new Intersection();
+		public final Intersection nearest = new Intersection();
 		public final Vector2d v3 = new Vector2d();
 		public final float color[] = new float[4];
+		public boolean invalidated = false;
 		public int numBounces = 0;
 		public boolean readColorFront = true;
 		public boolean readColorBack = false;
@@ -1191,6 +1192,8 @@ public class RaytraceScene {
 		for (int l = 0; l < meshSuccessor.length;    ++l)	{meshSuccessor[l].getIntersection(position, direction, nearest, epsilon, nearest.distance);}
 	}
 
+
+
 	public final OpticalObject calculateRay(
 			RaySimulationObject ray,
 			int bounces,
@@ -1210,6 +1213,7 @@ public class RaytraceScene {
 			position.write(trajectory, trajectoryWriteIndex + ray.numBounces * 3);
 		}
 		++ray.numBounces;
+		ray.invalidated = false;
 		for (; ray.numBounces < bounces +1; ++ ray.numBounces)
 		{
 			direction.normalize();
@@ -1220,99 +1224,114 @@ public class RaytraceScene {
 				successor[l].getIntersection(position, direction, nearest, epsilon, nearest.distance);//TODO: origin of null pointer exceptions
 			}
 
-			final int b = 3 * ray.numBounces;
 			if (Double.isFinite(nearest.distance))
 			{
 				position.set(nearest.position);
 				res = nearest.object;
-				if (nearest.object instanceof OpticalVolumeObject)
+				if (res instanceof OpticalVolumeObject)
 				{
 					if (trajectory != null)
 					{
-						position.write(trajectory, b + trajectoryWriteIndex);
+						position.write(trajectory, 3 * ray.numBounces + trajectoryWriteIndex);
 					}
 					++ ray.numBounces;
-					return nearest.object;
+					return res;
 				}
-				SurfaceObject obj = ((SurfaceObject)nearest.object);
-				double c = direction.dot(nearest.normal);
-				if (obj.materialType == null)
+				SurfaceObject obj = apply_surface_to_ray(
+				        ray,
+				        trajectory,
+				        trajectoryWriteIndex,
+				        color,
+				        colorWriteIndex,
+                        nearest,
+                        direction);
+                if (trajectory != null){position.write(trajectory, 3 * ray.numBounces + trajectoryWriteIndex);}
+				if (ray.invalidated)
 				{
-					throw new NullPointerException("Object has no material " + obj.id);
+				    ++ray.numBounces;
+                    return res;
 				}
-				switch (obj.materialType)
-				{
-					case ABSORBATION:
-						if (ray.readColorMiddle && obj.color.getAlpha() != 255 && obj.alphaCalculation != AlphaCalculation.IGNORE)
-						{
-							switch(obj.alphaCalculation)
-							{
-								case MULT:
-									readColor(ray, obj, ray.color);
-									multColor(color, colorWriteIndex, ray.color);
-									break;
-								case MIX:
-									readColor(ray, obj, ray.color);
-									mixColor(color, colorWriteIndex, ray.color);
-									break;
-								default:
-									break;
-							}
-							break;
-						}
-					case DELETION:
-						if (trajectory != null)
-						{
-							position.write(trajectory, b + trajectoryWriteIndex);
-						}
-						++ ray.numBounces;
-						return nearest.object;
-					case REFRACTION:
-						double normaldot = nearest.normal.dot();
-						if (Double.isNaN(obj.iorq))
-						{
-							VariableStack vs = new VariableStack(this.vs);
-							Variable x = new Variable("x", nearest.position.x);
-							Variable y = new Variable("y", nearest.position.y);
-							Variable z = new Variable("z", nearest.position.z);
-							vs.addLocal(x);
-							vs.addLocal(y);
-							vs.addLocal(z);
-							Controller control = new Controller();
-							double ior0 = obj.ior0.calculate(vs, control).doubleValue();
-							double ior1 = obj.ior1.calculate(vs, control).doubleValue();
-							double ior = obj.invertNormal == c > 0 ? ior1 / ior0 : ior0 / ior1;
-							double iorq = ior * ior - 1;
-							double tmp = iorq * normaldot / (c * c) + 1;
-							direction.add(nearest.normal,(tmp > 0 ? (Math.sqrt(tmp) - 1) : -2.) * c / normaldot);
-						}
-						else
-						{
-							double tmp = (c > 0 ? obj.iorq : obj.inviorq) * normaldot / (c * c) + 1;
-							direction.add(nearest.normal,(tmp > 0 ? (Math.sqrt(tmp) - 1) : -2.) * c / normaldot);
-						}
-						break;
-					case REFLECTION:direction.add(nearest.normal, -2 * c/nearest.normal.dot());break;
-					case RANDOM:	direction.setAdd(nearest.normal, Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5);break;
-					default:
-						throw new IllegalArgumentException("Object with illegal material: " + obj.id);
-				}
-				successor = c < 0 ? obj.successor : obj.predessor;
+				successor = nearest.c < 0 ? obj.successor : obj.predessor;
 				if (obj.diffuse != 0)
 				{
 					direction.add(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5, direction.norm() * obj.diffuse);
 				}
-				if (trajectory != null){position.write(trajectory, b + trajectoryWriteIndex);}
 			}
 			else
 			{
 				position.add(direction, 10000);
-				if (trajectory != null){position.write(trajectory, b + trajectoryWriteIndex);}
+				if (trajectory != null){position.write(trajectory, 3 * ray.numBounces + trajectoryWriteIndex);}
 				return res;
 			}
 		}
 		return res;
 	}
+
+    public final SurfaceObject apply_surface_to_ray(
+            RaySimulationObject ray, double[] trajectory, int trajectoryWriteIndex,
+            float[] color, int colorWriteIndex, Intersection nearest,
+            Vector3d direction) {
+        SurfaceObject obj = ((SurfaceObject)nearest.object);
+        nearest.c = direction.dot(nearest.normal);
+        if (obj.materialType == null)
+        {
+        	throw new NullPointerException("Object has no material " + obj.id);
+        }
+        switch (obj.materialType)
+        {
+        	case ABSORBATION:
+        		if (ray.readColorMiddle && obj.color.getAlpha() != 255 && obj.alphaCalculation != AlphaCalculation.IGNORE)
+        		{
+        			switch(obj.alphaCalculation)
+        			{
+        				case MULT:
+        					readColor(ray, obj, ray.color);
+        					multColor(color, colorWriteIndex, ray.color);
+        					break;
+        				case MIX:
+        					readColor(ray, obj, ray.color);
+        					mixColor(color, colorWriteIndex, ray.color);
+        					break;
+        				default:
+        					break;
+        			}
+        			break;
+        		}
+        	case DELETION:
+        		ray.invalidated = true;
+        		break;
+        	case REFRACTION:
+        		double normaldot = nearest.normal.dot();
+        		if (Double.isNaN(obj.iorq))
+        		{
+        			VariableStack vs = new VariableStack(this.vs);
+        			Variable x = new Variable("x", nearest.position.x);
+        			Variable y = new Variable("y", nearest.position.y);
+        			Variable z = new Variable("z", nearest.position.z);
+        			vs.addLocal(x);
+        			vs.addLocal(y);
+        			vs.addLocal(z);
+        			Controller control = new Controller();
+        			double ior0 = obj.ior0.calculate(vs, control).doubleValue();
+        			double ior1 = obj.ior1.calculate(vs, control).doubleValue();
+        			double ior = obj.invertNormal == nearest.c > 0 ? ior1 / ior0 : ior0 / ior1;
+        			double iorq = ior * ior - 1;
+        			double tmp = iorq * normaldot / (nearest.c * nearest.c) + 1;
+        			direction.add(nearest.normal,(tmp > 0 ? (Math.sqrt(tmp) - 1) : -2.) * nearest.c / normaldot);
+        		}
+        		else
+        		{
+        			double tmp = (nearest.c > 0 ? obj.iorq : obj.inviorq) * normaldot / (nearest.c * nearest.c) + 1;
+        			direction.add(nearest.normal,(tmp > 0 ? (Math.sqrt(tmp) - 1) : -2.) * nearest.c / normaldot);
+        		}
+        		break;
+        	case REFLECTION:direction.add(nearest.normal, -2 * nearest.c/nearest.normal.dot());break;
+        	case RANDOM:	direction.setAdd(nearest.normal, Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5);break;
+        	default:
+        		throw new IllegalArgumentException("Object with illegal material: " + obj.id);
+        }
+        return obj;
+    }
 
 	public void setRenderToTexture(String text)
 	{
