@@ -180,15 +180,36 @@ class OpticalSurfaceObject(OpticalObject):
                 index += 1
         return res
 
-    def evaluate_inner_outer(self, position, normalize=True, xp=np):
+    @staticmethod
+    def numerical_derivative(function, delta):
+        def derivative(x, *args, **vargs):
+            num_points, dim = x.shape
+            testpoints = np.repeat(x[np.newaxis], dim * 2 + 1, axis=0)
+            dim = x.shape[1]
+            for i in range(dim):
+                testpoints[i * 2 + 1, :, i] -= delta
+                testpoints[i * 2 + 2, :, i] += delta
+            testpoints = testpoints.reshape(((dim * 2 + 1) * num_points, dim))
+            evaluated = function(testpoints, *args, **vargs)
+            evaluated = evaluated.reshape((dim * 2 + 1, num_points))
+            derivative = (evaluated[2::2] - evaluated[1::2]) / (2 * delta)
+            return evaluated[0], derivative.T
+        return derivative
+
+    def evaluate_inner_outer(self, position, normalize=False, xp=np):
         pos = position - xp.asarray(self.midpoint, dtype=position.dtype)
         surf = self.surf
 
         if surf == SurfaceType.FLAT:
-            return -self.directionNormalized.dot(pos)
+            result = -self.directionNormalized.dot(pos)
+            if normalize == 'seperate':
+                return result, np.repeat(self.directionNormalized[[np.newaxis] * (len(pos.shape) -1)], axis=0, repeats=pos.shape[:-1])
+            return result
         elif surf == SurfaceType.SPHERICAL:
             res = np.sum(np.square(pos), axis=-1)
             if normalize:
+                if normalize == 'seperate':
+                    return res - self.directionLengthQ, pos
                 np.sqrt(res, out=res)
                 return res - self.directionLength
             return res - self.directionLengthQ
@@ -199,11 +220,10 @@ class OpticalSurfaceObject(OpticalObject):
 
             res = posdot + self.conicConstant * np.square(dirdot) - self.directionLengthQ
             if normalize != False:
-                div = 2 * xp.sqrt(posdot - dirdot * (
-                        self.conicConstant * 2 * mdir - self.conicConstant ** 2 * dirdot))
+                div = 2 * pos - (2 * self.conicConstant) * dirdot[:, None] * self.directionNormalized[None, :]
                 if normalize == 'seperate':
                     return res, div
-                res /= div
+                res /= np.linalg.norm(div, axis=-1)
             return res
 
         elif surf == SurfaceType.CYLINDER:
