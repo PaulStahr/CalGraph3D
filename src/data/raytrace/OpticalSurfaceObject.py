@@ -3,6 +3,7 @@ from calgraph3d.data.raytrace.OpticalObject import OpticalObject
 from calgraph3d.data.raytrace.SurfaceType import SurfaceType
 from calgraph3d.data.raytrace.TextureMapping import TextureMapping
 from calgraph3d.data.raytrace.Intersection import Intersection
+from calgraph3d.opengl import BufferUtils
 from jsymmath.geometry.Geometry import Geometry
 import math
 
@@ -52,16 +53,15 @@ class OpticalSurfaceObject(OpticalObject):
     def getDotProdLowerBound(self):
         return self.dotProdLowerBound
 
-    def getTextureCoordinates(self, position, dir, out):
+    def getTextureCoordinates(self, positions:np.ndarray):
         if self.mapLocal:
-            x, y, z = position.x, position.y, position.z
-            tmp0 = self.matGlobalToSurface.rdotAffineX(x, y, z)
-            tmp1 = self.matGlobalToSurface.rdotAffineY(x, y, z)
-            tmp2 = self.matGlobalToSurface.rdotAffineZ(x, y, z)
-            self.textureMapping.mapCartToTex(tmp0, tmp1, tmp2, out)
+            ones = np.ones(shape=(*positions.shape[0:-1],1))
+            hom_positions = np.concatenate((positions, ones), axis=-1)
+            positions = (hom_positions @  self.matGlobalToSurface.T)[...,:3]
+            return self.textureMapping.mapCartToTex(positions)
         else:
             direction = position - self.midpoint
-            self.textureMapping.mapCartToTex(direction, out)
+            return self.textureMapping.mapCartToTex(direction)
 
     def update(self):
         self.directionLengthQ = np.sum(np.square(self.direction))
@@ -70,8 +70,8 @@ class OpticalSurfaceObject(OpticalObject):
         self.invDirectionLength = 1 / self.directionLength
         self.directionNormalized = self.direction * self.invDirectionLength
         self.updateIOR()
-        self.radiusGeometricQ = self.maxRadiusGeometric * self.maxRadiusGeometric
-        self.minRadiusGeometricQ = self.minRadiusGeometric * self.minRadiusGeometric
+        self.radiusGeometricQ = self.maxRadiusGeometric ** 2
+        self.minRadiusGeometricQ = self.minRadiusGeometric ** 2
         minRatio = self.minRadiusGeometricQ * self.invDirectionLengthQ
         maxRatio = self.radiusGeometricQ * self.invDirectionLengthQ
 
@@ -127,11 +127,7 @@ class OpticalSurfaceObject(OpticalObject):
             0 if self.surf == SurfaceType.CYLINDER or self.minRadiusGeometric > 0 else 1 - latitudes)
 
     def getMeshVertices(self, latitudes, longitudes):
-        res = np.zeros(shape=(self.getMeshVertexCount(latitudes, longitudes), 3))
-        index = 0
-        z = 0
         multiply = 1. / (longitudes - 1)
-        add = 0
 
         if self.surf == SurfaceType.FLAT:
             multiply *= (self.maxRadiusGeometric - self.minRadiusGeometric) * self.invDirectionLength
@@ -148,37 +144,47 @@ class OpticalSurfaceObject(OpticalObject):
         elif self.surf == SurfaceType.CYLINDER:
             add = self.minRadiusGeometric * self.invDirectionLength
             multiply *= (self.maxRadiusGeometric - self.minRadiusGeometric) * self.invDirectionLength
-        s = math.pi * 2 / latitudes
+        else:
+            raise Exception
+        rho = np.arange(latitudes) * math.pi * 2 / latitudes
+        r = multiply * np.arange(longitudes) + add
+        if self.surf == SurfaceType.FLAT:
+            z = 0
+        elif self.surf == SurfaceType.HYPERBOLIC:
+            z = 2 - np.sqrt(r ** 2 + 1)
+        elif self.surf == SurfaceType.PARABOLIC:
+            z = 1 - r ** 2 * 0.5
+        elif self.surf == SurfaceType.SPHERICAL:
+            z = np.cos(r)
+            r = np.sin(r)
+        elif self.surf == SurfaceType.CUSTOM:
+            z = 1 - r
+            r = np.sqrt(r * (2 - r * (1 + self.conicConstant)))
+        elif self.surf == SurfaceType.CYLINDER:
+            z = r
+            r = np.ones_like(r)
+        else:
+            raise Exception('Type unknown')
+        index = 0
+        res = np.empty(shape=(self.getMeshVertexCount(latitudes, longitudes), 4))
         for ri in range(longitudes):
-            r = multiply * ri + add
-            if self.surf == SurfaceType.FLAT:
-                pass
-            elif self.surf == SurfaceType.HYPERBOLIC:
-                z = 2 - math.sqrt(r * r + 1)
-            elif self.surf == SurfaceType.PARABOLIC:
-                z = 1 - r * r * 0.5
-            elif self.surf == SurfaceType.SPHERICAL:
-                z = math.cos(r)
-                r = math.sin(r)
-            elif self.surf == SurfaceType.CUSTOM:
-                z = 1 - r
-                r = math.sqrt(r * (2 - r * (1 + self.conicConstant)))
-            elif self.surf == SurfaceType.CYLINDER:
-                z = r
-                r = 1
-            else:
-                raise Exception('Type unknown')
-
             if ri != 0 or self.surf == SurfaceType.CYLINDER or self.minRadiusGeometric > 0:
-                for rhoi in range(latitudes):
-                    rho = rhoi * s
-                    res[index] = (self.matSurfaceToGlobal @ np.asarray((r * math.sin(rho), r * math.cos(rho), z, 1)))[
-                                 0:3]
-                    index += 1
+                res[index: index + latitudes] = np.stack((
+                    r[ri] * np.sin(rho),
+                    r[ri] * np.cos(rho),
+                    np.full(shape=latitudes, fill_value=z[ri]),
+                    np.full(shape=latitudes, fill_value=1)), axis=-1)
+                index += latitudes
             else:
-                res[index] = (self.matSurfaceToGlobal @ np.asarray((0, 0, z, 1)))[0:3]
+                res[index] = np.asarray((0, 0, z[ri], 1))
                 index += 1
+        res = (res @ self.matSurfaceToGlobal.T)[:,0:3]
         return res
+
+    def getMeshFaces(self, latitudes, longitudes):
+        if self.surf == SurfaceType.CYLINDER or self.minRadiusGeometric > 0:
+            return BufferUtils.fillWithCylinderIndexData(latitudes, longitudes)
+        return BufferUtils.fillWithRadialIndexData(latitudes, longitudes)
 
     @staticmethod
     def numerical_derivative(function, delta):
@@ -201,15 +207,16 @@ class OpticalSurfaceObject(OpticalObject):
         surf = self.surf
 
         if surf == SurfaceType.FLAT:
-            result = -self.directionNormalized.dot(pos)
+            result = -xp.inner(pos, self.directionNormalized)
             if normalize == 'seperate':
-                return result, np.repeat(self.directionNormalized[[np.newaxis] * (len(pos.shape) -1)], axis=0, repeats=pos.shape[:-1])
+                derivative = np.repeat(-self.directionNormalized[np.newaxis, :], repeats=np.prod(pos.shape[:-1]), axis=0)
+                return result, derivative.reshape(pos.shape[:-1] + (3,))
             return result
         elif surf == SurfaceType.SPHERICAL:
             res = np.sum(np.square(pos), axis=-1)
             if normalize:
                 if normalize == 'seperate':
-                    return res - self.directionLengthQ, pos
+                    return res - self.directionLengthQ, pos * 2
                 np.sqrt(res, out=res)
                 return res - self.directionLength
             return res - self.directionLengthQ

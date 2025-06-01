@@ -26,9 +26,11 @@ import geometry.Geometry;
 import geometry.Matrix4d;
 import geometry.Vector2d;
 import geometry.Vector3d;
+import maths.exception.OperationParseException;
+import maths.variable.VariableAmount;
 import opengl.BufferUtils;
 
-public abstract class OpticalSurfaceObject extends SurfaceObject{
+public class OpticalSurfaceObject extends SurfaceObject{
 	public static final OpticalSurfaceObject EMPTY_SURFACE_ARRAY[] = new OpticalSurfaceObject[0];
 	public double abbeNumber = 1;
 	public double conicConstant = 1;
@@ -75,6 +77,10 @@ public abstract class OpticalSurfaceObject extends SurfaceObject{
 	public double getDotProdLowerBound()
 	{
 		return dotProdLowerBound;
+	}
+
+	public Matrix4d getSurfaceToGlobalTransformation() {
+	    return matSurfaceToGlobal.clone();
 	}
 
 	@Override
@@ -286,20 +292,6 @@ public abstract class OpticalSurfaceObject extends SurfaceObject{
 
 		switch (surf)
 		{
-        /*case HYPERBOLIC:
-            z = 2-Math.sqrt(r * r + 1);
-            break;
-        case PARABOLIC:
-            z = 1 - r * r * 0.5;
-            break;
-        case SPHERICAL:
-            z = Math.cos(r);
-            r = Math.sin(r);
-            break;
-        case CUSTOM:
-            z = 1 - r;
-            r = Math.sqrt(r * (2 - r * (1 + conicConstant)));*/
-
 			case FLAT:
 			{
 				return -this.directionNormalized.dot(x, y, z);
@@ -312,6 +304,7 @@ public abstract class OpticalSurfaceObject extends SurfaceObject{
 			{
 			    double mdir = this.directionNormalized.dot(x, y, z);
 			    double dirdot = mdir - directionLength;
+			    dirdot = dirdot < -3800 ? -3800 : dirdot;
 			    return x * x + y * y + z * z - directionLengthQ + conicConstant * dirdot * dirdot;
 			}
 			case CYLINDER:
@@ -526,4 +519,26 @@ public abstract class OpticalSurfaceObject extends SurfaceObject{
 	{
 		textureMapping.inverseDensityCompensation(width, height, imageColorArray, channels, stride);
 	}
+
+    @Override
+    public void setValue(SCENE_OBJECT_COLUMN_TYPE ct, Object o, VariableAmount va, ParseUtil parser)
+            throws OperationParseException, NumberFormatException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void valueChanged(SCENE_OBJECT_COLUMN_TYPE ct, ParseUtil parser) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void updateValue(SCENE_OBJECT_COLUMN_TYPE sct, VariableAmount variables, ParseUtil parser)
+            throws OperationParseException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public OpticalObject copy(VariableAmount va, ParseUtil parser) {
+        throw new UnsupportedOperationException();
+    }
 }
