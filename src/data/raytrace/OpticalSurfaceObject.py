@@ -1,10 +1,12 @@
 import numpy as np
+from networkx.algorithms.operators.binary import intersection
+
 from calgraph3d.data.raytrace.OpticalObject import OpticalObject
 from calgraph3d.data.raytrace.SurfaceType import SurfaceType
 from calgraph3d.data.raytrace.TextureMapping import TextureMapping
-from calgraph3d.data.raytrace.Intersection import Intersection
 from calgraph3d.opengl import BufferUtils
 from jsymmath.geometry.Geometry import Geometry
+from calgraph3d.data.raytrace.Intersection import Intersection
 import math
 
 
@@ -204,55 +206,56 @@ class OpticalSurfaceObject(OpticalObject):
 
     def evaluate_inner_outer(self, position, normalize=False, xp=np):
         pos = position - xp.asarray(self.midpoint, dtype=position.dtype)
-        surf = self.surf
 
-        if surf == SurfaceType.FLAT:
-            result = -xp.inner(pos, self.directionNormalized)
-            if normalize == 'seperate':
-                derivative = np.repeat(-self.directionNormalized[np.newaxis, :], repeats=np.prod(pos.shape[:-1]), axis=0)
-                return result, derivative.reshape(pos.shape[:-1] + (3,))
-            return result
-        elif surf == SurfaceType.SPHERICAL:
-            res = np.sum(np.square(pos), axis=-1)
-            if normalize:
+        match self.surf:
+            case SurfaceType.FLAT:
+                result = -xp.inner(pos, self.directionNormalized)
                 if normalize == 'seperate':
-                    return res - self.directionLengthQ, pos * 2
-                np.sqrt(res, out=res)
-                return res - self.directionLength
-            return res - self.directionLengthQ
-        elif surf == SurfaceType.CUSTOM:
-            posdot = xp.sum(xp.square(pos), axis=-1)
-            mdir = xp.inner(xp.asarray(self.directionNormalized, dtype=pos.dtype), pos)
-            dirdot = self.directionLength - mdir
+                    derivative = np.repeat(-self.directionNormalized[np.newaxis, :], repeats=np.prod(pos.shape[:-1]), axis=0)
+                    return result, derivative.reshape(pos.shape[:-1] + (3,))
+                return result
+            case SurfaceType.SPHERICAL:
+                res = np.sum(np.square(pos), axis=-1)
+                if normalize:
+                    if normalize == 'seperate':
+                        return res - self.directionLengthQ, pos * 2
+                    np.sqrt(res, out=res)
+                    return res - self.directionLength
+                return res - self.directionLengthQ
+            case SurfaceType.CUSTOM:
+                posdot = xp.sum(xp.square(pos), axis=-1)
+                mdir = xp.inner(xp.asarray(self.directionNormalized, dtype=pos.dtype), pos)
+                dirdot = self.directionLength - mdir
 
-            res = posdot + self.conicConstant * np.square(dirdot) - self.directionLengthQ
-            if normalize != False:
-                div = 2 * pos - (2 * self.conicConstant) * dirdot[:, None] * self.directionNormalized[None, :]
-                if normalize == 'seperate':
-                    return res, div
-                res /= np.linalg.norm(div, axis=-1)
-            return res
+                res = posdot + self.conicConstant * np.square(dirdot) - self.directionLengthQ
+                if normalize != False:
+                    div = 2 * pos - (2 * self.conicConstant) * dirdot[:, None] * self.directionNormalized[None, :]
+                    if normalize == 'seperate':
+                        return res, div
+                    res /= np.linalg.norm(div, axis=-1)
+                return res
+            case SurfaceType.CYLINDER:
+                dotprod = self.directionNormalized.dot(pos)
+                dist = self.directionNormalized.distanceQ(dotprod, pos)
+                return max(dotprod + self.dotProdUpperBound2,
+                           max(-(self.dotProdLowerBound2 + dotprod), dist - self.directionLengthQ))
+            case SurfaceType.HYPERBOLIC:
+                dirdot = xp.inner(self.directionNormalized, pos)
+                return 2 * self.directionLength - dirdot - xp.sqrt(
+                    xp.sum(xp.square(pos), axis=-1) - xp.square(dirdot) + self.directionLengthQ)
+            case SurfaceType.PARABOLIC:
+                dirdot = xp.inner(self.directionNormalized, pos) - self.directionLength
+                return xp.sum(xp.square(pos), axis=-1) - xp.square(dirdot) - self.directionLengthQ
+            case _:
+                raise Exception(f'Unknown surface type: {self.surf}')
 
-        elif surf == SurfaceType.CYLINDER:
-            dotprod = self.directionNormalized.dot(pos)
-            dist = self.directionNormalized.distanceQ(dotprod, pos)
-            return max(dotprod + self.dotProdUpperBound2,
-                       max(-(self.dotProdLowerBound2 + dotprod), dist - self.directionLengthQ))
-        elif surf == SurfaceType.HYPERBOLIC:
-            dirdot = self.directionNormalized.dot(pos)
-            return 2 * self.directionLength - dirdot - math.sqrt(
-                np.square(pos) - np.square(dirdot) + self.directionLengthQ)
-        elif surf == SurfaceType.PARABOLIC:
-            dirdot = self.directionNormalized.dot(pos) - self.directionLength
-            return np.square(pos) - np.square(dirdot) - self.directionLengthQ
-        else:
-            return float('nan')
-
-    def getIntersection(self, ray_pos, ray_dir, intersection, ray_tmin, ray_tmax, xp=np):
+    def getIntersection(self, ray_pos:np.ndarray, ray_dir:np.ndarray, intersection:Intersection, ray_tmin:np.ndarray, ray_tmax:np.ndarray, xp=np):
+        shape = ray_pos.shape[:-1]
+        update_mask = xp.zeros(shape=shape, dtype=bool)
         xyz = ray_pos - self.midpoint
 
         if self.surf == SurfaceType.FLAT:
-            alpha = -self.direction.dot(x, y, z) / self.direction.dot(ray_dir)
+            alpha = -xp.inner(self.direction, xyz) / xp.inner(self.direction, ray_dir)
             if ray_tmin < alpha < ray_tmax:
                 distanceQ = ray_dir.distanceQ(-alpha, x, y, z)
                 if (self.minRadiusGeometricQ < distanceQ < self.radiusGeometricQ) != self.invertInsideOutside:
@@ -263,70 +266,90 @@ class OpticalSurfaceObject(OpticalObject):
                     return intersection
 
         elif self.surf == SurfaceType.HYPERBOLIC:
-            dirproj = self.directionLength - self.directionNormalized.dot(x, y, z)
-            c_a = x * x + y * y + z * z - 2 * dirproj * dirproj - self.directionLengthQ
-            scal = self.directionNormalized.dot(ray_dir)
-            b = ray_dir.dot(x, y, z) + 2 * scal * dirproj
-            a = 1 / (1 - 2 * scal * scal)
-            c_a *= a
-            b *= a
-            sqrt = math.sqrt(b * b - c_a)
-            while sqrt >= 0:
-                alpha = -b - sqrt
-                if ray_tmin < alpha < ray_tmax:
-                    dotProd = dirproj - scal * alpha
-                    if self.dotProdLowerBound2 <= dotProd <= self.dotProdUpperBound2:
-                        dax = ray_dir.x * alpha
-                        day = ray_dir.y * alpha
-                        daz = ray_dir.z * alpha
-                        intersection.position.setAdd(ray_pos, dax, day, daz)
-                        intersection.normal.set(x + dax, y + day, z + daz, self.directionNormalized, 2 * dotProd)
-                        intersection.object = self
-                        intersection.distance = alpha
-                        return intersection
-                sqrt = -sqrt
-
-        elif self.surf == SurfaceType.PARABOLIC:
-            dirproj = self.directionLength - self.directionNormalized.dot(x, y, z)
-            c_a = x * x + y * y + z * z - self.directionLengthQ - dirproj * dirproj
-            scal = self.directionNormalized.dot(ray_dir)
-            b = ray_dir.dot(x, y, z) + scal * dirproj
-            a = 1 / (1 - scal * scal)
-            c_a *= a
-            b *= a
-            sqrt = math.sqrt(b * b - c_a)
-            while sqrt >= 0:
-                alpha = -b - sqrt
-                if ray_tmin < alpha < ray_tmax:
-                    dotProd = dirproj - scal * alpha
-                    if self.dotProdLowerBound2 <= dotProd <= self.dotProdUpperBound2:
-                        dax = ray_dir.x * alpha
-                        day = ray_dir.y * alpha
-                        daz = ray_dir.z * alpha
-                        intersection.position.setAdd(ray_pos, dax, day, daz)
-                        intersection.normal.set(x + dax, y + day, z + daz, self.directionNormalized, dotProd)
-                        intersection.object = self
-                        intersection.distance = alpha
-                        return intersection
-                sqrt = -sqrt
-        elif self.surf == SurfaceType.CUSTOM:
-            dirproj_a = self.directionLength - xp.inner(self.directionNormalized, xyz)
-            c_a = xp.sum(xp.square(xyz), axis=-1) + self.conicConstant * dirproj_a * dirproj_a - self.directionLengthQ
+            dirproj = self.directionLength - xp.inner(self.directionNormalized, xyz)
+            c_a = xp.sum(xp.square(xyz), axis=-1) - 2 * xp.square(dirproj) - self.directionLengthQ
             scal_a = xp.inner(self.directionNormalized, ray_dir)
-            b_a = xp.sum(ray_dir * xyz, axis=-1) - self.conicConstant * scal_a * dirproj_a
-            a_a = 1 / (1 + self.conicConstant * scal_a * scal_a)
+            b_a = xp.sum(ray_dir * xyz, axis=-1) + 2 * scal_a * dirproj
+            a_a = 1 / (1 - 2 * xp.square(scal_a))
             c_a *= a_a
             b_a *= a_a
-            sqrt_a = xp.sqrt(np.square(b_a) - c_a)
-            mask_b2a = np.nonzero(sqrt_a >= 0)[0]
-            while True:
+            sqrt_a = xp.sqrt(xp.square(b_a) - c_a)
+            mask_b2a = xp.nonzero(sqrt_a >= 0)[0]
+            for i in range(2):
+                if len(mask_b2a) == 0:
+                    break
                 alpha_b = -b_a[mask_b2a] - sqrt_a[mask_b2a]
                 mask_c2b = xp.nonzero(np.logical_and(ray_tmin < alpha_b, alpha_b < ray_tmax))[0]
                 if len(mask_c2b) > 0:
                     mask_c2a = mask_b2a[mask_c2b]
                     alpha_c = alpha_b[mask_c2b]
-                    dotProd_c = dirproj_a[mask_c2a] - scal_a[mask_c2a] * alpha_c
+                    dotProd_c = dirproj[mask_c2a] - scal_a[mask_c2a] * alpha_c
                     mask_d2c = xp.nonzero(xp.logical_and(self.dotProdLowerBound2 <= dotProd_c, dotProd_c <= self.dotProdUpperBound2))[0]
+                    if len(mask_d2c) > 0:
+                        mask_d2a = mask_c2a[mask_d2c]
+                        alpha_d = alpha_c[mask_d2c]
+                        da_d = ray_dir[mask_d2a] * alpha_d[:, np.newaxis]
+                        intersection.position[mask_d2a] = ray_pos[mask_d2a] + da_d
+                        intersection.normal[mask_d2a] = xyz[mask_d2a] + da_d + self.directionNormalized[np.newaxis,...] * (2 * dotProd_c[mask_d2c][...,np.newaxis])
+                        intersection.object[mask_d2a] = self
+                        intersection.distance[mask_d2a] = alpha_d
+                        update_mask[mask_d2a] = True
+                        mask_b2a = xp.nonzero(xp.isfinite(sqrt_a) & ~update_mask)[0]
+                sqrt_a = -sqrt_a
+                if not xp.any(sqrt_a[mask_b2a] < 0):
+                    break
+            return update_mask
+        elif self.surf == SurfaceType.PARABOLIC:
+            dirproj_a = self.directionLength - xp.inner(self.directionNormalized, xyz)
+            c_a = xp.sum(xp.square(xyz), axis=-1) - np.square(dirproj_a) - self.directionLengthQ
+            scal_a = xp.inner(self.directionNormalized, ray_dir)
+            b_a = xp.sum(ray_dir * xyz, axis=-1) + scal_a * dirproj_a
+            a_a = 1 / (1 - xp.square(scal_a))
+            c_a *= a_a
+            b_a *= a_a
+            sqrt_a = xp.sqrt(xp.square(b_a) - c_a)
+            mask_b2a = xp.nonzero(sqrt_a >= 0)[0]
+            for i in range(2):
+                if len(mask_b2a) == 0:
+                    break
+                alpha_b = -b_a[mask_b2a] - sqrt_a[mask_b2a]
+                mask_c2b = xp.nonzero((ray_tmin < alpha_b) & (alpha_b < ray_tmax))[0]
+                if len(mask_c2b) > 0:
+                    mask_c2a = mask_b2a[mask_c2b]
+                    alpha_c = alpha_b[mask_c2b]
+                    dotProd_c = dirproj_a[mask_c2a] - scal_a[mask_c2a] * alpha_c
+                    mask_d2c = xp.nonzero((self.dotProdLowerBound2 <= dotProd_c) & (dotProd_c <= self.dotProdUpperBound2))[0]
+                    if len(mask_d2c) > 0:
+                        mask_d2a = mask_c2a[mask_d2c]
+                        alpha_d = alpha_c[mask_d2c]
+                        intersection.position[mask_d2a] = ray_pos[mask_d2a] + ray_dir[mask_d2a] * alpha_d[:,np.newaxis]
+                        intersection.normal[mask_d2a] = xyz[mask_d2a] + ray_dir[mask_d2a] * alpha_d[:,np.newaxis]
+                        intersection.object[mask_d2a] = self
+                        intersection.distance[mask_d2a] = alpha_d
+                        update_mask[mask_d2a] = True
+                        mask_b2a = xp.nonzero(xp.isfinite(sqrt_a) & ~update_mask)[0]
+                sqrt_a = -sqrt_a
+            return update_mask
+        elif self.surf == SurfaceType.CUSTOM:
+            dirproj_a = self.directionLength - xp.inner(self.directionNormalized, xyz)
+            c_a = xp.sum(xp.square(xyz), axis=-1) + self.conicConstant * xp.square(dirproj_a) - self.directionLengthQ
+            scal_a = xp.inner(self.directionNormalized, ray_dir)
+            b_a = xp.sum(ray_dir * xyz, axis=-1) - self.conicConstant * scal_a * dirproj_a
+            a_a = 1 / (1 + self.conicConstant * xp.square(scal_a))
+            c_a *= a_a
+            b_a *= a_a
+            sqrt_a = xp.sqrt(np.square(b_a) - c_a)
+            mask_b2a = np.nonzero(xp.isfinite(sqrt_a))[0]
+            for i in range(2):
+                if len(mask_b2a) == 0:
+                    break
+                alpha_b = -b_a[mask_b2a] - sqrt_a[mask_b2a]
+                mask_c2b = xp.nonzero((ray_tmin < alpha_b) & (alpha_b < ray_tmax))[0]
+                if len(mask_c2b) > 0:
+                    mask_c2a = mask_b2a[mask_c2b]
+                    alpha_c = alpha_b[mask_c2b]
+                    dotProd_c = dirproj_a[mask_c2a] - scal_a[mask_c2a] * alpha_c
+                    mask_d2c = xp.nonzero((self.dotProdLowerBound2 <= dotProd_c) & (dotProd_c <= self.dotProdUpperBound2))[0]
                     if len(mask_d2c) > 0:
                         mask_d2a = mask_c2a[mask_d2c]
                         alpha_d = alpha_c[mask_d2c]
@@ -334,10 +357,10 @@ class OpticalSurfaceObject(OpticalObject):
                         intersection.normal[mask_d2a] = intersection.position[mask_d2a] - self.midpoint[np.newaxis,:] - self.directionNormalized[np.newaxis,:] * self.conicConstant * dotProd_c[mask_d2c,np.newaxis]
                         intersection.object[mask_d2a] = self
                         intersection.distance[mask_d2a] = alpha_d
-                        mask_b2a = xp.nonzero(intersection.object != self)[0]
+                        update_mask[mask_d2a] = True
+                        mask_b2a = xp.nonzero(xp.isfinite(sqrt_a) & ~update_mask)[0]
                 sqrt_a = -sqrt_a
-                if not xp.any(sqrt_a[mask_b2a] < 0):
-                    break
+            return update_mask
         elif self.surf == SurfaceType.SPHERICAL:
             c_a = xp.sum(xp.square(xyz), axis=-1) - self.directionLengthQ
             b_a = xp.sum(ray_dir * xyz, axis=-1)
@@ -349,9 +372,12 @@ class OpticalSurfaceObject(OpticalObject):
                 dirproj_b = xp.inner(self.directionNormalized, xyz[mask_b2a])
                 scal_b = xp.inner(self.directionNormalized, ray_dir[mask_b2a])
                 mask_c2b = np.arange(len(mask_b2a),dtype=int)
-                while True:
+                for i in range(2):
+                    if len(mask_c2b) == 0:
+                        break
                     alpha_c = -b_b[mask_c2b] - sqrt_b[mask_c2b]
-                    mask_d2c = xp.nonzero(np.logical_and(ray_tmin < alpha_c, alpha_c < ray_tmax))[0]
+                    mask_c2a = mask_b2a[mask_c2b]
+                    mask_d2c = xp.nonzero(np.logical_and(ray_tmin[mask_c2a] < alpha_c, alpha_c < ray_tmax[mask_c2a]))[0]
                     if len(mask_d2c) > 0:
                         mask_d2b = mask_c2b[mask_d2c]
                         alpha_d = alpha_c[mask_d2c]
@@ -365,18 +391,18 @@ class OpticalSurfaceObject(OpticalObject):
                             intersection.normal[mask_e2a] = xyz[mask_e2a] + da_e
                             intersection.object[mask_e2a] = self
                             intersection.distance[mask_e2a] = alpha_e
-                            mask_c2b = xp.nonzero(intersection.object[mask_b2a] != self)[0]
+                            update_mask[mask_e2a] = True
+                            mask_c2b = xp.nonzero(xp.isfinite(sqrt_b) & ~update_mask)[0]
                     sqrt_b = -sqrt_b
-                    if not xp.any(sqrt_b[mask_c2b] < 0):
-                        break
+            return update_mask
         elif self.surf == SurfaceType.CYLINDER:
-            dirproj = -self.directionNormalized.dot(x, y, z)
-            q = x * x + y * y + z * z - dirproj * dirproj - self.directionLengthQ
+            dirproj = -xp.inner(self.directionNormalized, xyz)
+            q = xp.sum(xp.square(xyz), axis=-1) - xp.square(dirproj) - self.directionLengthQ
             scal = self.directionNormalized.dot(ray_dir)
-            p = ray_dir.dot(x, y, z) + dirproj * scal
-            a = 1 / (1 - scal * scal)
-            q *= a
-            p *= a
+            p = xp.sum(ray_dir * xyz, axis=-1) + dirproj * scal
+            a_a = 1 / (1 - scal * scal)
+            q *= a_a
+            p *= a_a
             sqrt = math.sqrt(p * p - q)
             while sqrt >= 0:
                 ray_t = -p - sqrt
