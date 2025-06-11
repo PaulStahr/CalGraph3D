@@ -1,6 +1,6 @@
 from enum import Enum
 class MaterialType(Enum):
-    ABSORBATION = "Absorbation"
+    ABSORPTION = "Absorption"
     DELETION = "Deletion"
     REFRACTION = "Refraction"
     REFLECTION = "Reflection"

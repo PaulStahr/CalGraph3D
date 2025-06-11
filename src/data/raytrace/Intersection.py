@@ -2,13 +2,13 @@ import numpy as np
 
 
 class Intersection:
-    def __init__(self, shape, position=None, normal=None, object=None, distance=None):
+    def __init__(self, shape, position=None, normal=None, object:int=None, distance=None, xp=np):
         if isinstance(shape, int):
             shape = (shape,)
-        self.position = np.full(shape=(*shape, 3), fill_value=np.nan) if position is None else position
-        self.normal = np.full(shape=(*shape, 3), fill_value=np.nan) if normal is None else normal
-        self.object = np.full(shape=shape, fill_value=None) if object is None else object
-        self.distance = np.zeros(shape=shape) if distance is None else distance
+        self.position = xp.full(shape=(*shape, 3), fill_value=xp.nan) if position is None else position
+        self.normal = xp.full(shape=(*shape, 3), fill_value=xp.nan) if normal is None else normal
+        self.object = xp.full(shape=shape, fill_value=-1) if object is None else object
+        self.distance = xp.zeros(shape=shape) if distance is None else distance
 
     def __getitem__(self, item):
         return Intersection(self.position[item].shape[:-1],
