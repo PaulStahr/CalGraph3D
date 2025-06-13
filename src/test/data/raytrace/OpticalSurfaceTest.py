@@ -1,17 +1,12 @@
-from cupy_backends.cuda.libs.cublas import dtpttr
-from triton.language import dtype
-
 from calgraph3d.data.raytrace.MaterialType import MaterialType
 from calgraph3d.data.raytrace.OpticalSurfaceObject import OpticalSurfaceObject
 from calgraph3d.data.raytrace.SurfaceType import SurfaceType
 from calgraph3d.data.raytrace.Intersection import Intersection
-import numpy as np
 import unittest
-from functools import partial
 
 from jsymmath.geometry.Geometry import Geometry
 import jpype
-from jpype import JPackage, JArray, JDouble, JException
+from jpype import JPackage
 import jpype.types as jtypes
 import numpy as np
 import os

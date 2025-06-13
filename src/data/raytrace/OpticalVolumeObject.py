@@ -87,57 +87,11 @@ class OpticalVolumeObject(OpticalObject):
         grid = grid @ self.globalToCudaCubes[:3, :3].T + self.globalToCudaCubes[:3, 3]
         return grid
 
-    java_code = """public Intersection getIntersection(Vector3d position, Vector3d direction, Intersection intersection, double lowerBound, double upperBound)
-	{
-		double x = this.midpoint.x - position.x, y = this.midpoint.y - position.y, z = this.midpoint.z - position.z;
-		int mindir = -1;
-		for (int i = 0; i < 3; ++i)
-		{
-			double dotprod=unitVolumeToGlobalRows[i].dot(direction);
-			double offsetdot=unitVolumeToGlobalRows[i].dot(x,y,z);
-			if (dotprod == 0)
-			{
-				if (Math.abs(offsetdot) < 1)
-				{
-					continue;
-				}
-				return null;
-			}
-			dotprod = 1 / dotprod;
-			offsetdot *= dotprod;
-			dotprod = Math.abs(dotprod);
-			double alpha0 = offsetdot - dotprod;
-			double alpha1 = offsetdot + dotprod;
-
-			if (alpha0 > lowerBound)
-			{
-				lowerBound = alpha0;
-				mindir = i;
-			}
-			upperBound = Math.min(upperBound, alpha1);
-			if (lowerBound > upperBound)
-			{
-				return null;
-			}
-		}
-		intersection.position.set(position, direction, lowerBound);
-		if (mindir != -1)
-		{
-			intersection.normal.set(unitVolumeToGlobalRows[mindir]);
-		}
-		intersection.object = this;
-		intersection.distance = lowerBound;
-		return intersection;
-	}"""
-
     @override
     def getIntersection(self, position:np.ndarray, direction:np.ndarray, intersection:Intersection, lowerBound:np.ndarray, upperBound:np.ndarray, xp=np):
         globalToCudaCubes = ArrayUtil.convert(self.globalToCudaCubes, xp)
         position_local = position @ globalToCudaCubes[:3, :3].T + globalToCudaCubes[:3, 3]
         direction = direction @ globalToCudaCubes[:3, :3].T
-        intersection.distance[:] = xp.inf
-        lowerBound = xp.copy(lowerBound)
-        upperBound = xp.copy(upperBound)
         dirdot0 = -position_local / direction
         dirdot1 = (xp.asarray(self.shape)[xp.newaxis, :] - position_local) / direction
         mindot = xp.minimum(dirdot0, dirdot1)
@@ -146,7 +100,7 @@ class OpticalVolumeObject(OpticalObject):
         lowerBound = xp.maximum(lowerBound, xp.max(mindot, axis=-1))
         upperBound = xp.minimum(upperBound, xp.min(maxdot, axis=-1))
         mask = xp.nonzero(lowerBound < upperBound)
-        intersection.object[mask] = id(self)
+        intersection.object[mask] = self.id
         intersection.position[mask] = position[mask] + direction[mask] * lowerBound[mask, xp.newaxis]
         intersection.normal[mask] = globalToCudaCubes[firstcontact[mask], :3]
         intersection.distance[mask] = lowerBound[mask]

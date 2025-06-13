@@ -4,6 +4,7 @@ from calgraph3d.data.raytrace.Intersection import Intersection
 from calgraph3d.data.raytrace.MaterialType import MaterialType
 from calgraph3d.data.raytrace.OpticalSurfaceObject import OpticalSurfaceObject
 from calgraph3d.data.raytrace.OpticalVolumeObject import OpticalVolumeObject
+from jsymmath.util import ArrayUtil
 import logging
 
 logger = logging.getLogger(__name__)
@@ -96,51 +97,62 @@ class RaytraceScene:
             xp=np):
         optical_objects = self.optical_surface_objects + self.optical_volume_objects
         optical_objects = [obj for obj in optical_objects if obj.active]
-        successor_matrix = xp.zeros(shape=(len(optical_objects), len(optical_objects)), dtype=bool)
+        successor_list = [list() for _ in range(len(optical_objects))]
         for source_object, destination_object  in self.successor_set:
             if source_object not in optical_objects or destination_object not in optical_objects:
                 continue
             source_index = optical_objects.index(source_object)
             destination_index = optical_objects.index(destination_object)
-            successor_matrix[source_index, destination_index] = True
+            successor_list[source_index].append(destination_index)
 
-        intersection = Intersection(position.shape[:-1], xp=xp)
-        allowed_successors = xp.zeros(shape=(*position.shape[:-1], len(optical_objects)), dtype=bool)
+        rg = xp.arange(len(position), dtype=xp.int32)
+        allowed_successors = [list() for _ in range(len(optical_objects))]
         for start_object in start_objects:
             if start_object not in optical_objects:
                 logger.log(logging.WARNING, f"Start object {start_object} not in optical objects")
                 continue
-            allowed_successors[..., optical_objects.index(start_object)] = True
+            allowed_successors[optical_objects.index(start_object)].append(rg)
+
         for ibounce in range(20):
+            intersection = Intersection(position.shape[:-1], xp=xp)
             if trajectory is not None:
                 trajectory.append(position.copy())
-            intersection_id = xp.full(shape=position.shape[:-1], dtype=int, fill_value=-1)
             direction /= xp.linalg.norm(direction, axis=-1, keepdims=True)
             lower_bound[:] = 1e-6
-            upper_bound[:] = xp.inf
+            intersection.distance[:] = upper_bound[:]
             # get the closest intersection
+            possible_intersectors = [list() for _ in range(len(optical_objects))]
             for i, optical_object in enumerate(optical_objects):
-                mask = xp.nonzero(allowed_successors[..., i])[0]
-                if len(mask) == 0:
+                if len(allowed_successors[i]) == 0:
                     continue
+                mask = xp.concatenate(allowed_successors[i])
+                assert len(mask) != 0
                 current_intersection = intersection[mask]
-                update_mask = optical_object.getIntersection(position[mask], direction[mask], current_intersection, lower_bound[mask], upper_bound[mask], xp=xp)
+                update_mask = optical_object.getIntersection(position[mask], direction[mask], current_intersection, lower_bound[mask], current_intersection.distance, xp=xp)
+                if isinstance(update_mask, xp.ndarray) and update_mask.dtype == bool:
+                    update_mask = xp.nonzero(update_mask)[0]
+                if len(update_mask) == 0:
+                    continue
                 mask = mask[update_mask]
                 intersection[mask] = current_intersection[update_mask]
-                intersection_id[mask] = i
-                upper_bound[mask] = current_intersection.distance[update_mask]
+                possible_intersectors[i].append(mask)
+
+
             # apply the closest optical object
-            allowed_successors[...] = False
+            allowed_successors = [list() for _ in range(len(optical_objects))]
             for i, optical_object in enumerate(optical_objects):
-                mask = xp.nonzero(intersection_id == i)
-                if len(mask[0]) == 0:
+                cur_possible_intersectors = possible_intersectors[i]
+                if len(cur_possible_intersectors) == 0:
+                    continue
+                cur_possible_intersectors = xp.concatenate(cur_possible_intersectors)
+                mask = cur_possible_intersectors[intersection.object[cur_possible_intersectors] == optical_object.id]
+                if len(mask) == 0:
                     continue
                 if isinstance(optical_object, OpticalSurfaceObject):
                     active_intersection = intersection[mask]
                     match optical_object.materialType:
                         case MaterialType.ABSORPTION:
                             position[mask] = active_intersection.position
-                            assert ~xp.all(successor_matrix[i])
                         case MaterialType.DELETION:
                             position[mask] = xp.nan
                             direction[mask] = xp.nan
@@ -160,9 +172,8 @@ class RaytraceScene:
                     next_position, next_direction = optical_object.calculateRays(active_intersection.position, direction[mask], xp=xp)
                     position[mask] = next_position
                     direction[mask] = next_direction
-
-
-                allowed_successors[mask] = successor_matrix[i]
+                for j in successor_list[i]:
+                    allowed_successors[j].append(mask)
 
         if trajectory is not None:
             trajectory.append(position.copy())

@@ -3,6 +3,8 @@ from calgraph3d.data.raytrace.Intersection import Intersection
 from calgraph3d.data.raytrace.MaterialType import MaterialType
 
 class OpticalObject():
+    _counter = 0
+
     def __init__(self):
         self.midpoint:np.ndarray = np.zeros(shape=3)
         self.ior0 = 1.3
@@ -10,8 +12,8 @@ class OpticalObject():
         self.invertNormal:bool = False
         self.materialType:MaterialType|None = None
         self.active:bool = True
-        #unique increasing id for each object
-
+        OpticalObject._counter += 1
+        self.id = OpticalObject._counter
 
     def updateIOR(self):
         ior0 = float(self.ior0)
