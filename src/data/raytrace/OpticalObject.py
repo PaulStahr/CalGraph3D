@@ -12,8 +12,15 @@ class OpticalObject():
         self.invertNormal:bool = False
         self.materialType:MaterialType|None = None
         self.active:bool = True
+        self.modCount:int = 0
         OpticalObject._counter += 1
         self.id = OpticalObject._counter
+        self.label = None
+
+    def __repr__(self):
+        if self.label is not None:
+            return f"{self.id} {self.label}"
+        return f"OpticalObject {self.id} ({self.__class__.__name__})"
 
     def updateIOR(self):
         ior0 = float(self.ior0)

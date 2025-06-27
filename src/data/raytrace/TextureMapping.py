@@ -5,19 +5,19 @@ class TextureMapping(ABC):
     name = ""
 
     @abstractmethod
-    def mapCartToTex(self, coords):
+    def mapCartToTex(self, coords, xp=np):
         pass
 
     @abstractmethod
-    def mapTexToCart(self, tex_coords):
+    def mapTexToCart(self, tex_coords, xp=np):
         pass
 
     @abstractmethod
-    def mapTexToSpherical(self, tex_coords):
+    def mapTexToSpherical(self, tex_coords, xp=np):
         pass
 
     @abstractmethod
-    def mapSphericalToTex(self, tex_coords):
+    def mapSphericalToTex(self, tex_coords, xp=np):
         pass
 
     @abstractmethod
@@ -52,21 +52,26 @@ class PerspectiveMapping(TextureMapping):
 
 TextureMapping.PERSPECTIVE = PerspectiveMapping()
 
+TWO_PI = 2 * np.pi
+INV_PI = 1.0 / np.pi
+INV_TWO_PI = 1.0 / (2 * np.pi)
+
 class SphericalMapping(TextureMapping):
     name = "Spherical"
 
-    def mapCartToTex(self, coords):
-        azimuth = np.arctan2(coords[...,1], coords[...,0]) + np.pi
-        elevation = np.arccos(coords[...,2] / np.linalg.norm(coords, axis=-1))
-        return np.stack((azimuth, elevation),axis=-1)
+    def mapCartToTex(self, coords, xp=np):
+        azimuth = xp.arctan2(coords[...,1], coords[...,0]) * INV_TWO_PI + 0.5
+        elevation = xp.arctan2(np.linalg.norm(coords[...,0:2], axis=-1), coords[...,2]) * INV_PI
+        return xp.stack((azimuth, elevation),axis=-1)
 
-    def mapTexToCart(self, tex_coords):
-        s = np.sin(tex_coords)
-        c = np.cos(tex_coords)
-        return np.stack((
-            s[...,1] * c[...,0],
-            s[...,1] * s[...,0],
-            c[...,1])
+    def mapTexToCart(self, tex_coords, xp=np):
+        tex_coords = xp.asarray((tex_coords[..., 0] * TWO_PI, tex_coords[..., 1] * np.pi))
+        s = xp.sin(tex_coords)
+        c = xp.cos(tex_coords)
+        return xp.stack((
+            s[1] * c[0],
+            s[1] * s[0],
+            c[1])
         , axis=-1)
 
     def mapTexToSpherical(self, tex_coords):
@@ -83,10 +88,20 @@ TextureMapping.SPHERICAL = SphericalMapping()
 class FisheyeEquidistantMapping(TextureMapping):
     name = "FisheyeEquidistant"
 
-    def mapCartToTex(self, coords):
-        azimuth = np.arctan2(coords[...,1], coords[...,0])
-        r = np.arccos(coords[...,2] / np.linalg.norm(coords, axis=1))
-        return np.stack((r * np.cos(azimuth), r * np.sin(azimuth)), axis=-1)
+
+    """		@Override
+		public double mapCartToTex(double x, double y, double z, Vector2d out) {
+			double len = Math.sqrt(x * x + y * y);
+			if (len == 0 && z != 0) {out.set(0.5,0.5); return 1;}
+			len = Math.atan2(len, z)/ (len * TWO_PI);
+			out.x = x * len + 0.5;
+			out.y = y * len + 0.5;
+			return Math.sin(len) / len;
+		}"""
+    def mapCartToTex(self, coords, xp=np):
+        len = xp.linalg.norm(coords[...,0:2], axis=-1)
+        len = xp.arctan2(len, coords[...,2]) / (len * TWO_PI)
+        return xp.stack((len * coords[...,0], len * coords[...,1]), axis=-1) + 0.5
 
     def mapTexToCart(self, tex_coords):
         r = np.sqrt(np.linalg.norm(tex_coords, axis=1))

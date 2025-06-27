@@ -1,9 +1,9 @@
 import numpy as np
-from networkx.algorithms.operators.binary import intersection
 
 from calgraph3d.data.raytrace.OpticalObject import OpticalObject
 from calgraph3d.data.raytrace.SurfaceType import SurfaceType
 from calgraph3d.data.raytrace.TextureMapping import TextureMapping
+from calgraph3d.data.raytrace.TextureObject import TextureObject
 from calgraph3d.opengl import BufferUtils
 from jsymmath.geometry.Geometry import Geometry
 from jsymmath.util import ArrayUtil
@@ -20,7 +20,7 @@ class OpticalSurfaceObject(OpticalObject):
         self.conicConstant = 1
         self.direction = np.zeros(shape=3)
         self.directionNormalized = np.zeros(shape=3)
-        self.surf = SurfaceType.FLAT
+        self.surf:SurfaceType = SurfaceType.FLAT
         self.maxRadiusGeometric = 1
         self.radiusGeometricQ = 1
         self.minRadiusGeometric = 0
@@ -37,9 +37,13 @@ class OpticalSurfaceObject(OpticalObject):
         self.dotProdLowerBound2 = 0
         self.maxArcOpen = 0
         self.minArcOpen = 0
-        self.textureMapping = TextureMapping.SPHERICAL
-        self.alphaAsRadius = False
+        self.textureMapping:TextureMapping = TextureMapping.SPHERICAL
+        self.testAlpha = False
+        self.texture:TextureObject|None = None
+        self.alphaTexture:TextureObject|None = None
+        self.alphaAsRadius:bool = False
         self.mapLocal = True
+        self.diffuse:float = 0
         self.alphaAsMask = False
         if orig is not None:
             self.__dict__.update(vars(orig))
@@ -56,15 +60,22 @@ class OpticalSurfaceObject(OpticalObject):
     def getDotProdLowerBound(self):
         return self.dotProdLowerBound
 
-    def getTextureCoordinates(self, positions:np.ndarray):
+    def getTextureCoordinates(self, positions:np.ndarray, xp=np):
         if self.mapLocal:
-            ones = np.ones(shape=(*positions.shape[0:-1],1))
-            hom_positions = np.concatenate((positions, ones), axis=-1)
-            positions = (hom_positions @  self.matGlobalToSurface.T)[...,:3]
+            ones = xp.ones(shape=(*positions.shape[0:-1],1))
+            hom_positions = xp.concatenate((positions, ones), axis=-1)
+            positions = (hom_positions @ ArrayUtil.convert(self.matGlobalToSurface.T,xp))[...,:3]
             return self.textureMapping.mapCartToTex(positions)
         else:
-            direction = position - self.midpoint
+            direction = positions - ArrayUtil.convert(self.midpoint, xp)
             return self.textureMapping.mapCartToTex(direction)
+
+    def setRadius(self, minRadiusGeometric=None, maxRadiusGeometric=None):
+        if minRadiusGeometric is not None:
+            self.minRadiusGeometric = minRadiusGeometric
+        if maxRadiusGeometric is not None:
+            self.maxRadiusGeometric = maxRadiusGeometric
+        self.update()
 
     def update(self):
         self.directionLengthQ = np.sum(np.square(self.direction))
@@ -208,7 +219,7 @@ class OpticalSurfaceObject(OpticalObject):
             return evaluated[0], derivative.T
         return derivative
 
-    def evaluate_inner_outer(self, position, normalize=False, xp=np):
+    def evaluate_inner_outer(self, position, normalize:bool|str=False, xp=np):
         pos = position - xp.asarray(self.midpoint, dtype=position.dtype)
 
         match self.surf:
@@ -228,12 +239,13 @@ class OpticalSurfaceObject(OpticalObject):
                 return res - self.directionLengthQ
             case SurfaceType.CUSTOM:
                 posdot = xp.sum(xp.square(pos), axis=-1)
-                mdir = xp.inner(xp.asarray(self.directionNormalized, dtype=pos.dtype), pos)
+                directionNormalized = ArrayUtil.convert(self.directionNormalized, xp)
+                mdir = xp.inner(directionNormalized, pos)
                 dirdot = self.directionLength - mdir
 
-                res = posdot + self.conicConstant * np.square(dirdot) - self.directionLengthQ
+                res = posdot + self.conicConstant * xp.square(dirdot) - self.directionLengthQ
                 if normalize != False:
-                    div = 2 * (pos - self.conicConstant * dirdot[:, None] * self.directionNormalized[None, :])
+                    div = 2 * (pos - (self.conicConstant * dirdot)[..., None] * directionNormalized[*([None]*len(dirdot.shape)), :])
                     if normalize == 'seperate':
                         return res, div
                     res /= np.linalg.norm(div, axis=-1)
@@ -253,7 +265,13 @@ class OpticalSurfaceObject(OpticalObject):
             case _:
                 raise Exception(f'Unknown surface type: {self.surf}')
 
-    def getIntersection(self, ray_pos:np.ndarray, ray_dir:np.ndarray, intersection:Intersection, ray_tmin:np.ndarray, ray_tmax:np.ndarray, xp=np):
+    def getIntersection(self,
+                        ray_pos:np.ndarray,
+                        ray_dir:np.ndarray,
+                        intersection:Intersection,
+                        ray_tmin:np.ndarray,
+                        ray_tmax:np.ndarray,
+                        xp=np):
         shape = ray_pos.shape[:-1]
         update_mask = xp.zeros(shape=shape, dtype=bool)
         xyz = ray_pos - ArrayUtil.convert(self.midpoint, xp)
@@ -393,7 +411,16 @@ class OpticalSurfaceObject(OpticalObject):
                             alpha_e = alpha_d[mask_e2d]
                             mask_e2a = mask_b2a[mask_d2b[mask_e2d]]
                             da_e = ray_dir[mask_e2a] * alpha_e[:,np.newaxis]
-                            intersection.position[mask_e2a] = ray_pos[mask_e2a] + da_e
+                            intersection_position = ray_pos[mask_e2a] + da_e
+                            if self.alphaTexture is not None:
+                                texture_coordinates = self.getTextureCoordinates(intersection_position, xp=xp)
+                                object_color = self.alphaTexture.getColor(texture_coordinates, xp=xp)
+                                mask_f2e = np.nonzero(object_color > 0)[0]
+                                mask_e2a = mask_e2a[mask_f2e]
+                                alpha_e = alpha_e[mask_f2e]
+                                da_e = da_e[mask_f2e]
+                                intersection_position = intersection_position[mask_f2e]
+                            intersection.position[mask_e2a] = intersection_position
                             intersection.normal[mask_e2a] = xyz[mask_e2a] + da_e
                             intersection.object[mask_e2a] = self.id
                             intersection.distance[mask_e2a] = alpha_e
