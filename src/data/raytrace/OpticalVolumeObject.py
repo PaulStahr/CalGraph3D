@@ -3,11 +3,12 @@ from calgraph3d.data.raytrace.OpticalObject import OpticalObject
 from volumeraytracer.volume_raytracer import OpticalVolume
 from calgraph3d.data.raytrace.Intersection import Intersection
 from jsymmath.util import ArrayUtil
+import inspect
 from typing import override
 
 class OpticalVolumeObject(OpticalObject):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, label=None):
+        super().__init__(label=label)
         self.ior = None
         self.translucency = None
         self.checkInnerIntersection = False
@@ -40,8 +41,9 @@ class OpticalVolumeObject(OpticalObject):
         self.update()
 
     def getRefractiveIndex(self, positions):
-        positions = positions @ self.cudaCubesToGlobal[:3, :3].T + self.cudaCubesToGlobal[:3, 3]
-        return self.volume.get_ior(positions)
+        globalToCudaCubes = ArrayUtil.convert(self.globalToCudaCubes, ArrayUtil.getArrayModule(positions))
+        positions = positions @ globalToCudaCubes[:3, :3].T + globalToCudaCubes[:3, 3]
+        return self.volume.evaluate_ior(positions)
 
     def setSize(self, shape):
         self.shape = shape
@@ -66,8 +68,9 @@ class OpticalVolumeObject(OpticalObject):
 
     @override
     def calculateRays(self,
-                      position,
-                      direction,
+                      position:np.ndarray,
+                      direction:np.ndarray,
+                      maxIterations:int=1000,
                       xp=np):
         globalToCudaCubes = ArrayUtil.convert(self.globalToCudaCubes, xp)
         cudaCubesToGlobal = ArrayUtil.convert(self.cudaCubesToGlobal, xp)
@@ -76,7 +79,7 @@ class OpticalVolumeObject(OpticalObject):
         position, direction, iterations = self.volume.trace_rays(
             positions=position.astype(xp.float32),
             directions=direction.astype(xp.float32),
-            iterations=xp.full(shape=position.shape[:-1], fill_value=1000, dtype=xp.uint32),
+            iterations=xp.full(shape=position.shape[:-1], fill_value=maxIterations, dtype=xp.uint32),
             bounds=self.shape)
         position = OpticalVolume.convert(position, xp)
         direction = OpticalVolume.convert(direction, xp)
@@ -91,7 +94,17 @@ class OpticalVolumeObject(OpticalObject):
         return grid
 
     @override
-    def getIntersection(self, position:np.ndarray, direction:np.ndarray, intersection:Intersection, lowerBound:np.ndarray, upperBound:np.ndarray, xp=np):
+    def getIntersection(
+            self,
+            position:np.ndarray,
+            direction:np.ndarray,
+            intersection:Intersection,
+            lowerBound:np.ndarray,
+            upperBound:np.ndarray,
+            xp=None,
+            enterVolume:bool=True):
+        assert lowerBound.shape == upperBound.shape, f"lowerBound and upperBound must have the same shape, got {lowerBound.shape} and {upperBound.shape}"
+        xp = inspect.getmodule(type(position)) if xp is None else xp
         shape = xp.asarray(self.shape)
         globalToCudaCubes = ArrayUtil.convert(self.globalToCudaCubes, xp)
         position_local = position @ globalToCudaCubes[:3, :3].T + globalToCudaCubes[:3, 3]
@@ -101,18 +114,29 @@ class OpticalVolumeObject(OpticalObject):
         mindot = xp.minimum(dirdot0, dirdot1)
         maxdot = xp.maximum(dirdot0, dirdot1)
         firstcontact = xp.argmin(mindot, axis=-1)
-        lowerBound = xp.maximum(lowerBound, xp.max(mindot, axis=-1))
+        lowerBound = xp.maximum(lowerBound, xp.max(mindot, axis=-1)) #TODO this doesn't work if ray is parallel
         upperBound = xp.minimum(upperBound, xp.min(maxdot, axis=-1))
         mask = xp.nonzero(lowerBound < upperBound)
         if self.checkInnerIntersection:
-            position_local, iteration = self.volume.get_intersection(
-                positions=position_local[mask].astype(xp.float32),
-                directions=direction_local[mask].astype(xp.float32),
-                iterations=xp.full(shape=len(mask[0]), fill_value=1000, dtype=xp.uint32),
+            num_steps = 1000
+            position_masked = position_local[mask].astype(xp.float32)
+            direction_masked = direction_local[mask].astype(xp.float32)
+            position_masked += direction_masked * lowerBound[*mask, xp.newaxis]
+            direction_masked *= ((upperBound[*mask, xp.newaxis] - lowerBound[*mask, xp.newaxis]) / num_steps)
+            position_local, distances, iteration = self.volume.get_intersection(
+                positions=position_masked,
+                directions=direction_masked,
+                iterations=xp.full(shape=len(mask[0]), fill_value=num_steps,dtype=xp.uint32),
+                enterVolume=enterVolume,
                 bounds=self.shape)
+            inner_mask = xp.nonzero(iteration != 0)[0]
+            position_local = ArrayUtil.convert(position_local[inner_mask], xp)
             cudaCubesToGlobal = ArrayUtil.convert(self.cudaCubesToGlobal, xp)
             intersection_position = position_local @ cudaCubesToGlobal[:3, :3].T + cudaCubesToGlobal[:3, 3]
+            inner_mask = ArrayUtil.convert(inner_mask, xp)
+            mask = (mask[0][inner_mask],)
             distance = xp.linalg.norm(intersection_position - position[mask], axis=-1) / xp.linalg.norm(direction[mask], axis=-1)
+            #distance = distances * (upperBound[mask] - lowerBound[mask]) + lowerBound[mask]
         else:
             intersection_position = position[mask] + direction[mask] * lowerBound[mask, xp.newaxis]
             distance = lowerBound[mask]

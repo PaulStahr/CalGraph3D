@@ -4,6 +4,7 @@ from calgraph3d.data.raytrace.OpticalObject import OpticalObject
 from calgraph3d.data.raytrace.Intersection import Intersection
 from jsymmath.geometry.Geometry import Geometry
 from jsymmath.util import ArrayUtil
+from jsymmath.geometry.AffineMatrix import AffineMatrix
 
 class MeshObject(OpticalObject):
     def __init__(self):
@@ -12,12 +13,14 @@ class MeshObject(OpticalObject):
         self.globalToMesh = np.identity(4)
         self.texture = None
         self.faces = None
+        self.faceNormals = None
         self.faceNormalsInversedLength = None
         self.vertexNormals = None
         self.textureCoordinates = None
         self.vertices = None
         self.weightPoint = None
         self.active = True
+        self.smoothNormals = False
         self.radiusQ = np.nan
 
     def getIntersection(self,
@@ -57,7 +60,7 @@ class MeshObject(OpticalObject):
         assignment_mask  = xp.zeros(shape=len(position), dtype=bool)
         vertices = ArrayUtil.convert(self.vertices, xp)
         vertexNormals = ArrayUtil.convert(self.vertexNormals, xp)
-        faceNormalsInversedLength = ArrayUtil.convert(self.faceNormalsInversedLength, xp)
+        faceNormals = ArrayUtil.convert(self.faceNormals, xp)
         textureCoordinates = ArrayUtil.convert(self.textureCoordinates, xp)
         faces = ArrayUtil.convert(self.faces, xp)
         v0_all = vertices[faces[:, 0]]
@@ -70,7 +73,7 @@ class MeshObject(OpticalObject):
         direction_c = direction[mask_c2a]
 
         for i in range(len(self.faces)):
-            face_normal = faceNormalsInversedLength[i]
+            face_normal = faceNormals[i]
             v0 = v0_all[i]
 
             pr_c = v0[np.newaxis, ...] - position[mask_c2b]
@@ -108,15 +111,19 @@ class MeshObject(OpticalObject):
             u2_e = u2_d[mask_e2d[0]]
             vertex_indices = faces[i, :]
             vertex_normals = vertexNormals[vertex_indices]
-            intersection.normal[mask_e2a] = (u0_e[:,xp.newaxis] * vertex_normals[0, xp.newaxis, :]
+            if self.smoothNormals:
+                intersection.normal[mask_e2a] = (u0_e[:,xp.newaxis] * vertex_normals[0, xp.newaxis, :]
                                              + u1_e[:,xp.newaxis] * vertex_normals[1, xp.newaxis, :]
                                              + u2_e[:,xp.newaxis] * vertex_normals[2, xp.newaxis, :])
+            else:
+                intersection.normal[mask_e2a] = face_normal[np.newaxis, :]
 
-            if textureCoordinates is not None:
-                intersection.textureCoords[mask_e2a] = (
-                        u2_e * textureCoordinates[vertex_indices[2]]
-                        + u1_e * textureCoordinates[vertex_indices[1]]
-                        + u0_e * textureCoordinates[vertex_indices[0]])
+                if textureCoordinates is not None:
+                    intersection.textureCoords[mask_e2a] = (
+                            u2_e * textureCoordinates[vertex_indices[2]]
+                            + u1_e * textureCoordinates[vertex_indices[1]]
+                            + u0_e * textureCoordinates[vertex_indices[0]])
+
 
             upper_bound[mask_e2a] = dist_d[mask_e2d]
             intersection.object[mask_e2a] = self.id
@@ -131,7 +138,7 @@ class MeshObject(OpticalObject):
             intersection.distance[assignment_mask] = upper_bound[assignment_mask] * inv_dir_len[assignment_mask]
         return assignment_mask
 
-    def loadFile(self, fileName):
+    def loadFile(self, fileName:str):
         import pymeshlab
         ms = pymeshlab.MeshSet()
         ms.load_new_mesh(fileName)
@@ -145,8 +152,9 @@ class MeshObject(OpticalObject):
 
     def update(self):
         self.weightPoint = np.mean(self.vertices, axis=0)
-        self.vertexNormals, faceNormals = Geometry.calcTriangleMeshVertexFaceNormals(self.vertices, self.faces)
-        self.faceNormalsInversedLength = faceNormals / np.sum(np.square(faceNormals), axis=-1, keepdims=True)
+        self.vertexNormals, self.faceNormals = Geometry.calcTriangleMeshVertexFaceNormals(self.vertices, self.faces)
+        self.faceNormalsInversedLength = self.faceNormals / np.sum(np.square(self.faceNormals), axis=-1, keepdims=True)
+        self.faceNormals /= np.linalg.norm(self.faceNormals, axis=-1, keepdims=True)
         self.radiusQ = np.sum(np.square(self.weightPoint - self.vertices), axis=-1).max()
 
 

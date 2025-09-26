@@ -7,26 +7,29 @@ class TextureObject:
         self.extendY = "repeat"
 
 
-    def setColor(self, coords:np.ndarray, color:np.ndarray, xp=np):
+    def setColor(self, coords:np.ndarray, color:np.ndarray, round=False, xp=np):
         yf = coords[..., 0] * self.data.shape[1]
         xf = coords[..., 1] * self.data.shape[0]
+        if round:
+            xf = xp.round(xf)
+            yf = xp.round(yf)
         x = xf.astype(int)
         y = yf.astype(int)
         match self.extendX:
             case "clip":
-                x0 = xp.clip(x, 0, self.data.shape[0] - 1)
+                x = xp.clip(x, 0, self.data.shape[0] - 1)
             case "repeat":
-                x0 = x % self.data.shape[0]
+                x = (x + self.data.shape[0]) % self.data.shape[0]
             case _:
                 raise ValueError(f"Invalid extendX value: {self.extendX}")
         match self.extendY:
             case "clip":
-                y0 = xp.clip(y, 0, self.data.shape[1] - 1)
+                y = xp.clip(y, 0, self.data.shape[1] - 1)
             case "repeat":
-                y0 = y % self.data.shape[1]
+                y = (y + self.data.shape[1]) % self.data.shape[1]
             case _:
                 raise ValueError(f"Invalid extendY value: {self.extendY}")
-        self.data[x0, y0] = color.astype(self.data.dtype)
+        self.data[x, y] = color.astype(self.data.dtype)
 
 
     def addColor(self, coords:np.ndarray, color:np.ndarray, xp=np):
@@ -58,10 +61,16 @@ class TextureObject:
         yr = (yf - y0)[..., *[np.newaxis] * (self.data.ndim - 2)]
         yl = 1.0 - yr
 
-        self.data[x0, y0] += (color * xl * yl).astype(self.data.dtype)
-        self.data[x0, y1] += (color * xl * yr).astype(self.data.dtype)
-        self.data[x1, y0] += (color * xr * yl).astype(self.data.dtype)
-        self.data[x1, y1] += (color * xr * yr).astype(self.data.dtype)
+        if self.data.dtype == np.uint8:
+            self.data[x0, y0] += (color * xl * yl).astype(self.data.dtype) * 255
+            self.data[x0, y1] += (color * xl * yr).astype(self.data.dtype) * 255
+            self.data[x1, y0] += (color * xr * yl).astype(self.data.dtype) * 255
+            self.data[x1, y1] += (color * xr * yr).astype(self.data.dtype) * 255
+        else:
+            self.data[x0, y0] += (color * xl * yl).astype(self.data.dtype)
+            self.data[x0, y1] += (color * xl * yr).astype(self.data.dtype)
+            self.data[x1, y0] += (color * xr * yl).astype(self.data.dtype)
+            self.data[x1, y1] += (color * xr * yr).astype(self.data.dtype)
 
 
     def getColor(self, coords:np.ndarray, xp=np):

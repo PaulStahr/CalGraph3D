@@ -101,7 +101,7 @@ class FisheyeEquidistantMapping(TextureMapping):
     def mapCartToTex(self, coords, xp=np):
         len = xp.linalg.norm(coords[...,0:2], axis=-1)
         len = xp.arctan2(len, coords[...,2]) / (len * TWO_PI)
-        return xp.stack((len * coords[...,0], len * coords[...,1]), axis=-1) + 0.5
+        return len[...,xp.newaxis] * coords[...,0:2] + 0.5
 
     def mapTexToCart(self, tex_coords):
         r = np.sqrt(np.linalg.norm(tex_coords, axis=1))

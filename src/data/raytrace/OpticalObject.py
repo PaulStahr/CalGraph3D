@@ -5,17 +5,21 @@ from calgraph3d.data.raytrace.MaterialType import MaterialType
 class OpticalObject():
     _counter = 0
 
-    def __init__(self):
+    def __init__(self, label=None):
         self.midpoint:np.ndarray = np.zeros(shape=3)
-        self.ior0 = 1.3
-        self.ior1 = 1
+        self.ior0 = np.nan
+        self.ior1 = np.nan
+        self.ior = np.nan
+        self.iorq = np.nan
+        self.invior = np.nan
+        self.inviorq = np.nan
         self.invertNormal:bool = False
         self.materialType:MaterialType|None = None
         self.active:bool = True
         self.modCount:int = 0
         OpticalObject._counter += 1
         self.id = OpticalObject._counter
-        self.label = None
+        self.label = label
 
     def __repr__(self):
         if self.label is not None:

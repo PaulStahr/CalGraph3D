@@ -45,31 +45,33 @@ class RayGenerator:
             radius = surf.directionLength
             self.radius_radius_geom_ratio = radius / surf.maxRadiusGeometric
 
-            if surf.surf == SurfaceType.FLAT:
-                if self.threeDimensional:
-                    self.v0 = Geometry.getOrthogonalVector(direction)
-                    self.v1 = np.cross(direction, self.v0)
-                    self.v1 *= surf.maxRadiusGeometric / np.linalg.norm(self.v1)
-                else:
-                    self.v0 = direction
-                    self.v0 = np.array([self.v0[1], -self.v0[0], 0])  # Rotate 90 degrees in 2D
-                self.v0 *= surf.maxRadiusGeometric / np.linalg.norm(self.v0)
+            match surf.surf:
+                case SurfaceType.FLAT:
+                    if self.threeDimensional:
+                        self.v0 = Geometry.getOrthogonalVector(direction)
+                        self.v1 = np.cross(direction, self.v0)
+                        self.v1 *= surf.maxRadiusGeometric / np.linalg.norm(self.v1)
+                    else:
+                        self.v0 = direction
+                        self.v0 = np.array([self.v0[1], -self.v0[0], 0])  # Rotate 90 degrees in 2D
+                    self.v0 *= surf.maxRadiusGeometric / np.linalg.norm(self.v0)
 
-            elif surf.surf == SurfaceType.SPHERICAL:
-                if surf.maxRadiusGeometric / radius < 1:
-                    self.arc_open = math.asin(surf.maxRadiusGeometric / radius)
-                else:
-                    self.arc_open = math.pi - math.asin(self.radius_radius_geom_ratio)
+                case SurfaceType.SPHERICAL:
+                    if surf.maxRadiusGeometric / radius < 1:
+                        self.arc_open = math.asin(surf.maxRadiusGeometric / radius)
+                    else:
+                        self.arc_open = math.pi - math.asin(self.radius_radius_geom_ratio)
 
-                if self.threeDimensional:
-                    self.v0 = Geometry.getOrthogonalVector(direction)
-                    self.v1 = np.cross(direction, self.v0)
-                    self.v1 *= radius / np.linalg.norm(self.v1)
-                else:
-                    self.v0 = direction
-                    self.v0 = np.array([self.v0[1], -self.v0[0], 0])
-                self.v0 *= radius / np.linalg.norm(self.v0)
-
+                    if self.threeDimensional:
+                        self.v0 = Geometry.getOrthogonalVector(direction)
+                        self.v1 = np.cross(direction, self.v0)
+                        self.v1 *= radius / np.linalg.norm(self.v1)
+                    else:
+                        self.v0 = direction
+                        self.v0 = np.array([self.v0[1], -self.v0[0], 0])
+                    self.v0 *= radius / np.linalg.norm(self.v0)
+                case _:
+                    raise ValueError(f"Unsupported surface type: {surf.surf}")
             self.cos_arc_open = 1 - math.cos(self.arc_open)
 
     def generate(self, num_rays:int, xp=np):
@@ -82,22 +84,22 @@ class RayGenerator:
             surf = self.source
             diffuse = surf.diffuse
 
-            if surf.surf == SurfaceType.FLAT:
-                direction = ArrayUtil.convert(surf.direction,xp)[xp.newaxis,...]
-                direction = xp.repeat(direction, num_rays, axis=0)
-                if self.threeDimensional:
-                    elevation = xp.sqrt(ArrayUtil.convert(self.rng.random(num_rays), xp))
-                    azimuth = (xp.pi * 2) * ArrayUtil.convert(self.rng.random(num_rays), xp)
-                    position = (ArrayUtil.convert(surf.midpoint[xp.newaxis,...],xp)
-                                + ArrayUtil.convert(self.v0[xp.newaxis,...], xp) * (elevation * xp.sin(azimuth))[...,np.newaxis]
-                                + ArrayUtil.convert(self.v1[xp.newaxis,...], xp) * (elevation * xp.cos(azimuth))[...,np.newaxis])
-                else:
-                    position = surf.midpoint[xp.newaxis,...] + self.v0[xp.newaxis,...] * xp.linspace(-1,1,num_rays)
+            match surf.surf:
+                case SurfaceType.FLAT:
+                    direction = ArrayUtil.convert(surf.direction,xp)[xp.newaxis,...]
+                    direction = xp.repeat(direction, num_rays, axis=0)
+                    if self.threeDimensional:
+                        elevation = xp.sqrt(ArrayUtil.convert(self.rng.random(num_rays), xp))
+                        azimuth = (xp.pi * 2) * ArrayUtil.convert(self.rng.random(num_rays), xp)
+                        position = (ArrayUtil.convert(surf.midpoint[xp.newaxis,...],xp)
+                                    + ArrayUtil.convert(self.v0[xp.newaxis,...], xp) * (elevation * xp.sin(azimuth))[...,np.newaxis]
+                                    + ArrayUtil.convert(self.v1[xp.newaxis,...], xp) * (elevation * xp.cos(azimuth))[...,np.newaxis])
+                    else:
+                        position = surf.midpoint[xp.newaxis,...] + self.v0[xp.newaxis,...] * xp.linspace(-1,1,num_rays)
 
-            elif surf.surf == SurfaceType.SPHERICAL:
-                direction = ArrayUtil.convert(surf.direction,xp)[xp.newaxis,...]
-                direction = xp.repeat(direction, num_rays, axis=0)
-                while True:
+                case SurfaceType.SPHERICAL:
+                    direction = ArrayUtil.convert(surf.direction,xp)[xp.newaxis,...]
+                    direction = xp.repeat(direction, num_rays, axis=0)
                     if self.threeDimensional:
                         elevation = self.elevation if not math.isnan(self.elevation) else (xp.arccos(1 - xp.asarray(self.rng.random(num_rays)) * self.cos_arc_open))[..., xp.newaxis]
                         azimuth = self.azimuth if not math.isnan(self.azimuth) else (xp.asarray(self.rng.random(num_rays)) * (2 * math.pi))[..., xp.newaxis]
@@ -116,9 +118,8 @@ class RayGenerator:
                         dist = color[3] * 10
                         diffuse *= math.sqrt(1 / dist)
                         position = surf.midpoint + direction * dist
-                    break
-            else:
-                raise ValueError(f"Unsupported surface type: {surf.surf}")
+                case _:
+                    raise ValueError(f"Unsupported surface type: {surf.surf}")
 
             if surf.invertNormal:
                 direction = -direction

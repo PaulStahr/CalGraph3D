@@ -2,7 +2,15 @@ import numpy as np
 
 
 class Intersection:
-    def __init__(self, shape, position=None, normal=None, object:int=None, distance=None, textureCoords=None, faceIndex = None, xp=np):
+    def __init__(self,
+                 shape,
+                 position=None,
+                 normal=None,
+                 object:int=None,
+                 distance=None,
+                 textureCoords=None,
+                 faceIndex = None,
+                 xp=np):
         if isinstance(shape, int):
             shape = (shape,)
         self.position = xp.full(shape=(*shape, 3), fill_value=xp.nan) if position is None else position
