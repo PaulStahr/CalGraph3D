@@ -20,11 +20,16 @@ class OpticalObject():
         OpticalObject._counter += 1
         self.id = OpticalObject._counter
         self.label = label
+        self.color = None
 
     def __repr__(self):
         if self.label is not None:
             return f"{self.id} {self.label}"
         return f"OpticalObject {self.id} ({self.__class__.__name__})"
+
+    def reset_id(self):
+        self.id = OpticalObject._counter
+        OpticalObject._counter += 1
 
     def updateIOR(self):
         ior0 = float(self.ior0)

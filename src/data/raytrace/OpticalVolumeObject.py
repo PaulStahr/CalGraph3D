@@ -13,9 +13,10 @@ class OpticalVolumeObject(OpticalObject):
         self.translucency = None
         self.checkInnerIntersection = False
         self.volume:OpticalVolume|None = None
-        self.shape = (1, 1, 1)  # Default shape
+        self.shape = (2, 2, 2)  # Default shape
         self.globalToCudaCubes = None
         self.cudaCubesToGlobal = None
+        self.translucency_offset = 0
         self.unitVolumeToGlobal = np.asarray(np.eye(4, dtype=np.float32))
         self.globalToUnitVolume = np.asarray(np.eye(4, dtype=np.float32))
         self.update()
@@ -24,12 +25,13 @@ class OpticalVolumeObject(OpticalObject):
         self.unitVolumeToGlobal = np.linalg.inv(self.globalToUnitVolume)
         globalToCudaCubes = np.copy(self.globalToUnitVolume)
         globalToCudaCubes[0:3, 3] += 1
-        globalToCudaCubes[0:3,:] *= np.asarray(self.shape)[:, np.newaxis] * 0.5
+        globalToCudaCubes[0:3,:] *= (np.asarray(self.shape)[:, np.newaxis]) * 0.5
         self.globalToCudaCubes = globalToCudaCubes
         self.cudaCubesToGlobal = np.linalg.inv(self.globalToCudaCubes)
 
         if self.ior is not None and self.translucency is not None:
-            self.volume = OpticalVolume(self.ior, self.translucency, np.ones(3, dtype=np.float32))
+            self.volume = OpticalVolume(self.ior, self.translucency + self.translucency_offset, np.ones(3, dtype=np.float32))
+            self.volume.translucency_offset = self.translucency_offset
 
     def setTransformation(self, transformation, kind='globalToUnit'):
         if kind == 'globalToUnit':
@@ -44,6 +46,11 @@ class OpticalVolumeObject(OpticalObject):
         globalToCudaCubes = ArrayUtil.convert(self.globalToCudaCubes, ArrayUtil.getArrayModule(positions))
         positions = positions @ globalToCudaCubes[:3, :3].T + globalToCudaCubes[:3, 3]
         return self.volume.evaluate_ior(positions)
+
+    def evaluate_inner_outer(self, positions):
+        globalToCudaCubes = ArrayUtil.convert(self.globalToCudaCubes, ArrayUtil.getArrayModule(positions))
+        positions = positions @ globalToCudaCubes[:3, :3].T + globalToCudaCubes[:3, 3]
+        return self.volume.evaluate_translucency(positions)
 
     def setSize(self, shape):
         self.shape = shape
@@ -65,6 +72,9 @@ class OpticalVolumeObject(OpticalObject):
             return verts, faces
         else:
             return None, None
+
+    def getIorRange(self, domain="valid"):
+        return self.volume.get_ior_range(domain=domain)
 
     @override
     def calculateRays(self,
@@ -88,7 +98,7 @@ class OpticalVolumeObject(OpticalObject):
         return position, direction, iterations
 
     def getVertexPositions(self,xp=np):
-        grid = xp.mgrid[tuple([slice(0,size) for size in self.shape])]
+        grid = xp.mgrid[tuple([slice(0,size) for size in self.shape])] + 0.5
         cudaCubesToGlobal = ArrayUtil.convert(self.cudaCubesToGlobal, xp)
         grid = xp.moveaxis(grid, 0, -1) @ cudaCubesToGlobal[:3, :3].T + cudaCubesToGlobal[:3, 3]
         return grid
@@ -129,6 +139,7 @@ class OpticalVolumeObject(OpticalObject):
                 iterations=xp.full(shape=len(mask[0]), fill_value=num_steps,dtype=xp.uint32),
                 enterVolume=enterVolume,
                 bounds=self.shape)
+            position_local += 0.1 * direction_masked
             inner_mask = xp.nonzero(iteration != 0)[0]
             position_local = ArrayUtil.convert(position_local[inner_mask], xp)
             cudaCubesToGlobal = ArrayUtil.convert(self.cudaCubesToGlobal, xp)

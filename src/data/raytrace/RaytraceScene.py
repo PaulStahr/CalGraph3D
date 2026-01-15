@@ -9,6 +9,7 @@ from calgraph3d.data.raytrace.TextureMapping import TextureMapping
 from calgraph3d.data.raytrace.TextureObject import TextureObject
 from calgraph3d.data.raytrace.OpticalSurfaceObject import OpticalSurfaceObject
 from calgraph3d.data.raytrace.OpticalVolumeObject import OpticalVolumeObject
+from calgraph3d.data.raytrace.OpticalObject import OpticalObject
 from jsymmath.util import ArrayUtil
 import logging
 
@@ -41,11 +42,19 @@ class RaytraceScene:
             for opticalObject in objectClass:
                 opticalObject.getIntersection(position, direction, nearest, lowerBound, nearest.distance, xp=xp)
 
-    def getObjectById(self, id:int):
-        assert isinstance(id, int), f"id must be an integer, got {type(id)}"
+    def getObjectById(self, object_id:int):
+        assert isinstance(object_id, int), f"id must be an integer, got {type(object_id)}"
         for object_arrays in [self.optical_surface_objects, self.optical_volume_objects, self.optical_mesh_objects]:
             for obj in object_arrays:
-                if obj.id == id:
+                if obj.object_id == object_id:
+                    return obj
+        return None
+
+    def getObjectByLabel(self, label:str):
+        assert isinstance(label, str), f"label must be a string, got {type(label)}"
+        for object_arrays in [self.optical_surface_objects, self.optical_volume_objects, self.optical_mesh_objects]:
+            for obj in object_arrays:
+                if obj.label == label:
                     return obj
         return None
 
@@ -61,8 +70,31 @@ class RaytraceScene:
     def getActiveEmissions(self):
         return [obj for obj in self.optical_surface_objects + self.optical_volume_objects + self.optical_mesh_objects if obj.active and obj.materialType == MaterialType.EMISSION]
 
+    def get_predecessors(self, obj:OpticalSurfaceObject|OpticalVolumeObject|MeshObject):
+        return {source for source, dest in self.successor_set if dest == obj}
+
     def get_successors(self, obj:OpticalSurfaceObject|OpticalVolumeObject|MeshObject):
         return {dest for source, dest in self.successor_set if source == obj}
+
+    def reset_ids(self):
+        for object_arrays in [self.optical_surface_objects, self.optical_volume_objects, self.optical_mesh_objects]:
+            for obj in object_arrays:
+                obj.reset_id()
+
+    @staticmethod
+    def color_one_minus_alpha(current_color:np.ndarray, object_color:np.ndarray):
+        # Split color and alpha
+        Cd = current_color[..., :3]
+        Ad = current_color[..., 3:4]
+
+        Cs = object_color[..., :3]
+        As = object_color[..., 3:4]
+
+        # Alpha compositing
+        Cout = Cs * As + Cd * (1.0 - As)
+        Aout = As + Ad * (1.0 - As)
+
+        return np.concatenate([Cout, Aout], axis=-1)
 
     def calculateRays(
             self,
@@ -144,9 +176,10 @@ class RaytraceScene:
                         update2global = mask[update_mask]
                         texture_coordinates = self.textureMapping.mapCartToTex(direction[update2global], xp=xp)
                         object_color = self.texture.getColor(texture_coordinates, xp=xp)
-                        if object_color.shape[1] != 4:
+                        if object_color.shape[-1] != 4:
                             object_color = xp.concatenate([object_color, xp.ones(shape=(object_color.shape[0], 1), dtype=object_color.dtype)], axis=-1)
-                        color[update2global] *= object_color
+                        #color[update2global] *= object_color
+                        color[update2global] = RaytraceScene.color_one_minus_alpha(color[update2global], object_color)
 
             allowed_successors = [list() for _ in range(len(optical_objects) + 1)]
             for i, optical_object in enumerate(optical_objects):
@@ -162,14 +195,12 @@ class RaytraceScene:
                     match optical_object.materialType:
                         case MaterialType.ABSORPTION:
                             position[mask] = active_intersection.position
-                            if color is not None and optical_object.texture is not None:
-                                texture_coordinates = optical_object.getTextureCoordinates(active_intersection.position, xp=xp)
-                                object_color = optical_object.texture.getColor(texture_coordinates)
-
-                                color[mask] = (1 - color[mask,(3,),np.newaxis]) * object_color + color[mask] * color[mask,(3,),np.newaxis]
-                            if isinstance(optical_object, MeshObject):
-                                faceIndex = intersection.faceIndex[mask]
-                                if color is not None:
+                            if color is not None:
+                                if isinstance(optical_object, OpticalSurfaceObject):
+                                    object_color = optical_object.getColor(active_intersection.position, xp=xp)
+                                    color[mask] = RaytraceScene.color_one_minus_alpha(color[mask], object_color)
+                                elif isinstance(optical_object, MeshObject):
+                                    faceIndex = intersection.faceIndex[mask]
                                     color[mask,0:3] = xp.stack((faceIndex % 7, (faceIndex / 7) % 7, ((faceIndex / (7* 7)) % 7)), axis=-1) / 8
                                     color[mask,3] = 1.0
                         case MaterialType.DELETION:
@@ -178,9 +209,24 @@ class RaytraceScene:
                         case MaterialType.REFRACTION:
                             c = xp.sum(direction[mask] * active_intersection.normal, axis=-1)
                             normaldot = xp.sum(xp.square(active_intersection.normal), axis=-1)
-                            tmp = xp.where(c > 0, optical_object.iorq, optical_object.inviorq) * normaldot / xp.square(c) + 1
+                            iorq = optical_object.get_ior(
+                                position=active_intersection.position,
+                                non_inverted=c>0,
+                                xp=xp)
+                            tmp = iorq * normaldot / xp.square(c) + 1
                             position[mask] = active_intersection.position
                             direction[mask] += active_intersection.normal * (xp.where(tmp > 0, xp.sqrt(tmp) - 1, -2) * c / normaldot)[..., xp.newaxis]
+
+                            if color is not None:
+                                if isinstance(optical_object, OpticalSurfaceObject):
+                                    object_color = optical_object.getColor(active_intersection.position, xp=xp)
+                                    if object_color is not None:
+                                        color[mask] = RaytraceScene.color_one_minus_alpha(color[mask], object_color)
+                                elif isinstance(optical_object, MeshObject):
+                                    faceIndex = intersection.faceIndex[mask]
+                                    object_color = xp.stack((faceIndex % 7, (faceIndex / 7) % 7, ((faceIndex / (7* 7)) % 7),xp.full(len(faceIndex), fill_value=8)), axis=-1) / 8
+                                    color[mask] = RaytraceScene.color_one_minus_alpha(color[mask], object_color)
+
                         case MaterialType.REFLECTION:
                             position[mask] = active_intersection.position
                             direction[mask] -= 2 * active_intersection.normal * xp.sum(direction[mask] * active_intersection.normal, axis=-1, keepdims=True)

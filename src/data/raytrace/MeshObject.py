@@ -48,15 +48,15 @@ class MeshObject(OpticalObject):
         distance = xp.sum(xp.square(weightRelative), axis=-1) - self.radiusQ
         b_a = xp.sum(weightRelative * direction, axis=-1)
         sqrt_a = xp.square(b_a) - distance
-        mask_b2a = xp.nonzero(sqrt_a >= 0)
-        if len(mask_b2a[0]) == 0:
-            return xp.zeros(shape=[0], dtype=int)
+        mask_b2a = xp.nonzero(sqrt_a >= 0)[0]
+        if len(mask_b2a) == 0:
+            return xp.zeros(shape=(0,), dtype=int)
         sqrt_b = xp.sqrt(sqrt_a[mask_b2a])
         b_b = b_a[mask_b2a]
-        mask_c2b = xp.nonzero((sqrt_b - b_b >= lower_bound[mask_b2a]) & (-sqrt_b - b_b <= upper_bound[mask_b2a]))
-        if len(mask_c2b[0]) == 0:
+        mask_c2b = xp.nonzero((sqrt_b - b_b >= lower_bound[mask_b2a]) & (-sqrt_b - b_b <= upper_bound[mask_b2a]))[0]
+        if len(mask_c2b) == 0:
             return xp.zeros(shape=[0], dtype=int)
-        mask_c2a = mask_b2a[0][mask_c2b[0]]
+        mask_c2a = mask_b2a[mask_c2b]
         assignment_mask  = xp.zeros(shape=len(position), dtype=bool)
         vertices = ArrayUtil.convert(self.vertices, xp)
         vertexNormals = ArrayUtil.convert(self.vertexNormals, xp)
@@ -71,21 +71,23 @@ class MeshObject(OpticalObject):
         d11_all = xp.sum(xp.square(v2_rel_v0_all), axis=-1)
         inv_denom_all = 1 / (d00_all * d11_all - d01_all * d01_all)
         direction_c = direction[mask_c2a]
+        position_c = position[mask_c2a]
+        lower_bound_c = lower_bound[mask_c2a]
 
         for i in range(len(self.faces)):
             face_normal = faceNormals[i]
             v0 = v0_all[i]
 
-            pr_c = v0[np.newaxis, ...] - position[mask_c2b]
+            pr_c = v0[np.newaxis, ...] - position_c
             dist_c = (pr_c @ face_normal) / (direction_c @ face_normal)
 
-            mask_d2c = xp.nonzero((lower_bound[mask_c2b] <= dist_c) & (dist_c <= upper_bound[mask_c2b]))
-            if len(mask_d2c[0]) == 0:
+            mask_d2c = xp.nonzero((lower_bound_c <= dist_c) & (dist_c <= upper_bound[mask_c2a]))[0]
+            if len(mask_d2c) == 0:
                 continue
-            mask_d2a = mask_c2a[mask_d2c[0]]
-            dist_d = dist_c[mask_d2c[0]]
+            mask_d2a = mask_c2a[mask_d2c]
+            dist_d = dist_c[mask_d2c]
 
-            location_rel_v0_d = dist_d[...,xp.newaxis] * direction[mask_d2a] - pr_c[mask_d2c[0]]
+            location_rel_v0_d = dist_d[...,xp.newaxis] * direction[mask_d2a] - pr_c[mask_d2c]
 
             v1_rel_v0 = v1_rel_v0_all[i]
             v2_rel_v0 = v2_rel_v0_all[i]
@@ -99,16 +101,16 @@ class MeshObject(OpticalObject):
             u2_d = (d00 * d21 - d01 * d20) * inv_denom
 
             u0_d = 1 - (u1_d + u2_d)
-            mask_e2d = xp.nonzero((u1_d >= 0) & (u2_d >= 0) & (u0_d >= 0))
-            if len(mask_e2d[0]) == 0:
+            mask_e2d = xp.nonzero((u1_d >= 0) & (u2_d >= 0) & (u0_d >= 0))[0]
+            if len(mask_e2d) == 0:
                 continue
-            mask_e2a = mask_d2a[mask_e2d[0]]
+            mask_e2a = mask_d2a[mask_e2d]
 
             # Hit found
-            intersection.position[mask_e2a] = location_rel_v0_d[mask_e2d[0]] + position[mask_e2a]
-            u0_e = u0_d[mask_e2d[0]]
-            u1_e = u1_d[mask_e2d[0]]
-            u2_e = u2_d[mask_e2d[0]]
+            intersection.position[mask_e2a] = location_rel_v0_d[mask_e2d] + position[mask_e2a]
+            u0_e = u0_d[mask_e2d]
+            u1_e = u1_d[mask_e2d]
+            u2_e = u2_d[mask_e2d]
             vertex_indices = faces[i, :]
             vertex_normals = vertexNormals[vertex_indices]
             if self.smoothNormals:

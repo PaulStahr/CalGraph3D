@@ -1,24 +1,51 @@
 import numpy as np
 
 from calgraph3d.data.raytrace.OpticalObject import OpticalObject
+from calgraph3d.data.raytrace.OpticalVolumeObject import OpticalVolumeObject
 from calgraph3d.data.raytrace.SurfaceType import SurfaceType
 from calgraph3d.data.raytrace.TextureMapping import TextureMapping
 from calgraph3d.data.raytrace.TextureObject import TextureObject
 from calgraph3d.opengl import BufferUtils
 from jsymmath.geometry.Geometry import Geometry
 from jsymmath.util import ArrayUtil
+import numbers
 from calgraph3d.data.raytrace.FaceDirection import FaceDirection
 from calgraph3d.data.raytrace.Intersection import Intersection
 import math
 from enum import Enum
 
+class BooleanModifier(Enum):
+    INTERSECT = 1
+    DIFFERENCE = 2
 
+
+class OpticalModifier:
+    def __init__(self, boolean_type: BooleanModifier, object: OpticalObject):
+        self.boolean_type = boolean_type
+        self.object = object
+
+    def get_boolean_mask(self, positions:np.ndarray, xp=np):
+        inner_outer = self.object.evaluate_inner_outer(positions, xp=xp)
+        match self.boolean_type:
+            case BooleanModifier.INTERSECT:
+                return inner_outer <= 0
+            case BooleanModifier.DIFFERENCE:
+                return inner_outer > 0
+            case _:
+                raise Exception(f'Unknown boolean type: {self.boolean_type}')
+
+    @staticmethod
+    def get_stack_mask(stack, positions:np.ndarray, xp=np):
+        bmask = xp.ones(shape=positions.shape[:-1], dtype=bool)
+        for m in stack:
+            bmask &= m.get_boolean_mask(positions, xp)
+        return bmask
 
 class OpticalSurfaceObject(OpticalObject):
     EMPTY_SURFACE_ARRAY = []
 
-    def __init__(self, orig=None):
-        super().__init__()
+    def __init__(self, orig=None, label=None):
+        super().__init__(label=label)
         self.abbeNumber = 1
         self.conicConstant = 1
         self.direction = np.zeros(shape=3)
@@ -49,6 +76,7 @@ class OpticalSurfaceObject(OpticalObject):
         self.mapLocal = True
         self.diffuse:float = 0
         self.alphaAsMask = False
+        self.boolean_modifiers = []
         if orig is not None:
             self.__dict__.update(vars(orig))
 
@@ -146,43 +174,63 @@ class OpticalSurfaceObject(OpticalObject):
     def getMesh(self, latitudes=32, longitudes=16):
         return self.getMeshVertices(latitudes, longitudes), self.getMeshFaces(latitudes, longitudes)
 
-    def getMeshVertices(self, latitudes, longitudes):
-        multiply = 1. / (longitudes - 1)
-
+    def getZFromR(self, r):
+        r /= self.directionLength
         if self.surf == SurfaceType.FLAT:
-            multiply *= (self.maxRadiusGeometric - self.minRadiusGeometric) * self.invDirectionLength
-            add = self.minRadiusGeometric * self.invDirectionLength
-        elif self.surf == SurfaceType.SPHERICAL:
-            add = self.minArcOpen
-            multiply *= self.maxArcOpen - self.minArcOpen
-        elif self.surf == SurfaceType.HYPERBOLIC or self.surf == SurfaceType.PARABOLIC:
-            add = self.minRadiusGeometric
-            multiply *= (self.maxRadiusGeometric - self.minRadiusGeometric) * self.invDirectionLength
-        elif self.surf == SurfaceType.CUSTOM:
-            multiply *= self.dotProdUpperBound - self.dotProdLowerBound
-            add = self.dotProdLowerBound + 1
-        elif self.surf == SurfaceType.CYLINDER:
-            add = self.minRadiusGeometric * self.invDirectionLength
-            multiply *= (self.maxRadiusGeometric - self.minRadiusGeometric) * self.invDirectionLength
-        else:
-            raise Exception
-        rho = np.arange(latitudes) * math.pi * 2 / latitudes
-        r = multiply * np.arange(longitudes) + add
-        if self.surf == SurfaceType.FLAT:
-            z = np.zeros(shape=longitudes)
+            return 0
         elif self.surf == SurfaceType.HYPERBOLIC:
             z = 2 - np.sqrt(r ** 2 + 1)
         elif self.surf == SurfaceType.PARABOLIC:
             z = 1 - r ** 2 * 0.5
         elif self.surf == SurfaceType.SPHERICAL:
-            z = np.cos(r)
-            r = np.sin(r)
+            z = np.sqrt(1 - r ** 2)
         elif self.surf == SurfaceType.CUSTOM:
-            z = 1 - r
-            r = np.sqrt(r * (2 - r * (1 + self.conicConstant)))
+            z = (self.conicConstant - np.sqrt(1 - (1 + self.conicConstant) * r**2)) / (1 + self.conicConstant)
         elif self.surf == SurfaceType.CYLINDER:
-            z = r
-            r = np.ones_like(r)
+            z = 1
+        else:
+            raise Exception('Type unknown')
+        z *= self.directionLength
+        return z
+
+    def getMeshVertices(self, latitudes, longitudes):
+        if self.surf == SurfaceType.FLAT:
+            low = self.minRadiusGeometric * self.invDirectionLength
+            high = self.maxRadiusGeometric * self.invDirectionLength
+        elif self.surf == SurfaceType.SPHERICAL:
+            low = self.minArcOpen
+            high = self.maxArcOpen
+        elif self.surf == SurfaceType.HYPERBOLIC or self.surf == SurfaceType.PARABOLIC:
+            low = self.minRadiusGeometric
+            high = self.maxRadiusGeometric
+        elif self.surf == SurfaceType.CUSTOM:
+            low = self.dotProdLowerBound + 1
+            high = self.dotProdUpperBound + 1
+        elif self.surf == SurfaceType.CYLINDER:
+            low = self.minRadiusGeometric * self.invDirectionLength
+            high = self.maxRadiusGeometric * self.invDirectionLength
+        else:
+            raise Exception
+        rho = np.linspace(0, 2 * math.pi, latitudes, endpoint=False)
+        t = np.linspace(low, high, longitudes, endpoint=True)
+        if self.surf == SurfaceType.FLAT:
+            z = np.zeros(shape=longitudes)
+            r = t
+        elif self.surf == SurfaceType.HYPERBOLIC:
+            z = 2 - np.sqrt(t ** 2 + 1)
+            r = t
+        elif self.surf == SurfaceType.PARABOLIC:
+            z = 1 - t ** 2 * 0.5
+            r = t
+        elif self.surf == SurfaceType.SPHERICAL:
+            z = np.cos(t)
+            r = np.sin(t)
+        elif self.surf == SurfaceType.CUSTOM:
+            z = 1 - t
+            r = np.sqrt(t * (2 - t * (1 + self.conicConstant)))
+        elif self.surf == SurfaceType.CYLINDER:
+            z = t
+            r = np.ones_like(t)
         else:
             raise Exception('Type unknown')
         index = 0
@@ -229,15 +277,15 @@ class OpticalSurfaceObject(OpticalObject):
             case SurfaceType.FLAT:
                 result = -xp.inner(pos, self.directionNormalized)
                 if normalize == 'seperate':
-                    derivative = np.repeat(-self.directionNormalized[np.newaxis, :], repeats=np.prod(pos.shape[:-1]), axis=0)
+                    derivative = xp.repeat(-self.directionNormalized[np.newaxis, :], repeats=np.prod(pos.shape[:-1]), axis=0)
                     return result, derivative.reshape(pos.shape[:-1] + (3,))
                 return result
             case SurfaceType.SPHERICAL:
-                res = np.sum(np.square(pos), axis=-1)
+                res = xp.sum(np.square(pos), axis=-1)
                 if normalize:
                     if normalize == 'seperate':
                         return res - self.directionLengthQ, pos * 2
-                    np.sqrt(res, out=res)
+                    xp.sqrt(res, out=res)
                     return res - self.directionLength
                 return res - self.directionLengthQ
             case SurfaceType.CUSTOM:
@@ -256,8 +304,8 @@ class OpticalSurfaceObject(OpticalObject):
             case SurfaceType.CYLINDER:
                 dotprod = self.directionNormalized.dot(pos)
                 dist = self.directionNormalized.distanceQ(dotprod, pos)
-                return max(dotprod + self.dotProdUpperBound2,
-                           max(-(self.dotProdLowerBound2 + dotprod), dist - self.directionLengthQ))
+                return xp.maximum(dotprod + self.dotProdUpperBound2,
+                           xp.maximum(-(self.dotProdLowerBound2 + dotprod), dist - self.directionLengthQ))
             case SurfaceType.HYPERBOLIC:
                 dirdot = xp.inner(self.directionNormalized, pos)
                 if normalize != False:
@@ -269,6 +317,73 @@ class OpticalSurfaceObject(OpticalObject):
                 return xp.sum(xp.square(pos), axis=-1) - xp.square(dirdot) - self.directionLengthQ
             case _:
                 raise Exception(f'Unknown surface type: {self.surf}')
+
+    def getPlaneIntersection(self,
+                             position:np.ndarray,
+                             normal:np.ndarray,
+                             num_points:int) -> list[np.ndarray]:
+        #return points (num_connected_lines x num_points x 3) that are defined by the intersection of the plane and the optical object
+        if self.surf == SurfaceType.FLAT:
+            result = []
+            # intersect both planes, pay attention to minRadiusGeometric and maxRadiusGeometric. We ignore num_points in this case and use two points per line
+            dirNormalized = self.directionNormalized
+            planeNormal = normal / np.linalg.norm(normal)
+            if np.abs(np.dot(dirNormalized, planeNormal)) < 1e-6:
+                #if we hit the plane then we have to return a full circle with maxRadiusGeometric
+                if np.abs(np.dot(planeNormal, position - self.midpoint)) < 1e-6:
+                    angles = np.linspace(0, 2 * np.pi, num_points, endpoint=True)
+                    result.append(self.midpoint + self.maxRadiusGeometric * (np.cos(angles)[:, None] * Geometry.getOrthogonalVector(dirNormalized) + np.sin(angles)[:, None] * np.cross(dirNormalized, Geometry.getOrthogonalVector(dirNormalized))))
+                    if self.minRadiusGeometric > 0:
+                        result.append(self.midpoint + self.minRadiusGeometric * (np.cos(angles)[:, None] * Geometry.getOrthogonalVector(dirNormalized) + np.sin(angles)[:, None] * np.cross(dirNormalized, Geometry.getOrthogonalVector(dirNormalized))))
+            else:
+                # Compute intersection point of infinite planes
+                d = np.dot(dirNormalized, self.midpoint)
+                t = (d - np.dot(dirNormalized, position)) / np.dot(dirNormalized, planeNormal)
+                intersection_point = position + t * planeNormal
+
+                # Build orthonormal basis in intersection plane
+                v1 = np.cross(dirNormalized, planeNormal)
+                v1_norm = np.linalg.norm(v1)
+                if v1_norm < 1e-12:
+                    v1 = Geometry.getOrthogonalVector(planeNormal)
+                    v1 = v1 / np.linalg.norm(v1)
+                else:
+                    v1 = v1 / v1_norm
+
+                v2 = np.cross(planeNormal, v1)
+                v2 = v2 / np.linalg.norm(v2)
+
+                # Vectorized angles
+                angles = np.linspace(0, 2 * np.pi, num_points, endpoint=False)
+                cos_a = np.cos(angles)[:, None]  # shape (num_points, 1)
+                sin_a = np.sin(angles)[:, None]
+
+                # Vectorized circles (max radius)
+                circle_max = (intersection_point
+                              + self.maxRadiusGeometric * (cos_a * v1 + sin_a * v2))
+                result.append(circle_max)
+
+                # Inner circle (min radius)
+                if self.minRadiusGeometric > 0:
+                    circle_min = (intersection_point
+                                  + self.minRadiusGeometric * (cos_a * v1 + sin_a * v2))
+                    result.append(circle_min)
+            return result
+        if self.surf == SurfaceType.SPHERICAL:
+            pass
+
+
+    def getColor(self, positions:np.ndarray, xp=np):
+        result = ArrayUtil.convert(self.color, xp)
+        if self.texture is not None:
+            texcoords = self.getTextureCoordinates(positions, xp)
+            tCol = self.texture.getColor(texcoords, xp)
+            if result is not None:
+                result = result * tCol
+            else:
+                result = tCol
+        return ArrayUtil.convert(result, xp)
+
 
     def getIntersection(self,
                         ray_pos:np.ndarray,
@@ -290,16 +405,24 @@ class OpticalSurfaceObject(OpticalObject):
                 ray_dir_b = ray_dir[mask_b2a]
                 alpha_b = alpha[mask_b2a]
                 xyz_b = xyz[mask_b2a]
-                distanceQ = xp.sum(xp.square(ray_dir_b - alpha_b * xyz_b), axis=-1)
+                ray_dir_scaled_b = ray_dir_b * alpha_b[...,xp.newaxis]
+                distanceQ = xp.sum(xp.square(ray_dir_scaled_b + xyz_b), axis=-1)
                 mask_c2b = xp.nonzero((self.minRadiusGeometricQ < distanceQ) & (distanceQ < self.radiusGeometricQ))[0]
                 if len(mask_c2b) > 0:
                     mask_c2a = mask_b2a[mask_c2b]
-                    alpha_c = alpha_b[mask_c2b]
-                    intersection.position[mask_c2a] = ray_pos[mask_c2b] + ray_dir_b[mask_c2b] * alpha_c[:, np.newaxis]
-                    intersection.normal[mask_c2a] = self.direction[np.newaxis,...]
-                    update_mask[mask_c2a] = True
-                    intersection.distance[mask_c2a] = alpha_c
-                    intersection.object[mask_c2a] = self.id
+                    intersection_pos_c = ray_pos[mask_c2a] + ray_dir_scaled_b[mask_c2b]
+                    if len(self.boolean_modifiers) > 0:
+                        mask_d2c = OpticalModifier.get_stack_mask(self.boolean_modifiers, intersection_pos_c, xp)
+                        mask_d2a = mask_c2a[mask_d2c]
+                        intersection_pos_d = intersection_pos_c[mask_d2c]
+                    else:
+                        mask_d2a = mask_c2a
+                        intersection_pos_d = intersection_pos_c
+                    intersection.position[mask_d2a] = intersection_pos_d
+                    intersection.normal[mask_d2a] = self.direction[np.newaxis,...]
+                    update_mask[mask_d2a] = True
+                    intersection.distance[mask_d2a] = alpha[mask_d2a]
+                    intersection.object[mask_d2a] = self.id
             return update_mask
         elif self.surf == SurfaceType.HYPERBOLIC:
             dirproj = self.directionLength - xp.inner(directionNormalized, xyz)
@@ -388,11 +511,25 @@ class OpticalSurfaceObject(OpticalObject):
                         if len(mask_d2c) > 0:
                             mask_d2a = mask_c2a[mask_d2c]
                             alpha_d = alpha_c[mask_d2c]
-                            intersection.position[mask_d2a] = ray_pos[mask_d2a] + ray_dir[mask_d2a] * alpha_d[:,np.newaxis]
-                            intersection.normal[mask_d2a] = intersection.position[mask_d2a] - midpoint[np.newaxis,:] - directionNormalized[np.newaxis,:] * self.conicConstant * dotProd_c[mask_d2c,np.newaxis]
-                            intersection.object[mask_d2a] = self.id
-                            intersection.distance[mask_d2a] = alpha_d
-                            update_mask[mask_d2a] = True
+                            ray_pos_d = ray_pos[mask_d2a]
+                            ray_dir_d = ray_dir[mask_d2a]
+                            intersection_pos_d = ray_pos_d + ray_dir_d * alpha_d[:,np.newaxis]
+                            dotProd_d = dotProd_c[mask_d2c]
+
+                            if len(self.boolean_modifiers) > 0:
+                                mask_e2d = OpticalModifier.get_stack_mask(self.boolean_modifiers, intersection_pos_d, xp)
+                                mask_e2a = mask_d2a[mask_e2d]
+                                intersection_pos_e = intersection_pos_d[mask_e2d]
+                                dotProd_e = dotProd_d[mask_e2d]
+                                alpha_d = alpha_d[mask_e2d]
+                            else:
+                                mask_e2a, intersection_pos_e, dotProd_e = mask_d2a, intersection_pos_d, dotProd_d
+
+                            intersection.position[mask_e2a] = intersection_pos_e
+                            intersection.normal[mask_e2a] = intersection_pos_e - midpoint[np.newaxis,:] - (directionNormalized[np.newaxis,:] * self.conicConstant) * dotProd_e[:,np.newaxis]
+                            intersection.object[mask_e2a] = self.id
+                            intersection.distance[mask_e2a] = alpha_d
+                            update_mask[mask_e2a] = True
                             mask_b2a = xp.nonzero(xp.isfinite(sqrt_a) & ~update_mask)[0]
                 sqrt_a = -sqrt_a
             return update_mask
@@ -462,6 +599,35 @@ class OpticalSurfaceObject(OpticalObject):
                         return intersection
                 sqrt = -sqrt
         return None
+
+    def get_ior(
+        self,
+        position=None,
+        non_inverted=None,
+        xp=np):
+        if self.iorq is not None: #Most common fastpath
+            if non_inverted is None:
+                return self.iorq
+            return xp.where(non_inverted, self.iorq, self.inviorq)
+        if isinstance(self.ior0, numbers.Number):
+            ior0 = self.ior0
+        elif isinstance(self.ior0, OpticalVolumeObject):
+            ior0 = self.ior0.getRefractiveIndex(position)
+        else:
+            raise Exception(f"Unknown ior type {self.ior0}")
+        if isinstance(self.ior1, numbers.Number):
+            ior1 = self.ior1
+        elif isinstance(self.ior1, OpticalVolumeObject):
+            ior1 = self.ior1.getRefractiveIndex(position)
+        else:
+            raise Exception(f"Unknown ior type {self.ior1}")
+        iorq = ior0 / ior1
+        iorq = xp.square(iorq) - 1
+        if non_inverted is not None:
+            iorq = xp.where(non_inverted, iorq, 1 / iorq)
+        return iorq
+
+
 
     def densityCompensation(self, width, height, imageColorArray, channels, stride):
         self.textureMapping.densityCompensation(width, height, imageColorArray, channels, stride)
