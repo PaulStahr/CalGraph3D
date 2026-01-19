@@ -7,6 +7,7 @@ from calgraph3d.data.raytrace.TextureMapping import TextureMapping
 from calgraph3d.data.raytrace.TextureObject import TextureObject
 from calgraph3d.opengl import BufferUtils
 from jsymmath.geometry.Geometry import Geometry
+from jsymmath.geometry.AffineMatrix import AffineMatrix
 from jsymmath.util import ArrayUtil
 import numbers
 from calgraph3d.data.raytrace.FaceDirection import FaceDirection
@@ -58,8 +59,8 @@ class OpticalSurfaceObject(OpticalObject):
         self.directionLength = 0
         self.directionLengthQ = 0
         self.invDirectionLengthQ = 0
-        self.matGlobalToSurface = np.eye(4)
-        self.matSurfaceToGlobal = np.eye(4)
+        self.matGlobalToSurface = AffineMatrix(np.eye(4))
+        self.matSurfaceToGlobal = AffineMatrix(np.eye(4))
         self.invDirectionLength = 0
         self.dotProdUpperBound = 0
         self.dotProdLowerBound = 0
@@ -94,8 +95,8 @@ class OpticalSurfaceObject(OpticalObject):
 
     def getTextureCoordinates(self, positions:np.ndarray, xp=np):
         if self.mapLocal:
-            matGlobalToSurface = ArrayUtil.convert(self.matGlobalToSurface, xp)
-            positions = (positions @ matGlobalToSurface.T[0:3,0:3]) + matGlobalToSurface[3,0:3]
+            matGlobalToSurface = ArrayUtil.convert(self.matGlobalToSurface.mat, xp)
+            positions = (positions @ matGlobalToSurface.T[0:3,0:3]) + matGlobalToSurface[0:3,0]
             return self.textureMapping.mapCartToTex(positions)
         else:
             direction = positions - ArrayUtil.convert(self.midpoint, xp)
@@ -117,34 +118,40 @@ class OpticalSurfaceObject(OpticalObject):
         self.updateIOR()
         self.radiusGeometricQ = self.maxRadiusGeometric ** 2
         self.minRadiusGeometricQ = self.minRadiusGeometric ** 2
-        minRatio = self.minRadiusGeometricQ * self.invDirectionLengthQ
-        maxRatio = self.radiusGeometricQ * self.invDirectionLengthQ
+        minRatioQ = self.minRadiusGeometricQ * self.invDirectionLengthQ
+        maxRatioQ = self.radiusGeometricQ * self.invDirectionLengthQ
 
         if self.surf == SurfaceType.CUSTOM:
-            tmp = 1 - (1 + self.conicConstant) * minRatio
-            self.dotProdLowerBound = minRatio / (1 + (np.sqrt(tmp) if tmp > 0 else -np.sqrt(-tmp))) - 1
-            tmp = 1 - (1 + self.conicConstant) * maxRatio
-            self.dotProdUpperBound = maxRatio / (1 + (np.sqrt(tmp) if tmp > 0 else np.sqrt(min(-tmp, 1)))) - 1
+            tmp = 1 - (1 + self.conicConstant) * minRatioQ
+            self.dotProdLowerBound = minRatioQ / (1 + (np.sqrt(tmp) if tmp > 0 else -np.sqrt(-tmp))) - 1
+            tmp = 1 - (1 + self.conicConstant) * maxRatioQ
+            self.dotProdUpperBound = maxRatioQ / (1 + (np.sqrt(tmp) if tmp > 0 else np.sqrt(min(-tmp, 1)))) - 1
             if (self.dotProdUpperBound + 1) * (1 + self.conicConstant) > 2:
                 self.dotProdUpperBound = 2 / (1 + self.conicConstant) - 1
         elif self.surf == SurfaceType.CYLINDER:
-            self.dotProdLowerBound = -minRatio
-            self.dotProdUpperBound = -maxRatio
+            self.dotProdLowerBound = -minRatioQ
+            self.dotProdUpperBound = -maxRatioQ
             self.dotProdUpperBound2 = -self.maxRadiusGeometric
             self.dotProdLowerBound2 = -self.minRadiusGeometric
         elif self.surf == SurfaceType.HYPERBOLIC:
-            self.dotProdLowerBound = np.sqrt(1 + minRatio) - 2
-            self.dotProdUpperBound = np.sqrt(1 + maxRatio) - 2
+            self.dotProdLowerBound = np.sqrt(1 + minRatioQ) - 2
+            self.dotProdUpperBound = np.sqrt(1 + maxRatioQ) - 2
         elif self.surf == SurfaceType.PARABOLIC:
-            self.dotProdLowerBound = 0.5 * minRatio - 1
-            self.dotProdUpperBound = 0.5 * maxRatio - 1
+            self.dotProdLowerBound = 0.5 * minRatioQ - 1
+            self.dotProdUpperBound = 0.5 * maxRatioQ - 1
         elif self.surf == SurfaceType.SPHERICAL:
+            maxRatio = self.maxRadiusGeometric * self.invDirectionLength
             if self.maxRadiusGeometric < self.directionLength:
-                self.dotProdUpperBound = np.sqrt(1 - maxRatio)
-                self.maxArcOpen = np.arcsin(self.maxRadiusGeometric * self.invDirectionLength)
+                maxRatio = np.clip(maxRatio, 0, 1)
+                maxRatioQ = np.clip(maxRatioQ, 0, 1)
+                self.dotProdUpperBound = np.sqrt(1 - maxRatioQ)
+                self.maxArcOpen = np.arcsin(maxRatio)
             else:
-                self.maxArcOpen = math.pi - np.arcsin(self.directionLength / self.maxRadiusGeometric)
-                self.dotProdUpperBound = -np.sqrt(1 - 1 / maxRatio)
+                maxRatio = np.clip(maxRatio, 1, None)
+                maxRatioQ = np.clip(maxRatioQ, 1, None)
+                self.maxArcOpen = math.pi - np.arcsin(1 / maxRatio)
+                self.dotProdUpperBound = -np.sqrt(1 - 1 / maxRatioQ)
+            assert not np.isnan(self.dotProdUpperBound)
 
             if self.minRadiusGeometric < self.directionLength:
                 self.minArcOpen = np.arcsin(self.minRadiusGeometric * self.invDirectionLength)
@@ -154,11 +161,11 @@ class OpticalSurfaceObject(OpticalObject):
             self.dotProdLowerBound = np.cos(self.minArcOpen)
 
         # Update matrices
-        self.matSurfaceToGlobal[0:3, 0:3] = Geometry.getOrthorgonalZMatrix(self.direction)
-        self.matSurfaceToGlobal[0:3, 3] = self.midpoint
-        self.matSurfaceToGlobal[3, 3] = 1
-        self.matSurfaceToGlobal[3, 0:3] = 0
-        self.matGlobalToSurface = np.linalg.inv(self.matSurfaceToGlobal)
+        self.matSurfaceToGlobal.mat[0:3, 0:3] = Geometry.getOrthorgonalZMatrix(self.direction)
+        self.matSurfaceToGlobal.mat[0:3, 3] = self.midpoint
+        self.matSurfaceToGlobal.mat[3, 3] = 1
+        self.matSurfaceToGlobal.mat[3, 0:3] = 0
+        self.matGlobalToSurface = self.matSurfaceToGlobal.inv()
 
         if self.surf != SurfaceType.CYLINDER:
             self.dotProdLowerBound2 = self.dotProdLowerBound * self.directionLength
@@ -246,7 +253,7 @@ class OpticalSurfaceObject(OpticalObject):
             else:
                 res[index] = np.asarray((0, 0, z[ri], 1))
                 index += 1
-        res = (res @ self.matSurfaceToGlobal.T)[:,0:3]
+        res = (res @ self.matSurfaceToGlobal.mat.T)[:,0:3]
         return res
 
     def getMeshFaces(self, latitudes, longitudes):
