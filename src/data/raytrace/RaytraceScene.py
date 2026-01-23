@@ -11,10 +11,64 @@ from calgraph3d.data.raytrace.OpticalSurfaceObject import OpticalSurfaceObject
 from calgraph3d.data.raytrace.OpticalVolumeObject import OpticalVolumeObject
 from calgraph3d.data.raytrace.OpticalObject import OpticalObject
 from jsymmath.util import ArrayUtil
+from typing import Callable
+import enum
 import logging
 
 logger = logging.getLogger(__name__)
 
+class BlendFactor(enum.Enum):
+    ZERO = enum.auto()
+    ONE = enum.auto()
+    SRC_ALPHA = enum.auto()
+    ONE_MINUS_SRC_ALPHA = enum.auto()
+    DST_ALPHA = enum.auto()
+    ONE_MINUS_DST_ALPHA = enum.auto()
+    SRC_ALPHA_REMAINING = enum.auto()
+    ONE_MINUS_SRC_ALPHA_REMAINING = enum.auto()
+
+def resolve_factor(factor: BlendFactor, Cs, As, Cd, Ad):
+    match factor:
+        case BlendFactor.ZERO:
+            return 0.0
+        case BlendFactor.ONE:
+            return 1.0
+        case BlendFactor.SRC_ALPHA:
+            return As
+        case BlendFactor.ONE_MINUS_SRC_ALPHA:
+            return 1.0 - As
+        case BlendFactor.DST_ALPHA:
+            return Ad
+        case BlendFactor.ONE_MINUS_DST_ALPHA:
+            return 1.0 - Ad
+        case BlendFactor.SRC_ALPHA_REMAINING:
+            return (1.0 - Ad) * As
+        case BlendFactor.ONE_MINUS_SRC_ALPHA_REMAINING:
+            return Ad * (1.0 - As)
+        case _:
+            raise ValueError(f"Unsupported blend factor: {factor}")
+
+def blendFunc(srcFactor: BlendFactor,
+              dstFactor: BlendFactor) -> Callable:
+
+    def blend(destination_color: np.ndarray,
+              source_color: np.ndarray) -> np.ndarray:
+
+        Cd = destination_color[..., :3]
+        Ad = destination_color[..., 3:4]
+
+        Cs = source_color[..., :3]
+        As = source_color[..., 3:4]
+
+        Fs = resolve_factor(srcFactor, Cs, As, Cd, Ad)
+        Fd = resolve_factor(dstFactor, Cs, As, Cd, Ad)
+
+        Cout = Cs * Fs + Cd * Fd
+        Aout = As + Ad * (1.0 - As) # As + Ad - Ad * As
+
+        return np.concatenate([Cout, Aout], axis=-1)
+
+    return blend
 
 class RaytraceScene:
     def __init__(self, maxBounces:int=10):
@@ -81,20 +135,13 @@ class RaytraceScene:
             for obj in object_arrays:
                 obj.reset_id()
 
-    @staticmethod
-    def color_one_minus_alpha(current_color:np.ndarray, object_color:np.ndarray):
-        # Split color and alpha
-        Cd = current_color[..., :3]
-        Ad = current_color[..., 3:4]
-
-        Cs = object_color[..., :3]
-        As = object_color[..., 3:4]
-
-        # Alpha compositing
-        Cout = Cs * As + Cd * (1.0 - As)
-        Aout = As + Ad * (1.0 - As)
-
-        return np.concatenate([Cout, Aout], axis=-1)
+    def check_scene(self):
+        all_objects = self.optical_surface_objects + self.optical_volume_objects + self.optical_mesh_objects
+        ids = [obj.id for obj in all_objects]
+        ids = np.sort(ids)
+        duplicated_ids = np.unique(ids[1:][ids[1:] == ids[:-1]])
+        if len(duplicated_ids) > 0:
+            raise ValueError(f"Duplicated object ids found: {duplicated_ids}")
 
     def calculateRays(
             self,
@@ -107,7 +154,11 @@ class RaytraceScene:
             upper_bound:np.ndarray=None,
             maxVolumeIterations:int=1000,
             maxBounces:int|None=None,
+            blend_function = None,
             xp=None):
+        self.check_scene()
+        if blend_function is None:
+            blend_function = blendFunc(BlendFactor.SRC_ALPHA, BlendFactor.ONE_MINUS_SRC_ALPHA)
         if maxBounces is None:
             maxBounces = self.maxBounces
         if xp is None:
@@ -125,7 +176,7 @@ class RaytraceScene:
             successor_list[source_index].append(destination_index)
 
         rg = xp.arange(len(position), dtype=xp.int32)
-        allowed_successors = [list() for _ in range(len(optical_objects)+1)]
+        allowed_successors = [list() for _ in range(len(optical_objects)+1)] #stores for every object, which rays are allowed to hit it
         for start_object in start_objects:
             if start_object not in optical_objects:
                 logger.log(logging.WARNING, f"Start object {start_object} not in optical objects")
@@ -142,13 +193,13 @@ class RaytraceScene:
             lower_bound[:] = 1e-6
             intersection.distance[:] = upper_bound[:]
             # get the closest intersection
-            possible_intersectors = [list() for _ in range(len(optical_objects))]
             if np.all(np.asarray([len(suc) for suc in allowed_successors]) == 0):
                 break
-            for i, optical_object in enumerate(optical_objects):
-                if len(allowed_successors[i]) == 0:
+            possible_intersectors = [list() for _ in range(len(optical_objects))]
+            for i_optical_object, optical_object in enumerate(optical_objects):
+                if len(allowed_successors[i_optical_object]) == 0:
                     continue
-                mask = xp.concatenate(allowed_successors[i])
+                mask = xp.concatenate(allowed_successors[i_optical_object])
                 assert len(mask) != 0
                 current_intersection = intersection[mask]
                 update_mask = optical_object.getIntersection(
@@ -166,7 +217,7 @@ class RaytraceScene:
                 mask = mask[update_mask]
                 intersection[mask] = current_intersection[update_mask]
                 last_intersector[mask] = optical_object.id
-                possible_intersectors[i].append(mask)
+                possible_intersectors[i_optical_object].append(mask)
             if len(allowed_successors[-1]) != 0:
                 mask = xp.concatenate(allowed_successors[-1])
                 current_intersection = intersection[mask]
@@ -179,11 +230,11 @@ class RaytraceScene:
                         if object_color.shape[-1] != 4:
                             object_color = xp.concatenate([object_color, xp.ones(shape=(object_color.shape[0], 1), dtype=object_color.dtype)], axis=-1)
                         #color[update2global] *= object_color
-                        color[update2global] = RaytraceScene.color_one_minus_alpha(color[update2global], object_color)
+                        color[update2global] = blend_function(color[update2global], object_color)
 
             allowed_successors = [list() for _ in range(len(optical_objects) + 1)]
-            for i, optical_object in enumerate(optical_objects):
-                cur_possible_intersectors = possible_intersectors[i]
+            for i_optical_object, optical_object in enumerate(optical_objects):
+                cur_possible_intersectors = possible_intersectors[i_optical_object]
                 if len(cur_possible_intersectors) == 0:
                     continue
                 cur_possible_intersectors = xp.concatenate(cur_possible_intersectors)
@@ -198,7 +249,7 @@ class RaytraceScene:
                             if color is not None:
                                 if isinstance(optical_object, OpticalSurfaceObject):
                                     object_color = optical_object.getColor(active_intersection.position, xp=xp)
-                                    color[mask] = RaytraceScene.color_one_minus_alpha(color[mask], object_color)
+                                    color[mask] = blend_function(color[mask], object_color)
                                 elif isinstance(optical_object, MeshObject):
                                     faceIndex = intersection.faceIndex[mask]
                                     color[mask,0:3] = xp.stack((faceIndex % 7, (faceIndex / 7) % 7, ((faceIndex / (7* 7)) % 7)), axis=-1) / 8
@@ -221,11 +272,11 @@ class RaytraceScene:
                                 if isinstance(optical_object, OpticalSurfaceObject):
                                     object_color = optical_object.getColor(active_intersection.position, xp=xp)
                                     if object_color is not None:
-                                        color[mask] = RaytraceScene.color_one_minus_alpha(color[mask], object_color)
+                                        color[mask] = blend_function(color[mask], object_color)
                                 elif isinstance(optical_object, MeshObject):
                                     faceIndex = intersection.faceIndex[mask]
                                     object_color = xp.stack((faceIndex % 7, (faceIndex / 7) % 7, ((faceIndex / (7* 7)) % 7),xp.full(len(faceIndex), fill_value=8)), axis=-1) / 8
-                                    color[mask] = RaytraceScene.color_one_minus_alpha(color[mask], object_color)
+                                    color[mask] = blend_function(color[mask], object_color)
 
                         case MaterialType.REFLECTION:
                             position[mask] = active_intersection.position
@@ -242,7 +293,7 @@ class RaytraceScene:
                     logger.log(logging.DEBUG, 1000-xp.average(iterations))
                     position[mask] = next_position
                     direction[mask] = next_direction
-                for j in successor_list[i]:
+                for j in successor_list[i_optical_object]:
                     allowed_successors[j].append(mask)
                 if optical_object.materialType != MaterialType.ABSORPTION:
                     allowed_successors[-1].append(mask)

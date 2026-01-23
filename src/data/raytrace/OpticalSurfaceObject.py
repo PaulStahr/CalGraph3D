@@ -93,14 +93,13 @@ class OpticalSurfaceObject(OpticalObject):
     def getDotProdLowerBound(self):
         return self.dotProdLowerBound
 
-    def getTextureCoordinates(self, positions:np.ndarray, xp=np):
+    def getTextureCoordinates(self, positions:np.ndarray, xp=np, density=False):
         if self.mapLocal:
-            matGlobalToSurface = ArrayUtil.convert(self.matGlobalToSurface.mat, xp)
-            positions = (positions @ matGlobalToSurface.T[0:3,0:3]) + matGlobalToSurface[0:3,0]
-            return self.textureMapping.mapCartToTex(positions)
+            positions = self.matGlobalToSurface.apply(positions)
+            return self.textureMapping.mapCartToTex(positions, density=density)
         else:
             direction = positions - ArrayUtil.convert(self.midpoint, xp)
-            return self.textureMapping.mapCartToTex(direction)
+            return self.textureMapping.mapCartToTex(direction, density=density)
 
     def setRadius(self, minRadiusGeometric=None, maxRadiusGeometric=None):
         if minRadiusGeometric is not None:
@@ -241,19 +240,18 @@ class OpticalSurfaceObject(OpticalObject):
         else:
             raise Exception('Type unknown')
         index = 0
-        res = np.empty(shape=(self.getMeshVertexCount(latitudes, longitudes), 4))
+        res = np.empty(shape=(self.getMeshVertexCount(latitudes, longitudes), 3))
         for ri in range(longitudes):
             if ri != 0 or self.surf == SurfaceType.CYLINDER or self.minRadiusGeometric > 0:
                 res[index: index + latitudes] = np.stack((
                     r[ri] * np.sin(rho),
                     r[ri] * np.cos(rho),
-                    np.full(shape=latitudes, fill_value=z[ri]),
-                    np.full(shape=latitudes, fill_value=1)), axis=-1)
+                    np.full(shape=latitudes, fill_value=z[ri])), axis=-1)
                 index += latitudes
             else:
-                res[index] = np.asarray((0, 0, z[ri], 1))
+                res[index] = np.asarray((0, 0, z[ri]))
                 index += 1
-        res = (res @ self.matSurfaceToGlobal.mat.T)[:,0:3]
+        res = self.matSurfaceToGlobal.apply(res)
         return res
 
     def getMeshFaces(self, latitudes, longitudes):
@@ -641,3 +639,12 @@ class OpticalSurfaceObject(OpticalObject):
 
     def inverseDensityCompensation(self, width, height, imageColorArray, channels, stride):
         self.textureMapping.inverseDensityCompensation(width, height, imageColorArray, channels, stride)
+
+
+    def convert2lib(self, xp, inplace=True):
+        assert inplace
+        self.midpoint = ArrayUtil.convert(self.midpoint, xp)
+        self.direction = ArrayUtil.convert(self.direction, xp)
+        self.directionNormalized = ArrayUtil.convert(self.directionNormalized, xp)
+        self.matGlobalToSurface.convert2lib(xp, inplace=True)
+        self.matSurfaceToGlobal.convert2lib(xp, inplace=True)

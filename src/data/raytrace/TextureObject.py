@@ -7,59 +7,74 @@ class TextureObject:
         self.extendY = "repeat"
 
 
-    def setColor(self, coords:np.ndarray, color:np.ndarray, round=False, xp=np):
-        yf = coords[..., 0] * self.data.shape[1]
-        xf = coords[..., 1] * self.data.shape[0]
+    @staticmethod
+    def getDoubleCoord(
+            c:np.ndarray,
+            axis_shape:int,
+            extend_mode:str,
+            ndim:int,
+            round=False,
+            doubleCoord=True,
+            xp=np):
+        cf = c * axis_shape
         if round:
-            xf = xp.round(xf)
-            yf = xp.round(yf)
-        x = xf.astype(int)
-        y = yf.astype(int)
-        match self.extendX:
+            cf = xp.round(cf)
+        ci = cf.astype(int)
+        if not doubleCoord:
+            match extend_mode:
+                case "clip":
+                    ci = xp.clip(ci, 0, axis_shape - 1)
+                case "repeat":
+                    ci = ci % axis_shape
+                case _:
+                    raise ValueError(f"Invalid extend mode: {extend_mode}")
+            return ci
+        match extend_mode:
             case "clip":
-                x = xp.clip(x, 0, self.data.shape[0] - 1)
+                c1 = xp.clip(ci + 1, 0, axis_shape - 1)
+                c0 = xp.clip(ci, 0, axis_shape - 1)
             case "repeat":
-                x = (x + self.data.shape[0]) % self.data.shape[0]
+                c1 = (ci + 1) % axis_shape
+                c0 = ci % axis_shape
             case _:
-                raise ValueError(f"Invalid extendX value: {self.extendX}")
-        match self.extendY:
-            case "clip":
-                y = xp.clip(y, 0, self.data.shape[1] - 1)
-            case "repeat":
-                y = (y + self.data.shape[1]) % self.data.shape[1]
-            case _:
-                raise ValueError(f"Invalid extendY value: {self.extendY}")
+                raise ValueError(f"Invalid extend mode: {extend_mode}")
+        cr = (cf - c0)[..., *[np.newaxis] * (ndim - 2)]
+        cl = 1.0 - cr
+        return c0, c1, cl, cr
+
+
+    def setColor(self, coords:np.ndarray, color:np.ndarray, round=False, xp=np):
+        x = TextureObject.getDoubleCoord(
+            coords[..., 1],
+            self.data.shape[0],
+            self.extendX,
+            self.data.ndim,
+            round,
+            doubleCoord=False,
+            xp=xp)
+        y = self.getDoubleCoord(
+            coords[..., 0],
+            self.data.shape[1],
+            self.extendY,
+            self.data.ndim,
+            round,
+            doubleCoord=False,
+            xp=xp)
         self.data[x, y] = color.astype(self.data.dtype)
 
-
     def addColor(self, coords:np.ndarray, color:np.ndarray, xp=np):
-        yf = coords[..., 0] * self.data.shape[1]
-        xf = coords[..., 1] * self.data.shape[0]
-        x = xf.astype(int)
-        y = yf.astype(int)
-        match self.extendX:
-            case "clip":
-                x1 = xp.clip(x + 1, 0, self.data.shape[0] - 1)
-                x0 = xp.clip(x, 0, self.data.shape[0] - 1)
-            case "repeat":
-                x1 = (x + 1) % self.data.shape[0]
-                x0 = x % self.data.shape[0]
-            case _:
-                raise ValueError(f"Invalid extendX value: {self.extendX}")
-        match self.extendY:
-            case "clip":
-                y1 = xp.clip(y + 1, 0, self.data.shape[1] - 1)
-                y0 = xp.clip(y, 0, self.data.shape[1] - 1)
-            case "repeat":
-                y1 = (y + 1) % self.data.shape[1]
-                y0 = y % self.data.shape[1]
-            case _:
-                raise ValueError(f"Invalid extendY value: {self.extendY}")
-
-        xr = (xf - x0)[..., *[np.newaxis] * (self.data.ndim - 2)]
-        xl = 1.0 - xr
-        yr = (yf - y0)[..., *[np.newaxis] * (self.data.ndim - 2)]
-        yl = 1.0 - yr
+        x0, x1, xl, xr = TextureObject.getDoubleCoord(
+            coords[..., 1],
+            self.data.shape[0],
+            self.extendX,
+            self.data.ndim,
+            xp=xp)
+        y0, y1, yl, yr = self.getDoubleCoord(
+            coords[..., 0],
+            self.data.shape[1],
+            self.extendY,
+            self.data.ndim,
+            xp=xp)
 
         if self.data.dtype == np.uint8:
             self.data[x0, y0] += (color * xl * yl).astype(self.data.dtype) * 255
@@ -74,39 +89,25 @@ class TextureObject:
 
 
     def getColor(self, coords:np.ndarray, xp=np):
-        yf = coords[..., 0] * self.data.shape[1]
-        xf = coords[..., 1] * self.data.shape[0]
-        x = xf.astype(int)
-        y = yf.astype(int)
-        match self.extendX:
-            case "clip":
-                x1 = xp.clip(x + 1, 0, self.data.shape[0] - 1)
-                x0 = xp.clip(x, 0, self.data.shape[0] - 1)
-            case "repeat":
-                x1 = (x + 1) % self.data.shape[0]
-                x0 = x % self.data.shape[0]
-            case _:
-                raise ValueError(f"Invalid extendX value: {self.extendX}")
-        match self.extendY:
-            case "clip":
-                y1 = xp.clip(y + 1, 0, self.data.shape[1] - 1)
-                y0 = xp.clip(y, 0, self.data.shape[1] - 1)
-            case "repeat":
-                y1 = (y + 1) % self.data.shape[1]
-                y0 = y % self.data.shape[1]
-            case _:
-                raise ValueError(f"Invalid extendY value: {self.extendY}")
+        x0, x1, xl, xr = TextureObject.getDoubleCoord(
+            coords[..., 1],
+            self.data.shape[0],
+            self.extendX,
+            self.data.ndim,
+            xp=xp)
+        y0, y1, yl, yr = self.getDoubleCoord(
+            coords[..., 0],
+            self.data.shape[1],
+            self.extendY,
+            self.data.ndim,
+            xp=xp)
 
         c00 = self.data[x0, y0]
         c01 = self.data[x0, y1]
         c10 = self.data[x1, y0]
         c11 = self.data[x1, y1]
-        xr = (xf - x0)[..., *[np.newaxis] * (self.data.ndim - 2)]
-        xl = 1.0 - xr
         c0 = c00 * xl + c10 * xr
         c1 = c01 * xl + c11 * xr
-        yr = (yf - y0)[..., *[np.newaxis] * (self.data.ndim - 2)]
-        yl = 1.0 - yr
         color = c0 * yl + c1 * yr
         return color.astype(np.float32) / 255.0
 

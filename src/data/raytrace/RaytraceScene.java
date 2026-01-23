@@ -1302,7 +1302,8 @@ public class RaytraceScene {
         		break;
         	case REFRACTION:
         		double normaldot = nearest.normal.dot();
-        		if (Double.isNaN(obj.iorq))
+        		double iorq = obj.iorq;
+        		if (Double.isNaN(iorq))
         		{
         			VariableStack vs = new VariableStack(this.vs);
         			Variable x = new Variable("x", nearest.position.x);
@@ -1315,15 +1316,11 @@ public class RaytraceScene {
         			double ior0 = obj.ior0.calculate(vs, control).doubleValue();
         			double ior1 = obj.ior1.calculate(vs, control).doubleValue();
         			double ior = obj.invertNormal == nearest.c > 0 ? ior1 / ior0 : ior0 / ior1;
-        			double iorq = ior * ior - 1;
-        			double tmp = iorq * normaldot / (nearest.c * nearest.c) + 1;
-        			direction.add(nearest.normal,(tmp > 0 ? (Math.sqrt(tmp) - 1) : -2.) * nearest.c / normaldot);
+        			iorq = ior * ior - 1;
         		}
-        		else
-        		{
-        			double tmp = (nearest.c > 0 ? obj.iorq : obj.inviorq) * normaldot / (nearest.c * nearest.c) + 1;
-        			direction.add(nearest.normal,(tmp > 0 ? (Math.sqrt(tmp) - 1) : -2.) * nearest.c / normaldot);
-        		}
+        		double c = nearest.c;
+                double tmp = (c > 0 ? iorq : 1 / iorq) * normaldot / (c * c) + 1;
+                direction.add(nearest.normal,(tmp > 0 ? (Math.sqrt(tmp) - 1) : -2.) * c / normaldot);
         		break;
         	case REFLECTION:direction.add(nearest.normal, -2 * nearest.c/nearest.normal.dot());break;
         	case RANDOM:	direction.setAdd(nearest.normal, Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5);break;

@@ -9,8 +9,8 @@ from jsymmath.geometry.AffineMatrix import AffineMatrix
 class MeshObject(OpticalObject):
     def __init__(self):
         super().__init__()
-        self.meshToGlobal = np.identity(4)
-        self.globalToMesh = np.identity(4)
+        self.meshToGlobal = AffineMatrix(np.eye(4))
+        self.globalToMesh = AffineMatrix(np.eye(4))
         self.texture = None
         self.faces = None
         self.faceNormals = None
@@ -32,10 +32,8 @@ class MeshObject(OpticalObject):
                          xp=None):
         if xp is None:
             xp = inspect.getmodule(type(position))
-        globalToMesh = ArrayUtil.convert(self.globalToMesh, xp)
-        # Transform position and direction into mesh space
-        position = position @ globalToMesh[:3, :3].T + globalToMesh[:3, 3]
-        direction = direction @ globalToMesh[:3, :3].T
+        position = self.globalToMesh.apply(position)
+        direction = self.globalToMesh.apply(direction, only_linear=True)
 
         dir_len = xp.linalg.norm(direction, axis=-1)
         lower_bound = lower_bound * dir_len
@@ -133,10 +131,9 @@ class MeshObject(OpticalObject):
             assignment_mask[mask_e2a] = True
 
         assignment_mask = xp.nonzero(assignment_mask)[0]
-        meshToGlobal = ArrayUtil.convert(self.meshToGlobal, xp)
         if len(assignment_mask) > 0:
-            intersection.position[assignment_mask] = intersection.position[assignment_mask] @ meshToGlobal[:3, :3].T + meshToGlobal[:3, 3]
-            intersection.normal[assignment_mask] = intersection.normal[assignment_mask] @ meshToGlobal[:3, :3].T
+            intersection.position[assignment_mask] = self.meshToGlobal.apply(intersection.position[assignment_mask])
+            intersection.normal[assignment_mask] = self.meshToGlobal.apply(intersection.normal[assignment_mask], only_linear=True)
             intersection.distance[assignment_mask] = upper_bound[assignment_mask] * inv_dir_len[assignment_mask]
         return assignment_mask
 
@@ -167,7 +164,16 @@ class MeshObject(OpticalObject):
         self.update()
 
     def getVertexPositions(self, xp=np):
-        return ArrayUtil.convert(self.vertices @ self.meshToGlobal[:3, :3].T + self.meshToGlobal[:3, 3], xp)
+        return ArrayUtil.convert(self.meshToGlobal.apply(self.vertices), xp)
 
     def getMesh(self):
         return self.getVertexPositions(), self.faces
+
+    def convert2lib(self, xp, inplace=True):
+        assert inplace
+        self.meshToGlobal.convert2lib(xp, inplace=True)
+        self.globalToMesh.convert2lib(xp, inplace=True)
+        self.vertices = ArrayUtil.convert(self.vertices, xp)
+        self.faces = ArrayUtil.convert(self.faces, xp)
+        self.faceNormals = ArrayUtil.convert(self.faceNormals, xp)
+        self.vertexNormals = ArrayUtil.convert(self.vertexNormals, xp)

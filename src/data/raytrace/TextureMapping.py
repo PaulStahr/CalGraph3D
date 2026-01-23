@@ -5,7 +5,7 @@ class TextureMapping(ABC):
     name = ""
 
     @abstractmethod
-    def mapCartToTex(self, coords, xp=np):
+    def mapCartToTex(self, coords, xp=np, density=False):
         pass
 
     @abstractmethod
@@ -31,7 +31,7 @@ class TextureMapping(ABC):
 class PerspectiveMapping(TextureMapping):
     name = "Perspective"
 
-    def mapCartToTex(self, coords):
+    def mapCartToTex(self, coords, xp=np, density=False):
         return coords[..., 0:2] / coords[..., 2:3]
 
     def mapTexToCart(self, tex_coords):
@@ -59,7 +59,7 @@ INV_TWO_PI = 1.0 / (2 * np.pi)
 class SphericalMapping(TextureMapping):
     name = "Spherical"
 
-    def mapCartToTex(self, coords, xp=np):
+    def mapCartToTex(self, coords, xp=np, density=False):
         azimuth = xp.arctan2(coords[...,1], coords[...,0]) * INV_TWO_PI + 0.5
         elevation = xp.arctan2(np.linalg.norm(coords[...,0:2], axis=-1), coords[...,2]) * INV_PI
         return xp.stack((azimuth, elevation),axis=-1)
@@ -86,31 +86,26 @@ class SphericalMapping(TextureMapping):
 TextureMapping.SPHERICAL = SphericalMapping()
 
 class FisheyeEquidistantMapping(TextureMapping):
-    name = "FisheyeEquidistant"
+    name = "FisheyeAzimuthalEquidistant"
 
+    def mapCartToTex(self, coords, xp=np, density=False):
+        cnorm2d = xp.linalg.norm(coords[...,0:2], axis=-1)
+        colat = xp.arctan2(cnorm2d, coords[...,2])
+        eps = xp.finfo(coords.dtype).eps
+        cnorm2d = xp.maximum(cnorm2d, eps)
+        result = (colat[...,xp.newaxis] * INV_TWO_PI / cnorm2d[...,xp.newaxis]) * coords[...,0:2] + 0.5
+        if not density:
+            return result
+        return result, xp.sinc(colat * INV_PI)
 
-    """		@Override
-		public double mapCartToTex(double x, double y, double z, Vector2d out) {
-			double len = Math.sqrt(x * x + y * y);
-			if (len == 0 && z != 0) {out.set(0.5,0.5); return 1;}
-			len = Math.atan2(len, z)/ (len * TWO_PI);
-			out.x = x * len + 0.5;
-			out.y = y * len + 0.5;
-			return Math.sin(len) / len;
-		}"""
-    def mapCartToTex(self, coords, xp=np):
-        len = xp.linalg.norm(coords[...,0:2], axis=-1)
-        len = xp.arctan2(len, coords[...,2]) / (len * TWO_PI)
-        return len[...,xp.newaxis] * coords[...,0:2] + 0.5
-
-    def mapTexToCart(self, tex_coords):
+    def mapTexToCart(self, tex_coords, xp=np):
         r = np.sqrt(np.linalg.norm(tex_coords, axis=1))
         theta = np.arctan2(tex_coords[...,1], tex_coords[...,0])
         sin_r = np.sin(r)
-        return np.stack(
+        return np.stack((
             sin_r * np.cos(theta),
             sin_r * np.sin(theta),
-            np.cos(r), axis=-1
+            np.cos(r)), axis=-1
         )
 
     def mapTexToSpherical(self, tex_coords):
@@ -129,7 +124,7 @@ TextureMapping.FISHEYE_EQUIDISTANT = FisheyeEquidistantMapping()
 class FisheyeEquidistantHalfMapping(FisheyeEquidistantMapping):
     name = "FisheyeEquidistantHalf"
 
-    def mapCartToTex(self, coords):
+    def mapCartToTex(self, coords, xp=np, density=False):
         return super().mapCartToTex(coords) / 2
 
     def mapTexToCart(self, tex_coords):
@@ -145,7 +140,7 @@ class FisheyeEquidistantHalfMapping(FisheyeEquidistantMapping):
 class FlatMapping(TextureMapping):
     name = "Flat"
 
-    def mapCartToTex(self, coords):
+    def mapCartToTex(self, coords, xp=np, density=False):
         return coords[..., 0:2]
 
     def mapTexToCart(self, tex_coords):

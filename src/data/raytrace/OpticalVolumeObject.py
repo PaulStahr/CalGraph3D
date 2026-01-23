@@ -1,7 +1,10 @@
 import numpy as np
+from wx.py.editor import directory
+
 from calgraph3d.data.raytrace.OpticalObject import OpticalObject
 from volumeraytracer.volume_raytracer import OpticalVolume
 from calgraph3d.data.raytrace.Intersection import Intersection
+from jsymmath.geometry.AffineMatrix import AffineMatrix
 from jsymmath.util import ArrayUtil
 import inspect
 from typing import override
@@ -14,20 +17,20 @@ class OpticalVolumeObject(OpticalObject):
         self.checkInnerIntersection = False
         self.volume:OpticalVolume|None = None
         self.shape = (2, 2, 2)  # Default shape
-        self.globalToCudaCubes = None
-        self.cudaCubesToGlobal = None
+        self.globalToCudaCubes = AffineMatrix(np.eye(4, dtype=np.float32))
+        self.cudaCubesToGlobal = AffineMatrix(np.eye(4, dtype=np.float32))
         self.translucency_offset = 0
-        self.unitVolumeToGlobal = np.asarray(np.eye(4, dtype=np.float32))
-        self.globalToUnitVolume = np.asarray(np.eye(4, dtype=np.float32))
+        self.unitVolumeToGlobal = AffineMatrix(np.eye(4, dtype=np.float32))
+        self.globalToUnitVolume = AffineMatrix(np.eye(4, dtype=np.float32))
         self.update()
 
     def update(self):
-        self.unitVolumeToGlobal = np.linalg.inv(self.globalToUnitVolume)
-        globalToCudaCubes = np.copy(self.globalToUnitVolume)
-        globalToCudaCubes[0:3, 3] += 1
-        globalToCudaCubes[0:3,:] *= (np.asarray(self.shape)[:, np.newaxis]) * 0.5
+        self.unitVolumeToGlobal = self.globalToUnitVolume.inv()
+        globalToCudaCubes = AffineMatrix(self.globalToUnitVolume)
+        globalToCudaCubes.translate(np.array([1, 1, 1]), inplace=True, post=True)
+        globalToCudaCubes.mat[0:3,:] *= (np.asarray(self.shape)[:, np.newaxis]) * 0.5
         self.globalToCudaCubes = globalToCudaCubes
-        self.cudaCubesToGlobal = np.linalg.inv(self.globalToCudaCubes)
+        self.cudaCubesToGlobal = self.globalToCudaCubes.inv()
 
         if self.ior is not None and self.translucency is not None:
             self.volume = OpticalVolume(self.ior, self.translucency + self.translucency_offset, np.ones(3, dtype=np.float32))
@@ -35,21 +38,21 @@ class OpticalVolumeObject(OpticalObject):
 
     def setTransformation(self, transformation, kind='globalToUnit'):
         if kind == 'globalToUnit':
-            self.globalToUnitVolume = transformation
+            self.globalToUnitVolume.mat = transformation
         elif kind == 'unitToGlobal':
-            self.globalToUnitVolume = np.linalg.inv(transformation)
+            self.globalToUnitVolume.mat = np.linalg.inv(transformation)
         else:
             raise ValueError("Invalid transformation kind. Use 'globalToUnit' or 'unitToGlobal'.")
         self.update()
 
     def getRefractiveIndex(self, positions):
         globalToCudaCubes = ArrayUtil.convert(self.globalToCudaCubes, ArrayUtil.getArrayModule(positions))
-        positions = positions @ globalToCudaCubes[:3, :3].T + globalToCudaCubes[:3, 3]
+        positions = globalToCudaCubes.apply(positions)
         return self.volume.evaluate_ior(positions)
 
     def evaluate_inner_outer(self, positions):
         globalToCudaCubes = ArrayUtil.convert(self.globalToCudaCubes, ArrayUtil.getArrayModule(positions))
-        positions = positions @ globalToCudaCubes[:3, :3].T + globalToCudaCubes[:3, 3]
+        positions = globalToCudaCubes(positions)
         return self.volume.evaluate_translucency(positions)
 
     def setSize(self, shape):
@@ -68,7 +71,7 @@ class OpticalVolumeObject(OpticalObject):
         iormax = np.max(self.ior)
         if iormin < iormax:
             verts, faces, normals, values = measure.marching_cubes(self.ior, level=(iormin + iormax) * 0.5, spacing=(1, 1, 1), gradient_direction='ascent')
-            verts = verts @ self.cudaCubesToGlobal[:3, :3].T + self.cudaCubesToGlobal[:3, 3]
+            verts = self.cudaCubesToGlobal.apply(verts)
             return verts, faces
         else:
             return None, None
@@ -82,10 +85,10 @@ class OpticalVolumeObject(OpticalObject):
                       direction:np.ndarray,
                       maxIterations:int=1000,
                       xp=np):
-        globalToCudaCubes = ArrayUtil.convert(self.globalToCudaCubes, xp)
-        cudaCubesToGlobal = ArrayUtil.convert(self.cudaCubesToGlobal, xp)
-        position = position @ globalToCudaCubes[:3, :3].T + globalToCudaCubes[:3, 3]
-        direction = direction @ globalToCudaCubes[:3, :3].T
+        globalToCudaCubes = self.globalToCudaCubes.convert2lib(xp)
+        cudaCubesToGlobal = self.cudaCubesToGlobal.convert2lib(xp)
+        position = globalToCudaCubes.apply(position)
+        direction = globalToCudaCubes.apply(direction, only_linear=True)
         position, direction, iterations = self.volume.trace_rays(
             positions=position.astype(xp.float32),
             directions=direction.astype(xp.float32),
@@ -93,14 +96,13 @@ class OpticalVolumeObject(OpticalObject):
             bounds=self.shape)
         position = OpticalVolume.convert(position, xp)
         direction = OpticalVolume.convert(direction, xp)
-        position = position @ cudaCubesToGlobal[:3, :3].T + cudaCubesToGlobal[:3, 3]
-        direction = direction @ cudaCubesToGlobal[:3, :3].T
+        position = cudaCubesToGlobal.apply(position)
+        direction = self.cudaCubesToGlobal.apply(direction, only_linear=True)
         return position, direction, iterations
 
     def getVertexPositions(self,xp=np):
         grid = xp.mgrid[tuple([slice(0,size) for size in self.shape])] + 0.5
-        cudaCubesToGlobal = ArrayUtil.convert(self.cudaCubesToGlobal, xp)
-        grid = xp.moveaxis(grid, 0, -1) @ cudaCubesToGlobal[:3, :3].T + cudaCubesToGlobal[:3, 3]
+        grid = self.cudaCubesToGlobal.apply(xp.moveaxis(grid, 0, -1))
         return grid
 
     @override
@@ -116,9 +118,9 @@ class OpticalVolumeObject(OpticalObject):
         assert lowerBound.shape == upperBound.shape, f"lowerBound and upperBound must have the same shape, got {lowerBound.shape} and {upperBound.shape}"
         xp = inspect.getmodule(type(position)) if xp is None else xp
         shape = xp.asarray(self.shape)
-        globalToCudaCubes = ArrayUtil.convert(self.globalToCudaCubes, xp)
-        position_local = position @ globalToCudaCubes[:3, :3].T + globalToCudaCubes[:3, 3]
-        direction_local = direction @ globalToCudaCubes[:3, :3].T
+        globalToCudaCubes = self.globalToCudaCubes.convert2lib(xp)
+        position_local = globalToCudaCubes.apply(position)
+        direction_local = globalToCudaCubes.apply(direction, only_linear=True)
         dirdot0 = -position_local / direction_local
         dirdot1 = (shape[xp.newaxis, :] - position_local) / direction_local
         mindot = xp.minimum(dirdot0, dirdot1)
@@ -139,12 +141,12 @@ class OpticalVolumeObject(OpticalObject):
                 iterations=xp.full(shape=len(mask[0]), fill_value=num_steps,dtype=xp.uint32),
                 enterVolume=enterVolume,
                 bounds=self.shape)
-            position_local += 0.1 * direction_masked
             inner_mask = xp.nonzero(iteration != 0)[0]
             position_local = ArrayUtil.convert(position_local[inner_mask], xp)
-            cudaCubesToGlobal = ArrayUtil.convert(self.cudaCubesToGlobal, xp)
-            intersection_position = position_local @ cudaCubesToGlobal[:3, :3].T + cudaCubesToGlobal[:3, 3]
             inner_mask = ArrayUtil.convert(inner_mask, xp)
+            position_local += 0.1 * direction_masked[inner_mask]
+            intersection_position = self.cudaCubesToGlobal.apply(position_local)
+
             mask = (mask[0][inner_mask],)
             distance = xp.linalg.norm(intersection_position - position[mask], axis=-1) / xp.linalg.norm(direction[mask], axis=-1)
             #distance = distances * (upperBound[mask] - lowerBound[mask]) + lowerBound[mask]
@@ -154,6 +156,6 @@ class OpticalVolumeObject(OpticalObject):
 
         intersection.object[mask] = self.id
         intersection.position[mask] = intersection_position
-        intersection.normal[mask] = globalToCudaCubes[firstcontact[mask], :3]
+        intersection.normal[mask] = globalToCudaCubes.mat[firstcontact[mask], :3]
         intersection.distance[mask] = distance
         return mask
