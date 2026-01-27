@@ -8,6 +8,7 @@ from jsymmath.geometry.Geometry import Geometry
 from jsymmath.util import ArrayUtil
 
 import numpy as np
+import inspect
 
 
 class RayGenerator:
@@ -99,14 +100,22 @@ class RayGenerator:
 
                 case SurfaceType.SPHERICAL:
                     direction = ArrayUtil.convert(surf.direction,xp)[xp.newaxis,...]
-                    direction = xp.repeat(direction, num_rays, axis=0)
                     if self.threeDimensional:
-                        elevation = self.elevation if not math.isnan(self.elevation) else (xp.arccos(1 - xp.asarray(self.rng.random(num_rays)) * self.cos_arc_open))[..., xp.newaxis]
-                        azimuth = self.azimuth if not math.isnan(self.azimuth) else (xp.asarray(self.rng.random(num_rays)) * (2 * math.pi))[..., xp.newaxis]
+                        if math.isnan(self.elevation):
+                            elevation = xp.arccos(1 - xp.asarray(self.rng.random(num_rays)) * self.cos_arc_open)[..., xp.newaxis]
+                        else:
+                            elevation = self.elevation
+                        if math.isnan(self.azimuth):
+                            azimuth = (xp.asarray(self.rng.random(num_rays)) * (2 * math.pi))[..., xp.newaxis]
+                        else:
+                            azimuth = self.azimuth
+
                         sin = xp.sin(elevation)
+                        v0 = ArrayUtil.convert(self.v0, xp)
+                        v1 = ArrayUtil.convert(self.v1, xp)
                         direction = (direction * xp.cos(elevation)
-                                     + ArrayUtil.convert(self.v0[xp.newaxis, ...], xp) * sin * xp.sin(azimuth)
-                                     + ArrayUtil.convert(self.v1[xp.newaxis, ...], xp) * sin * xp.cos(azimuth))
+                                     + v0[xp.newaxis, ...] * (sin * xp.sin(azimuth))
+                                     + v1[xp.newaxis, ...] * (sin * xp.cos(azimuth)))
                     else:
                         alpha = 0 if num_rays <= 1 else xp.linspace(-1,1,num_rays) * self.arc_open
                         direction = surf.direction * xp.cos(alpha) + self.v0 * xp.sin(alpha)
@@ -140,24 +149,49 @@ class RayGenerator:
             direction = -direction
 
         if diffuse != 0:
-            direction /= xp.linalg.norm(direction, axis=-1, keepdims=True)
-            if self.threeDimensional or isinstance(self.source, MeshObject):
-                w = xp.asarray(self.rng.random(num_rays)) * xp.square(diffuse)
-                rho = xp.asarray(self.rng.random(num_rays)) * 2 * xp.pi
-                f = xp.stack([xp.sqrt(w) * xp.cos(rho), xp.sqrt(w) * xp.sin(rho), xp.sqrt(1 - w)], axis=-1)
-                direction[...,2] -= 1
-                dot = xp.sum(xp.square(direction), axis=-1)
-                dot = xp.where(dot < 1e-6, 1, 2 / dot * xp.sum(direction * f, axis=-1))
-                direction = f - dot[..., xp.newaxis] * direction
-            else:
-                w = (2 * self.rng.random(num_rays) - 1) * diffuse
-                h = math.sqrt(1 - xp.square(w))
-                x = direction[...,0] * h + direction[...,1] * w
-                y = direction[...,1] * h - direction[...,0] * w
-                direction[..., 0] = x
-                direction[..., 1] = y
-                direction[..., 2] *= h
+            direction = RayGenerator.apply_diffuse_to_directions(
+                direction,
+                diffuse,
+                self.rng,
+                self.threeDimensional or isinstance(self.source, MeshObject),
+                xp
+            )
         return position, direction
+
+    @staticmethod
+    def apply_diffuse_to_directions(
+            direction:np.ndarray,
+            diffuse:float,
+            rng:Optional[np.random.Generator],
+            three_dimensional:bool,
+            xp
+            ):
+        direction /= xp.linalg.norm(direction, axis=-1, keepdims=True)
+        num_rays = direction.shape[0]
+        if three_dimensional:
+            w = xp.asarray(rng.random(num_rays)) * xp.square(diffuse)
+            rho = xp.asarray(rng.random(num_rays)) * 2 * xp.pi
+            r = xp.sqrt(w)
+            z = xp.sqrt(1 - w)
+            f = xp.stack([
+                r * xp.cos(rho),
+                r * xp.sin(rho),
+                z], axis=-1)
+
+            direction[..., 2] -= 1
+            dot = xp.sum(xp.square(direction), axis=-1)
+            dot = xp.where(dot < 1e-6, 1, 2 / dot * xp.sum(direction * f, axis=-1))
+            direction = f - dot[..., xp.newaxis] * direction
+        else:
+            w = (2 * rng.random(num_rays) - 1) * diffuse
+            h = xp.sqrt(1 - xp.square(w))
+            x = direction[..., 0] * h + direction[..., 1] * w
+            y = direction[..., 1] * h - direction[..., 0] * w
+            direction[..., 0] = x
+            direction[..., 1] = y
+            direction[..., 2] *= h
+        return direction
+
 
     def generate_batch(self, begin_index, end_index, num_rays, startpoints, startdirs, texture_coords, position, direction, texture_coordinate, color):
         for j in range(begin_index, end_index):
