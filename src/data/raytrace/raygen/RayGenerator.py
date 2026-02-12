@@ -12,10 +12,16 @@ import inspect
 
 
 class RayGenerator:
-    def __init__(self, gen = None):
-        self.source = None
+    def __init__(
+            self,
+            source = None,
+            threeDimensional = True,
+            rng = None,
+            gen = None):
+        self.source = source
         self.modCount = -1
-        self.threeDimensional = False
+        self.threeDimensional = threeDimensional
+        self.projection_vector = None
         self.v0:np.ndarray = np.zeros(3)
         self.v1:np.ndarray = np.zeros(3)
         self.arc_open = 0.0
@@ -23,7 +29,7 @@ class RayGenerator:
         self.radius_radius_geom_ratio = 0.0
         self.elevation = math.nan
         self.azimuth = math.nan
-        self.rng = np.random.default_rng()
+        self.rng = np.random.default_rng() if rng is None else rng
         self.ignore_random = False
 
         if gen:
@@ -68,15 +74,14 @@ class RayGenerator:
                         self.v1 = np.cross(direction, self.v0)
                         self.v1 *= radius / np.linalg.norm(self.v1)
                     else:
-                        self.v0 = direction
-                        self.v0 = np.array([self.v0[1], -self.v0[0], 0])
+                        self.v0 = np.cross(direction, self.projection_vector)
                     self.v0 *= radius / np.linalg.norm(self.v0)
                 case _:
                     raise ValueError(f"Unsupported surface type: {surf.surf}")
             self.cos_arc_open = 1 - math.cos(self.arc_open)
 
     def generate(self, num_rays:int, xp=np):
-        if  self.source.modCount != self.modCount:
+        if self.source.modCount != self.modCount:
             self.init()
             self.modCount = self.source.modCount
 
@@ -117,8 +122,8 @@ class RayGenerator:
                                      + v0[xp.newaxis, ...] * (sin * xp.sin(azimuth))
                                      + v1[xp.newaxis, ...] * (sin * xp.cos(azimuth)))
                     else:
-                        alpha = 0 if num_rays <= 1 else xp.linspace(-1,1,num_rays) * self.arc_open
-                        direction = surf.direction * xp.cos(alpha) + self.v0 * xp.sin(alpha)
+                        alpha = 0 if num_rays <= 1 else (xp.linspace(-1,1,num_rays) * self.arc_open)[..., xp.newaxis]
+                        direction = surf.direction[xp.newaxis, ...] * xp.cos(alpha) + self.v0[xp.newaxis, ...] * xp.sin(alpha)
 
                     position = xp.asarray(surf.midpoint[xp.newaxis, ...]) + direction
 
@@ -150,11 +155,12 @@ class RayGenerator:
 
         if diffuse != 0:
             direction = RayGenerator.apply_diffuse_to_directions(
-                direction,
-                diffuse,
-                self.rng,
-                self.threeDimensional or isinstance(self.source, MeshObject),
-                xp
+                direction=direction,
+                diffuse=diffuse,
+                projection_vector = self.projection_vector,
+                rng = self.rng,
+                three_dimensional=self.threeDimensional or isinstance(self.source, MeshObject),
+                xp=xp
             )
         return position, direction
 
@@ -162,10 +168,19 @@ class RayGenerator:
     def apply_diffuse_to_directions(
             direction:np.ndarray,
             diffuse:float,
+            projection_vector:np.ndarray,
             rng:Optional[np.random.Generator],
             three_dimensional:bool,
-            xp
-            ):
+            xp):
+        """
+
+        :param direction:
+        :param diffuse: Controls maximum elevation |sin(θ)| ≤ diffuse.
+        :param rng:
+        :param three_dimensional:
+        :param xp:
+        :return:
+        """
         direction /= xp.linalg.norm(direction, axis=-1, keepdims=True)
         num_rays = direction.shape[0]
         if three_dimensional:
@@ -185,11 +200,15 @@ class RayGenerator:
         else:
             w = (2 * rng.random(num_rays) - 1) * diffuse
             h = xp.sqrt(1 - xp.square(w))
-            x = direction[..., 0] * h + direction[..., 1] * w
-            y = direction[..., 1] * h - direction[..., 0] * w
-            direction[..., 0] = x
-            direction[..., 1] = y
-            direction[..., 2] *= h
+            direction_orthogonal = xp.cross(direction, projection_vector)
+
+            direction = direction * h[..., xp.newaxis] + direction_orthogonal * w[..., xp.newaxis]
+
+            #x = direction[..., 0] * h + direction[..., 1] * w
+            #y = direction[..., 1] * h - direction[..., 0] * w
+            #direction[..., 0] = x
+            #direction[..., 1] = y
+            #direction[..., 2] *= h
         return direction
 
 

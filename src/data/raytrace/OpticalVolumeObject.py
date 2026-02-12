@@ -46,13 +46,13 @@ class OpticalVolumeObject(OpticalObject):
         self.update()
 
     def getRefractiveIndex(self, positions):
-        globalToCudaCubes = ArrayUtil.convert(self.globalToCudaCubes, ArrayUtil.getArrayModule(positions))
+        globalToCudaCubes = self.globalToCudaCubes.convert2lib(ArrayUtil.getArrayModule(positions))
         positions = globalToCudaCubes.apply(positions)
         return self.volume.evaluate_ior(positions)
 
     def evaluate_inner_outer(self, positions):
-        globalToCudaCubes = ArrayUtil.convert(self.globalToCudaCubes, ArrayUtil.getArrayModule(positions))
-        positions = globalToCudaCubes(positions)
+        globalToCudaCubes = self.globalToCudaCubes.convert2lib(ArrayUtil.getArrayModule(positions))
+        positions = globalToCudaCubes.apply(positions)
         return self.volume.evaluate_translucency(positions)
 
     def setSize(self, shape):

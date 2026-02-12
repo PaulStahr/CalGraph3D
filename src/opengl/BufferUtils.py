@@ -31,9 +31,7 @@ def fillWithRadialIndexData(latitudes, longitudes):
     return faces
 
 
-def fillWithCylinderIndexData(latitudes, longitudes, faces=None):
-    num_faces = latitudes * (4 * longitudes - 4)
-
+def fillWithCylinderIndexData(latitudes, longitudes):
     # i ranges over (longitudes - 1), j over latitudes
     i_vals = np.arange(longitudes - 1)[:, None]  # shape (longitudes - 1, 1)
     j_vals = np.arange(latitudes)[None, :]  # shape (1, latitudes)

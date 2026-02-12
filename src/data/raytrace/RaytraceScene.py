@@ -100,7 +100,7 @@ class RaytraceScene:
         assert isinstance(object_id, int), f"id must be an integer, got {type(object_id)}"
         for object_arrays in [self.optical_surface_objects, self.optical_volume_objects, self.optical_mesh_objects]:
             for obj in object_arrays:
-                if obj.object_id == object_id:
+                if obj.id == object_id:
                     return obj
         return None
 

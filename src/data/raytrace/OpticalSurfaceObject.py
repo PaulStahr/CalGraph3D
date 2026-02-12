@@ -290,7 +290,7 @@ class OpticalSurfaceObject(OpticalObject):
                 if normalize:
                     if normalize == 'seperate':
                         return res - self.directionLengthQ, pos * 2
-                    xp.sqrt(res, out=res)
+                    res = xp.sqrt(res)
                     return res - self.directionLength
                 return res - self.directionLengthQ
             case SurfaceType.CUSTOM:
@@ -322,6 +322,11 @@ class OpticalSurfaceObject(OpticalObject):
                 return xp.sum(xp.square(pos), axis=-1) - xp.square(dirdot) - self.directionLengthQ
             case _:
                 raise Exception(f'Unknown surface type: {self.surf}')
+
+    def getNormal(self, positions:np.ndarray, xp=np):
+        normal = self.evaluate_inner_outer(positions, normalize='seperate', xp=xp)[1]
+        normal /= xp.linalg.norm(normal, axis=-1, keepdims=True)
+        return normal
 
     def getPlaneIntersection(self,
                              position:np.ndarray,

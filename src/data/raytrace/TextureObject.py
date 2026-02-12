@@ -1,5 +1,8 @@
 import numpy as np
 
+from jsymmath.util import ArrayUtil
+
+
 class TextureObject:
     def __init__(self, data:np.ndarray):
         self.data = data
@@ -102,10 +105,10 @@ class TextureObject:
             self.data.ndim,
             xp=xp)
 
-        c00 = self.data[x0, y0]
-        c01 = self.data[x0, y1]
-        c10 = self.data[x1, y0]
-        c11 = self.data[x1, y1]
+        c00 = ArrayUtil.convert(self.data[x0, y0], xp)
+        c01 = ArrayUtil.convert(self.data[x0, y1], xp)
+        c10 = ArrayUtil.convert(self.data[x1, y0], xp)
+        c11 = ArrayUtil.convert(self.data[x1, y1], xp)
         c0 = c00 * xl + c10 * xr
         c1 = c01 * xl + c11 * xr
         color = c0 * yl + c1 * yr
