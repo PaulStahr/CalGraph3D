@@ -212,9 +212,6 @@ public enum TextureMapping
 			out.x = x * len + 0.5;
 			out.y = y * len + 0.5;
 			return Math.sin(len) / len;
-			//System.out.println(x + " " + y + " " + z + "->" + out + " " + len);
-
-			//System.out.println(out);
 		}
 
 		@Override

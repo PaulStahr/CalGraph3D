@@ -39,16 +39,16 @@ class PropertyOnLineCalculator:
         self.bundleEvaluationDistances = ArrayUtil.convert(self.bundleEvaluationDistances, xp)
         self.lineObjects = ArrayUtil.convert(self.lineObjects, xp)
 
-    def interpolate_rear_principal_point(self, x):
+    def interpolate_rear_principal_point(self, x:np.ndarray):
         return self.xp.interp(x, self.bundleEvaluationDistances, self.bundleRearPrincipalPoints)
 
-    def interpolate_bundle_intersection_point(self, x):
+    def interpolate_bundle_intersection_point(self, x:np.ndarray):
         return self.xp.interp(x, self.bundleEvaluationDistances, self.bundleIntersectionDistances)
 
-    def interpolate_ior(self, x):
+    def interpolate_ior(self, x:np.ndarray):
         return self.xp.interp(x, self.lineEvaluationDistances, self.lineRefractiveIndices)
 
-    def get_dioptres(self, measurement_point):
+    def get_dioptres(self, measurement_point:float):
         dioptre = 1000 / (self.bundleIntersectionDistances - measurement_point)
         self.xp.nan_to_num(dioptre, nan=0, copy=False)
         return dioptre
