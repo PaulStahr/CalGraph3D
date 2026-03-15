@@ -155,21 +155,51 @@ class RaytraceScene:
             maxVolumeIterations:int=1000,
             maxBounces:int|None=None,
             blend_function = None,
+            blocksize:int=None,
             xp=None):
         self.check_scene()
+        position = xp.copy(position)
+        direction = xp.copy(direction)
+        last_intersector = xp.zeros(len(position), dtype=xp.int32)
+        if blocksize is not None:
+            num_blocks = int(np.ceil(position.shape[0] / blocksize))
+            for i in range(num_blocks):
+                current_color = color[i*blocksize:(i+1)*blocksize] if color is not None else None
+                assert trajectory is None, "Not implemented yet"
+                block_position, block_direction, block_last_intersector = self.calculateRays(
+                    position=position[i*blocksize:(i+1)*blocksize],
+                    direction=direction[i*blocksize:(i+1)*blocksize],
+                    start_objects=start_objects,
+                    color=current_color,
+                    trajectory=None,
+                    lower_bound=lower_bound[i*blocksize:(i+1)*blocksize] if lower_bound is not None else None,
+                    upper_bound=upper_bound[i*blocksize:(i+1)*blocksize] if upper_bound is not None else None,
+                    maxVolumeIterations=maxVolumeIterations,
+                    maxBounces=maxBounces,
+                    blend_function=blend_function,
+                    blocksize=None,
+                    xp=xp
+                )
+                if color is not None:
+                    color[i*blocksize:(i+1)*blocksize] = current_color
+                position[i*blocksize:(i+1)*blocksize] = block_position
+                direction[i*blocksize:(i+1)*blocksize] = block_direction
+                last_intersector[i*blocksize:(i+1)*blocksize] = block_last_intersector
+            return position, direction, last_intersector
         if blend_function is None:
             blend_function = blendFunc(BlendFactor.SRC_ALPHA, BlendFactor.ONE_MINUS_SRC_ALPHA)
         if maxBounces is None:
             maxBounces = self.maxBounces
         if xp is None:
             xp = inspect.getmodule(type(position))
-        position = xp.copy(position)
-        direction = xp.copy(direction)
+
         optical_objects = self.optical_surface_objects + self.optical_volume_objects + self.optical_mesh_objects
         optical_objects = [obj for obj in optical_objects if obj.active]
         successor_list = [list() for _ in range(len(optical_objects))]
         for source_object, destination_object  in self.successor_set:
             if source_object not in optical_objects or destination_object not in optical_objects:
+                continue
+            if source_object.materialType == MaterialType.ABSORPTION:
                 continue
             source_index = optical_objects.index(source_object)
             destination_index = optical_objects.index(destination_object)
@@ -183,7 +213,6 @@ class RaytraceScene:
                 continue
             allowed_successors[optical_objects.index(start_object)].append(rg)
         allowed_successors[-1].append(rg)
-        last_intersector = xp.zeros(len(position), dtype=xp.int32)
 
         for ibounce in range(maxBounces):
             intersection = Intersection(position.shape[:-1], xp=xp)
@@ -247,13 +276,21 @@ class RaytraceScene:
                         case MaterialType.ABSORPTION:
                             position[mask] = active_intersection.position
                             if color is not None:
-                                if isinstance(optical_object, OpticalSurfaceObject):
-                                    object_color = optical_object.getColor(active_intersection.position, xp=xp)
+                                if isinstance(optical_object, OpticalSurfaceObject | MeshObject):
+                                    object_color = optical_object.getColor(
+                                        positions=active_intersection.position,
+                                        textureCoordinate=active_intersection.textureCoords,
+                                        xp=xp)
+                                    if optical_object.shading:
+                                        normal_factor = xp.sum(active_intersection.normal * (-direction[mask]), axis=-1, keepdims=True)
+                                        if len(object_color.shape) == 1:
+                                            object_color = xp.repeat(object_color[None, :], repeats=normal_factor.shape[0], axis=0)
+                                        object_color[..., :3] *= xp.clip(normal_factor, 0, 1)
                                     color[mask] = blend_function(color[mask], object_color)
-                                elif isinstance(optical_object, MeshObject):
-                                    faceIndex = intersection.faceIndex[mask]
-                                    color[mask,0:3] = xp.stack((faceIndex % 7, (faceIndex / 7) % 7, ((faceIndex / (7* 7)) % 7)), axis=-1) / 8
-                                    color[mask,3] = 1.0
+                                #elif isinstance(optical_object, MeshObject):
+                                #    faceIndex = intersection.faceIndex[mask]
+                                #    color[mask,0:3] = xp.stack((faceIndex % 7, (faceIndex / 7) % 7, ((faceIndex / (7* 7)) % 7)), axis=-1) / 8
+                                #    color[mask,3] = 1.0
                         case MaterialType.DELETION:
                             position[mask] = xp.nan
                             direction[mask] = xp.nan

@@ -78,6 +78,7 @@ class OpticalSurfaceObject(OpticalObject):
         self.diffuse:float = 0
         self.alphaAsMask = False
         self.boolean_modifiers = []
+        self.shading = False
         if orig is not None:
             self.__dict__.update(vars(orig))
 
@@ -191,7 +192,8 @@ class OpticalSurfaceObject(OpticalObject):
         elif self.surf == SurfaceType.SPHERICAL:
             z = np.sqrt(1 - r ** 2)
         elif self.surf == SurfaceType.CUSTOM:
-            z = (self.conicConstant - np.sqrt(1 - (1 + self.conicConstant) * r**2)) / (1 + self.conicConstant)
+            #z = (self.conicConstant - np.sqrt(1 - (1 + self.conicConstant) * r**2)) / (1 + self.conicConstant)
+            z = (1 - np.sqrt(1 - (1 + self.conicConstant) * r ** 2)) / (1 + self.conicConstant)
         elif self.surf == SurfaceType.CYLINDER:
             z = 1
         else:
@@ -383,7 +385,11 @@ class OpticalSurfaceObject(OpticalObject):
             pass
 
 
-    def getColor(self, positions:np.ndarray, xp=np):
+    def getColor(
+            self,
+            positions:np.ndarray=None,
+            textureCoordinate:np.ndarray=None,
+            xp=np):
         result = ArrayUtil.convert(self.color, xp)
         if self.texture is not None:
             texcoords = self.getTextureCoordinates(positions, xp)
