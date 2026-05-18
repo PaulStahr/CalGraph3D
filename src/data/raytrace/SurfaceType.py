@@ -8,3 +8,11 @@ class SurfaceType(Enum):
     CYLINDER = 4
     HYPERBOLIC = 5
     PARABOLIC = 6
+
+    @staticmethod
+    def get_by_name(name:str):
+        name = name.upper()
+        if name in SurfaceType.__members__:
+            return SurfaceType[name]
+        else:
+            raise ValueError(f"Unknown surface type: {name}")

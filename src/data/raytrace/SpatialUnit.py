@@ -10,3 +10,10 @@ class SpatialUnit(enum.Enum):
     @property
     def magnitude(self):
         return self.value
+
+    def get_by_name(name):
+        name = name.upper()
+        if name in SpatialUnit.__members__:
+            return SpatialUnit[name]
+        else:
+            raise ValueError(f"Unknown spatial unit: {name}")

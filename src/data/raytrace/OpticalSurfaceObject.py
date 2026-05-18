@@ -49,8 +49,8 @@ class OpticalSurfaceObject(OpticalObject):
         super().__init__(label=label)
         self.abbeNumber = 1
         self.conicConstant = 1
-        self.direction = np.zeros(shape=3)
-        self.directionNormalized = np.zeros(shape=3)
+        self.direction = np.zeros(shape=3, dtype=float)
+        self.directionNormalized = np.zeros(shape=3, dtype=float)
         self.surf:SurfaceType = SurfaceType.FLAT
         self.maxRadiusGeometric = 1
         self.radiusGeometricQ = 1
@@ -109,6 +109,14 @@ class OpticalSurfaceObject(OpticalObject):
             self.maxRadiusGeometric = maxRadiusGeometric
         self.update()
 
+    def transform(self, transformation:AffineMatrix):
+        self.direction = transformation.apply(self.direction, only_linear=True)
+        self.minRadiusGeometric *= transformation.get_scaling()
+        self.maxRadiusGeometric *= transformation.get_scaling()
+        self.midpoint = transformation.apply(self.midpoint)
+        self.update()
+
+
     def update(self):
         self.directionLengthQ = np.sum(np.square(self.direction))
         self.directionLength = np.sqrt(self.directionLengthQ)
@@ -151,7 +159,6 @@ class OpticalSurfaceObject(OpticalObject):
                 maxRatioQ = np.clip(maxRatioQ, 1, None)
                 self.maxArcOpen = math.pi - np.arcsin(1 / maxRatio)
                 self.dotProdUpperBound = -np.sqrt(1 - 1 / maxRatioQ)
-            assert not np.isnan(self.dotProdUpperBound)
 
             if self.minRadiusGeometric < self.directionLength:
                 self.minArcOpen = np.arcsin(self.minRadiusGeometric * self.invDirectionLength)
@@ -218,7 +225,7 @@ class OpticalSurfaceObject(OpticalObject):
             low = self.minRadiusGeometric * self.invDirectionLength
             high = self.maxRadiusGeometric * self.invDirectionLength
         else:
-            raise Exception
+            raise Exception(f"Unknown surface type: {self.surf} of object {self.label}")
         rho = np.linspace(0, 2 * math.pi, latitudes, endpoint=False)
         t = np.linspace(low, high, longitudes, endpoint=True)
         if self.surf == SurfaceType.FLAT:

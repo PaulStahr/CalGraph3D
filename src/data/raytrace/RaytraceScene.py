@@ -9,9 +9,9 @@ from calgraph3d.data.raytrace.TextureMapping import TextureMapping
 from calgraph3d.data.raytrace.TextureObject import TextureObject
 from calgraph3d.data.raytrace.OpticalSurfaceObject import OpticalSurfaceObject
 from calgraph3d.data.raytrace.OpticalVolumeObject import OpticalVolumeObject
-from calgraph3d.data.raytrace.OpticalObject import OpticalObject
+from jsymmath.geometry.AffineMatrix import AffineMatrix
 from jsymmath.util import ArrayUtil
-from typing import Callable
+from typing import Callable, List
 import enum
 import logging
 
@@ -72,13 +72,40 @@ def blendFunc(srcFactor: BlendFactor,
 
 class RaytraceScene:
     def __init__(self, maxBounces:int=10):
-        self.optical_surface_objects = []
-        self.optical_volume_objects = []
-        self.optical_mesh_objects = []
+        self.optical_surface_objects:List[OpticalSurfaceObject] = []
+        self.optical_volume_objects:List[OpticalVolumeObject] = []
+        self.optical_mesh_objects:List[MeshObject] = []
+        self.texture_objects = []
         self.successor_set = {}
         self.texture:TextureObject|None = None
         self.textureMapping:TextureMapping = TextureMapping.SPHERICAL
+        self.vs = dict()
         self.maxBounces:int = maxBounces
+        self.force_startpoint = None
+        self.force_endpoint = None
+        self.writableEnvironmentTextureString = None
+        self.renderToTextureString = None
+        self.writableEnvironmentTexture = None
+        self.renderToTextureObject = None
+
+    def add(self, obj:OpticalSurfaceObject|OpticalVolumeObject|MeshObject):
+        if isinstance(obj, OpticalSurfaceObject):
+            self.optical_surface_objects.append(obj)
+            self.vs[f"{obj.label}_pos"] = obj.position
+        elif isinstance(obj, OpticalVolumeObject):
+            self.optical_volume_objects.append(obj)
+        elif isinstance(obj, MeshObject):
+            self.optical_mesh_objects.append(obj)
+        elif isinstance(obj, TextureObject):
+            self.texture_objects.append(obj)
+        else:
+            raise ValueError(f"Unsupported object type: {type(obj)}")
+
+    def set_force_startpoint(self, obj:OpticalSurfaceObject|OpticalVolumeObject|MeshObject):
+        self.force_startpoint = obj
+
+    def set_force_endpoint(self, obj:OpticalSurfaceObject|OpticalVolumeObject|MeshObject):
+        self.force_endpoint = obj
 
     @staticmethod
     def getNextIntersection(
@@ -115,6 +142,15 @@ class RaytraceScene:
     def getActiveSurfaces(self):
         return [obj for obj in self.optical_surface_objects if obj.active]
 
+    def getActiveTexture(self, label:str) -> TextureObject|None:
+        for tex in self.texture_objects:
+            if tex.label == label and tex.active:
+                return tex
+        return None
+
+    def getActiveTextures(self):
+        return [tex for tex in self.texture_objects if tex.active]
+
     def getActiveVolumes(self):
         return [obj for obj in self.optical_volume_objects if obj.active]
 
@@ -134,6 +170,36 @@ class RaytraceScene:
         for object_arrays in [self.optical_surface_objects, self.optical_volume_objects, self.optical_mesh_objects]:
             for obj in object_arrays:
                 obj.reset_id()
+
+    def update_scene(self):
+        for object_arrays in [self.optical_surface_objects, self.optical_volume_objects, self.optical_mesh_objects]:
+            for obj in object_arrays:
+                obj.update()
+        self.reset_ids()
+        writableEnvironmentTexture = self.getActiveTexture(self.writableEnvironmentTextureString)
+        renderToTextureObject = self.getActiveTexture(self.renderToTextureSring)
+
+    def transformScene(self, transformation:AffineMatrix):
+        for optical_object in self.optical_surface_objects + self.optical_mesh_objects + self.optical_volume_objects:
+            optical_object.transform(transformation)
+
+
+    def get_volume_pipelines(self):
+        return []
+
+    def set_texture_mapping(self, mapping:TextureMapping):
+        self.textureMapping = mapping
+
+    def set_verify_refraction_indices(self, verify:bool):
+        self.verify_refraction_indices = verify
+
+    def set_environment_texture(self, texture:str):
+        assert isinstance(texture, str), f"Expected string got {type(texture)}"
+        self.environmentTextureString = texture
+
+    def set_render_to_texture(self, texture:str):
+        assert isinstance(texture, str), f"Expected string got {type(texture)}"
+        self.renderToTextureSring = texture
 
     def check_scene(self):
         all_objects = self.optical_surface_objects + self.optical_volume_objects + self.optical_mesh_objects
@@ -319,7 +385,7 @@ class RaytraceScene:
                             position[mask] = active_intersection.position
                             direction[mask] -= 2 * active_intersection.normal * xp.sum(direction[mask] * active_intersection.normal, axis=-1, keepdims=True)
                         case _:
-                            raise NotImplementedError(f"Material type {optical_object.materialType} not implemented")
+                            raise NotImplementedError(f"Material type {optical_object.materialType} not implemented from object {optical_object.label}")
                 if isinstance(optical_object, OpticalVolumeObject):
                     active_intersection = intersection[mask]
                     next_position, next_direction, iterations = optical_object.calculateRays(

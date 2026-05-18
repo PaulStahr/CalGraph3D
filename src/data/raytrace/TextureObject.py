@@ -2,9 +2,12 @@ import numpy as np
 
 from jsymmath.util import ArrayUtil
 
+from calgraph3d.data.raytrace.OpticalObject import OpticalObject
 
-class TextureObject:
+
+class TextureObject(OpticalObject):
     def __init__(self, data:np.ndarray):
+        super().__init__()
         self.data = data
         self.extendX = "clip"
         self.extendY = "repeat"

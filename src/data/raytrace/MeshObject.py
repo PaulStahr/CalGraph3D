@@ -1,6 +1,10 @@
 import numpy as np
 import inspect
 import logging
+from pathlib import Path
+from imageio import v3 as imageio
+
+from bin.data.raytrace import TextureObject
 from calgraph3d.data.raytrace.OpticalObject import OpticalObject
 from calgraph3d.data.raytrace.Intersection import Intersection
 from jsymmath.geometry.Geometry import Geometry
@@ -256,15 +260,52 @@ class MeshObject(OpticalObject):
             return assignment_mask
         raise ValueError(f"Unknown backend '{backend}' for MeshObject ray intersection")
 
+    @staticmethod
+    def load_texture_from_obj(obj_path):
+        obj_path = Path(obj_path)
+        mtl_file = None
+
+        # Step 1: find mtllib reference
+        with open(obj_path, "r") as f:
+            for line in f:
+                if line.startswith("mtllib"):
+                    mtl_file = line.split(maxsplit=1)[1].strip()
+                    break
+
+        if not mtl_file:
+            return None
+
+        mtl_path = obj_path.parent / mtl_file
+        if not mtl_path.exists():
+            return None
+
+        # Step 2: parse map_Kd from MTL
+        with open(mtl_path, "r") as f:
+            for line in f:
+                if line.startswith("map_Kd"):
+                    tex_filename = line.split(maxsplit=1)[1].strip()
+                    tex_path = obj_path.parent / tex_filename
+
+                    if tex_path.exists():
+                        return imageio.imread(tex_path)
+
+        return None
+
     def loadFile(self, fileName:str):
         import pymeshlab
         ms = pymeshlab.MeshSet()
         ms.load_new_mesh(fileName)
-        vertices, faces = ms.current_mesh().vertex_matrix(), ms.current_mesh().face_matrix()
-        textureCoordinates = None
-        if ms.current_mesh().has_vertex_tex_coord():
-            textureCoordinates = ms.current_mesh().texture_coordinate_matrix()
 
+        mesh = ms.current_mesh()
+        vertices, faces = mesh.vertex_matrix(), mesh.face_matrix()
+        textureCoordinates = None
+
+        if mesh.has_vertex_tex_coord():
+            textureCoordinates = mesh.texture_coordinate_matrix()
+            # Check if mesh has per-face material info
+        texture = MeshObject.load_texture_from_obj(fileName)
+        if texture is not None:
+            self.texture = TextureObject.TextureObject(texture)
         self.setData(vertices, faces, textureCoordinates)
 
 

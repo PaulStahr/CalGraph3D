@@ -1,4 +1,4 @@
-from tensorflow.python.ops.gen_array_ops import lower_bound
+from matplotlib.ticker import MultipleLocator
 
 from calgraph3d.data.raytrace.OpticalVolumeObject import OpticalVolumeObject
 from calgraph3d.data.raytrace.Intersection import Intersection
@@ -11,30 +11,31 @@ logger = logging.getLogger(__name__)
 
 if __name__ == '__main__':
     #This script creates an example plot of a lynnenberg lens, to illustrate the implementation of the volume raytracer
-    parser = argparse.ArgumentParser(description='Plot a lynnenberg lens')
+    parser = argparse.ArgumentParser(description='Plot a luneburg lens')
     parser.add_argument("--components", type=str,
                         choices=("rays", "lattice", "steps", "ior"),
                         default=("rays", "lattice", "steps", "ior"),
                         )
     parser.add_argument("--iterations-per-step", type=int, default=1, help="Number of iterations per step for the raytracer")
-    parser.add_argument("--num-iterations", type=int, default=100, help="Number of iterations to run the raytracer for")
+    parser.add_argument("--num-iterations", type=int, default=20, help="Number of iterations to run the raytracer for")
     parser.add_argument("--num-rays", type=int, default=11, help="Number of rays to trace")
     parser.add_argument("--output", type=str, default=None, help="Path to save the plot")
     parser.add_argument("--loglevel", type=str, default="warning", help="Logging level (debug, info, warning, error, critical)")
-    parser.add_argument("--plotsize", default=(5,5), help="Size of the plot in inches")
+    parser.add_argument("--plotsize", default=(5,5), nargs=2, type=float, help="Size of the plot in inches")
     args = parser.parse_args()
 
     logging.basicConfig(level=args.loglevel.upper())
 
     volume = OpticalVolumeObject()
-    volume_resolution = 32
+    volume_resolution = 17
     background_resolution = 512
     shape = (volume_resolution, volume_resolution, volume_resolution)
-    scale = 0.9
+    scale = 0.8
     transformation = np.asarray([[scale, 0, 0, 0],
                                  [0, scale, 0, 0],
                                  [0, 0, scale, 0],
                                  [0, 0, 0, 1]], dtype=np.float32)
+    cubescale = 1 / (0.5 * scale * volume_resolution)
 
     volume.setTransformation(transformation, kind='globalToUnit')
     volume.setSize(shape)
@@ -52,7 +53,7 @@ if __name__ == '__main__':
     volume.update()
     volume.updateIOR()
     start_positions = np.asarray([[-1, 0, 0]] * args.num_rays, dtype=np.float32)
-    start_directions = np.asarray([[1, 0.0001, 0]] * args.num_rays, dtype=np.float32)
+    start_directions = np.asarray([[0.5, 0.00001, 0]] * args.num_rays, dtype=np.float32)
     start_positions[..., 1] += np.linspace(-1, 1, args.num_rays, endpoint=False) + (1 / args.num_rays)
     trajectory = []
     trajectory.append(start_positions.copy())
@@ -66,23 +67,24 @@ if __name__ == '__main__':
         positions, directions, intersection=intersection, lowerBound=lowerBound, upperBound=upperBound)
     positions[mask] = intersection.position[mask]
     positions += 0.001 * directions
-    directions = 2 * directions / volume_resolution
+    directions = directions * (args.iterations_per_step * cubescale)
+    positions += directions * 0.5 * (cubescale ** 2 / np.linalg.norm(directions, axis=-1, keepdims=True) ** 2)
     trajectory.append(positions.copy())
     for i in range(args.num_iterations):
         positions, directions, iterations = volume.calculateRays(positions, directions, maxIterations=args.iterations_per_step)
         trajectory.append(positions.copy())
 
     trajectory = np.asarray(trajectory)
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=args.plotsize)
     #only plot 2d representation of the rays
     if "ior" in args.components:
         #build lattice with 2d positions, use getRefractiveIndex(positions) to get the ior then use imshow to plot it
         imshow_lattice = np.meshgrid(np.linspace(-1, 1, background_resolution), np.linspace(-1, 1, background_resolution), [0], indexing='ij')
         imshow_lattice = np.stack(imshow_lattice, axis=-1)
         ior = volume.getRefractiveIndex(imshow_lattice)[..., 0]
-        ior = np.maximum(1, ior) #clip ior to be at least air
+        ior = np.maximum(0, ior)
         alpha = (volume.evaluate_inner_outer(imshow_lattice)[..., 0] > 0).astype(np.float32) * 0.5
-        handle = ax.imshow(ior[:, :].T, extent=(-1, 1, -1, 1), origin='lower', cmap='viridis', alpha = alpha)
+        handle = ax.imshow(np.maximum(ior[:, :].T, 1), extent=(-1, 1, -1, 1), origin='lower', cmap='viridis', alpha = alpha)
         #add colorbar for ior
         cbar = plt.colorbar(handle, ax=ax)
         cbar.set_label('Refractive Index')
@@ -95,10 +97,12 @@ if __name__ == '__main__':
         for i in range(shape[1]):
             ax.plot(lattice[:, i, 0, 0], lattice[:, i, 0, 1], color='gray', alpha=0.5)
     if "steps" in args.components:
-        ax.scatter(trajectory[:, :, 0], trajectory[:,:, 1], color='green', alpha=0.5)
+        ax.scatter(trajectory[:, :, 0], trajectory[:,:, 1], edgecolor="none", facecolor='green', alpha=0.5)
     ax.set_aspect('equal')
     ax.set_xlim(-1.1, 1.1)
     ax.set_ylim(-1.1, 1.1)
+    ax.xaxis.set_major_locator(MultipleLocator(0.5))
+    ax.yaxis.set_major_locator(MultipleLocator(0.5))
 
     #remove upper and right line
     ax.spines['top'].set_visible(False)

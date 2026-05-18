@@ -167,3 +167,5 @@ texture_mappings = {
     "Flat": FlatMapping()
 }
 
+def get_by_name(name: str) -> TextureMapping:
+    return texture_mappings[name]

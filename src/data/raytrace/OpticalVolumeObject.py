@@ -1,5 +1,4 @@
 import numpy as np
-from wx.py.editor import directory
 
 from calgraph3d.data.raytrace.OpticalObject import OpticalObject
 from volumeraytracer.volume_raytracer import OpticalVolume
@@ -36,7 +35,14 @@ class OpticalVolumeObject(OpticalObject):
             self.volume = OpticalVolume(self.ior, self.translucency + self.translucency_offset, np.ones(3, dtype=np.float32))
             self.volume.translucency_offset = self.translucency_offset
 
-    def setTransformation(self, transformation, kind='globalToUnit'):
+    def applyMatrix(self):
+        self.update()
+
+    def transform(self, transformation:AffineMatrix):
+        self.globalToUnitVolume = self.globalToUnitVolume * transformation.inv()
+        self.update()
+
+    def setTransformation(self, transformation:np.ndarray, kind='globalToUnit'):
         if kind == 'globalToUnit':
             self.globalToUnitVolume.mat = transformation
         elif kind == 'unitToGlobal':
@@ -45,14 +51,18 @@ class OpticalVolumeObject(OpticalObject):
             raise ValueError("Invalid transformation kind. Use 'globalToUnit' or 'unitToGlobal'.")
         self.update()
 
-    def getRefractiveIndex(self, positions):
+    def getRefractiveIndex(self, positions:np.ndarray):
         globalToCudaCubes = self.globalToCudaCubes.convert2lib(ArrayUtil.getArrayModule(positions))
         positions = globalToCudaCubes.apply(positions)
+        if self.volume is None:
+            return np.full(shape=positions.shape[0:-1],fill_value=np.nan)
         return self.volume.evaluate_ior(positions)
 
     def evaluate_inner_outer(self, positions):
         globalToCudaCubes = self.globalToCudaCubes.convert2lib(ArrayUtil.getArrayModule(positions))
         positions = globalToCudaCubes.apply(positions)
+        if self.volume is None:
+            return np.full(shape=positions.shape[0:-1], fill_value=np.nan)
         return self.volume.evaluate_translucency(positions)
 
     def setSize(self, shape):
@@ -88,7 +98,10 @@ class OpticalVolumeObject(OpticalObject):
         globalToCudaCubes = self.globalToCudaCubes.convert2lib(xp)
         cudaCubesToGlobal = self.cudaCubesToGlobal.convert2lib(xp)
         position = globalToCudaCubes.apply(position)
-        direction = globalToCudaCubes.apply(direction, only_linear=True)
+        #TODO the scaling is really arbitrary here
+        scaling = 2
+        globalToCudaCubesScaled = globalToCudaCubes.scale(scaling / np.cbrt(globalToCudaCubes.det()), inplace=False)
+        direction = globalToCudaCubesScaled.apply(direction, only_linear=True)
         position, direction, iterations = self.volume.trace_rays(
             positions=position.astype(xp.float32),
             directions=direction.astype(xp.float32),
