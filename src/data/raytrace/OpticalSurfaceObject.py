@@ -1,5 +1,6 @@
 import numpy as np
 
+from calgraph3d.data.raytrace.MaterialType import MaterialType
 from calgraph3d.data.raytrace.OpticalObject import OpticalObject
 from calgraph3d.data.raytrace.OpticalVolumeObject import OpticalVolumeObject
 from calgraph3d.data.raytrace.SurfaceType import SurfaceType
@@ -69,6 +70,7 @@ class OpticalSurfaceObject(OpticalObject):
         self.faceDirection:FaceDirection = FaceDirection.BOTH
         self.maxArcOpen = 0
         self.minArcOpen = 0
+        self.n0 = None
         self.textureMapping:TextureMapping = TextureMapping.SPHERICAL
         self.testAlpha = False
         self.texture:TextureObject|None = None
@@ -99,7 +101,7 @@ class OpticalSurfaceObject(OpticalObject):
             positions = self.matGlobalToSurface.apply(positions)
             return self.textureMapping.mapCartToTex(positions, density=density)
         else:
-            direction = positions - ArrayUtil.convert(self.midpoint, xp)
+            direction = positions - ArrayUtil.convert(self.midpoint, xp, dtype=positions.dtype)
             return self.textureMapping.mapCartToTex(direction, density=density)
 
     def setRadius(self, minRadiusGeometric=None, maxRadiusGeometric=None):
@@ -116,6 +118,23 @@ class OpticalSurfaceObject(OpticalObject):
         self.midpoint = transformation.apply(self.midpoint)
         self.update()
 
+
+    def getOnAxisPoint(self, pointname):
+        match pointname:
+            case "midpoint":
+                return self.midpoint
+            case "surface":
+                return self.midpoint + self.direction
+            case "focalpoint":
+                if self.materialType == MaterialType.REFLECTION:
+                    return self.midpoint + self.direction * 0.5
+                elif self.materialType == MaterialType.REFRACTION:
+                    factor = self.ior1 / (self.ior1 - self.ior0)
+                    return self.midpoint + self.direction * factor
+                else:
+                    raise Exception(f"Unknown material type: {self.materialType}")
+            case _:
+                raise Exception(f"Unknown point name: {pointname}")
 
     def update(self):
         self.directionLengthQ = np.sum(np.square(self.direction))
@@ -168,7 +187,8 @@ class OpticalSurfaceObject(OpticalObject):
             self.dotProdLowerBound = np.cos(self.minArcOpen)
 
         # Update matrices
-        self.matSurfaceToGlobal.mat[0:3, 0:3] = Geometry.getOrthorgonalZMatrix(self.direction)
+        n0 = self.n0 if hasattr(self, 'n0') else None
+        self.matSurfaceToGlobal.mat[0:3, 0:3] = Geometry.getOrthorgonalZMatrix(self.direction, n0=n0)
         self.matSurfaceToGlobal.mat[0:3, 3] = self.midpoint
         self.matSurfaceToGlobal.mat[3, 3] = 1
         self.matSurfaceToGlobal.mat[3, 0:3] = 0
@@ -207,6 +227,32 @@ class OpticalSurfaceObject(OpticalObject):
             raise Exception('Type unknown')
         z *= self.directionLength
         return z
+
+    def getRFromZ(self, z):
+        z /= self.directionLength
+
+        if self.surf == SurfaceType.FLAT:
+            return np.full_like(z, fill_value=np.nan)
+        elif self.surf == SurfaceType.HYPERBOLIC:
+            r = np.sqrt((2 - z) ** 2 - 1)
+        elif self.surf == SurfaceType.PARABOLIC:
+            r = np.sqrt(2 * (1 - z))
+        elif self.surf == SurfaceType.SPHERICAL:
+            r = np.sqrt(1 - z ** 2)
+        elif self.surf == SurfaceType.CUSTOM:
+            k = self.conicConstant
+            if np.isclose(1 + k, 0):
+                r = np.sqrt(2 * z)
+            else:
+                r = np.sqrt((1 - (1 - (1 + k) * z) ** 2) / (1 + k))
+        elif self.surf == SurfaceType.CYLINDER:
+            r = 0
+        else:
+            raise Exception("Type unknown")
+
+        r *= self.directionLength
+        return r
+
 
     def getMeshVertices(self, latitudes, longitudes):
         if self.surf == SurfaceType.FLAT:
@@ -284,14 +330,19 @@ class OpticalSurfaceObject(OpticalObject):
             return evaluated[0], derivative.T
         return derivative
 
-    def evaluate_inner_outer(self, position, normalize:bool|str=False, xp=np):
+    def evaluate_inner_outer(self,
+                             position:np.ndarray,
+                             normalize:bool|str=False,
+                             xp=np):
+        position = ArrayUtil.convert(position, xp, dtype=position.dtype)
         pos = position - xp.asarray(self.midpoint, dtype=position.dtype)
 
         match self.surf:
             case SurfaceType.FLAT:
-                result = -xp.inner(pos, self.directionNormalized)
+                directionNormalized = ArrayUtil.convert(self.directionNormalized, xp, dtype=position.dtype)
+                result = -xp.inner(pos, directionNormalized)
                 if normalize == 'seperate':
-                    derivative = xp.repeat(-self.directionNormalized[np.newaxis, :], repeats=np.prod(pos.shape[:-1]), axis=0)
+                    derivative = xp.repeat(-directionNormalized[np.newaxis, :], repeats=np.prod(pos.shape[:-1]), axis=0)
                     return result, derivative.reshape(pos.shape[:-1] + (3,))
                 return result
             case SurfaceType.SPHERICAL:
@@ -304,7 +355,7 @@ class OpticalSurfaceObject(OpticalObject):
                 return res - self.directionLengthQ
             case SurfaceType.CUSTOM:
                 posdot = xp.sum(xp.square(pos), axis=-1)
-                directionNormalized = ArrayUtil.convert(self.directionNormalized, xp)
+                directionNormalized = ArrayUtil.convert(self.directionNormalized, xp, dtype=position.dtype)
                 mdir = xp.inner(directionNormalized, pos)
                 dirdot = self.directionLength - mdir
 
@@ -316,8 +367,9 @@ class OpticalSurfaceObject(OpticalObject):
                     res /= np.linalg.norm(div, axis=-1)
                 return res
             case SurfaceType.CYLINDER:
-                dotprod = self.directionNormalized.dot(pos)
-                dist = self.directionNormalized.distanceQ(dotprod, pos)
+                directionNormalized = ArrayUtil.convert(self.directionNormalized, xp, dtype=position.dtype)
+                dotprod = directionNormalized.dot(pos)
+                dist = directionNormalized.distanceQ(dotprod, pos)
                 return xp.maximum(dotprod + self.dotProdUpperBound2,
                            xp.maximum(-(self.dotProdLowerBound2 + dotprod), dist - self.directionLengthQ))
             case SurfaceType.HYPERBOLIC:
@@ -332,7 +384,7 @@ class OpticalSurfaceObject(OpticalObject):
             case _:
                 raise Exception(f'Unknown surface type: {self.surf}')
 
-    def getNormal(self, positions:np.ndarray, xp=np):
+    def getNormal(self, positions:np.ndarray, xp=np) -> np.ndarray:
         normal = self.evaluate_inner_outer(positions, normalize='seperate', xp=xp)[1]
         normal /= xp.linalg.norm(normal, axis=-1, keepdims=True)
         return normal
@@ -408,12 +460,23 @@ class OpticalSurfaceObject(OpticalObject):
         return ArrayUtil.convert(result, xp)
 
 
+    def getNearestSurfacePoint(self, position:np.ndarray, xp=np):
+        position = ArrayUtil.convert(position, xp)
+        orig_shape = position.shape[:-1]
+        position = position.reshape((-1, 3))
+        inner_outer, normal = self.evaluate_inner_outer(position, normalize='seperate', xp=xp)
+        normal[inner_outer > 0] *= -1
+        intersection = Intersection(shape=position.shape[:-1], xp=xp)
+        self.getIntersection(position,normal,intersection,0,xp.inf, xp)
+        return intersection.position.reshape(orig_shape + (3,))
+
+
     def getIntersection(self,
                         ray_pos:np.ndarray,
                         ray_dir:np.ndarray,
                         intersection:Intersection,
-                        ray_tmin:np.ndarray,
-                        ray_tmax:np.ndarray,
+                        ray_tmin:np.ndarray|float,
+                        ray_tmax:np.ndarray|float,
                         xp=np):
         shape = ray_pos.shape[:-1]
         update_mask = xp.zeros(shape=shape, dtype=bool)
@@ -441,6 +504,12 @@ class OpticalSurfaceObject(OpticalObject):
                     else:
                         mask_d2a = mask_c2a
                         intersection_pos_d = intersection_pos_c
+                    if self.alphaTexture is not None:
+                        texture_coordinates = self.getTextureCoordinates(intersection_pos_d, xp=xp)
+                        object_color = self.alphaTexture.getColor(texture_coordinates, xp=xp)
+                        mask_e2d = xp.nonzero(object_color > 0)[0]
+                        mask_d2a = mask_d2a[mask_e2d]
+                        intersection_pos_d = intersection_pos_d[mask_e2d]
                     intersection.position[mask_d2a] = intersection_pos_d
                     intersection.normal[mask_d2a] = self.direction[np.newaxis,...]
                     update_mask[mask_d2a] = True
@@ -573,7 +642,7 @@ class OpticalSurfaceObject(OpticalObject):
                     if self.faceDirection == i or self.faceDirection == FaceDirection.BOTH:
                         alpha_c = -b_b[mask_c2b] - sqrt_b[mask_c2b]
                         mask_c2a = mask_b2a[mask_c2b]
-                        mask_d2c = xp.nonzero((ray_tmin[mask_c2a] < alpha_c) & (alpha_c < ray_tmax[mask_c2a]))[0]
+                        mask_d2c = xp.nonzero(((ray_tmin if isinstance(ray_tmin, numbers.Number) else ray_tmin[mask_c2a]) < alpha_c) & (alpha_c < (ray_tmax if isinstance(ray_tmax, numbers.Number) else ray_tmax[mask_c2a])))[0]
                         if len(mask_d2c) > 0:
                             mask_d2b = mask_c2b[mask_d2c]
                             alpha_d = alpha_c[mask_d2c]
@@ -623,7 +692,7 @@ class OpticalSurfaceObject(OpticalObject):
                 sqrt = -sqrt
         return None
 
-    def get_ior(
+    def get_iorq(
         self,
         position=None,
         non_inverted=None,
