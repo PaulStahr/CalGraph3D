@@ -106,7 +106,8 @@ def load_scene(in_stream: IOBase, scene:RaytraceScene, gui):
                 gui.textAreaProjectInformation.setText(elem.text)
         elif tag == "Variables":
             for child in elem:
-                scene.vs[child.tag] = child.text
+                if child.tag not in scene.vs:
+                    scene.vs[child.tag] = parser.parse_operation(child.text)
         elif tag == "Gui":
             try:
                 from geometry.Geometry import parse as parse_geometry
@@ -132,7 +133,7 @@ def load_scene(in_stream: IOBase, scene:RaytraceScene, gui):
                 except OperationParseException:
                     logger.error("Can't load file in fallback mode")
     for surface in scene.optical_surface_objects:
-        for column_type in SceneObjectColumnType.MINRADIUS, SceneObjectColumnType.MAXRADIUS:
+        for column_type in SceneObjectColumnType.MINRADIUS, SceneObjectColumnType.MAXRADIUS, SceneObjectColumnType.POSITION:
             surface.updateValue(column_type, scene.vs, parser)
 
     scene.update_scene()

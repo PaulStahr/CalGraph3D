@@ -345,7 +345,7 @@ class GuiOpticalSurfaceObject(OpticalSurfaceObject):
             self.updateMidpoint()
 
         elif ct == SceneObjectColumnType.POSITION:
-            self.position = np.asarray(eval(self.positionStr))
+            self.position = parser.parse_vector3(self.positionStr, variables, default=np.full(3, np.nan))
             self.updateMidpoint()
 
         elif ct == SceneObjectColumnType.MAXRADIUS:

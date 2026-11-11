@@ -92,6 +92,12 @@ class RaytraceScene:
         if isinstance(obj, OpticalSurfaceObject):
             self.optical_surface_objects.append(obj)
             self.vs[f"{obj.label}_pos"] = obj.position
+            elem = self.vs.get(obj.label, None)
+            if elem is None:
+                elem = {}
+                self.vs[obj.label] = elem
+            elem["position"] = obj.position
+            elem["direction"] = obj.direction
         elif isinstance(obj, OpticalVolumeObject):
             self.optical_volume_objects.append(obj)
         elif isinstance(obj, MeshObject):
@@ -347,8 +353,11 @@ class RaytraceScene:
                                         positions=active_intersection.position,
                                         textureCoordinate=active_intersection.textureCoords,
                                         xp=xp)
+                                    assert object_color is not None, f"Optical object {optical_object.label} returned None as color"
+                                    assert isinstance(object_color, xp.ndarray), f"Optical object {optical_object.label} returned non-array as color"
                                     if optical_object.shading:
-                                        normal_factor = xp.sum(active_intersection.normal * (-direction[mask]), axis=-1, keepdims=True)
+                                        #normal_factor = xp.abs((active_intersection.normal * direction[mask]).sum(axis=-1, keepdims=True)) / xp.linalg.norm(active_intersection.normal, axis=-1, keepdims=True)
+                                        normal_factor = xp.abs(active_intersection.normal[..., 2:3] / xp.linalg.norm(active_intersection.normal, axis=-1, keepdims=True)) * 0.5 + 0.5
                                         if len(object_color.shape) == 1:
                                             object_color = xp.repeat(object_color[None, :], repeats=normal_factor.shape[0], axis=0)
                                         object_color[..., :3] *= xp.clip(normal_factor, 0, 1)
@@ -363,7 +372,7 @@ class RaytraceScene:
                         case MaterialType.REFRACTION:
                             c = xp.sum(direction[mask] * active_intersection.normal, axis=-1)
                             normaldot = xp.sum(xp.square(active_intersection.normal), axis=-1)
-                            iorq = optical_object.get_ior(
+                            iorq = optical_object.get_iorq(
                                 position=active_intersection.position,
                                 non_inverted=c>0,
                                 xp=xp)

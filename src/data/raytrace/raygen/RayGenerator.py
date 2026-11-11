@@ -154,6 +154,15 @@ class RayGenerator:
             direction = -direction
 
         if diffuse != 0:
+            if False:
+                color = self.source.read_color(position, direction)
+                brightness = xp.mean(color[..., :3], axis=-1)
+                cumsum = xp.cumsum(brightness)
+                cumsum /= cumsum[-1]
+                rand_vals = self.rand_val(num_rays)
+                indices = xp.searchsorted(cumsum, rand_vals)
+                position = position[indices]
+                direction = direction[indices]
             direction = RayGenerator.apply_diffuse_to_directions(
                 direction=direction,
                 diffuse=diffuse,
@@ -171,7 +180,9 @@ class RayGenerator:
             projection_vector:np.ndarray,
             rng:Optional[np.random.Generator],
             three_dimensional:bool,
-            xp):
+            xp,
+            dtype=None,
+        ) -> np.ndarray:
         """
 
         :param direction:
@@ -184,8 +195,8 @@ class RayGenerator:
         direction /= xp.linalg.norm(direction, axis=-1, keepdims=True)
         num_rays = direction.shape[0]
         if three_dimensional:
-            w = xp.asarray(rng.random(num_rays)) * xp.square(diffuse)
-            rho = xp.asarray(rng.random(num_rays)) * 2 * xp.pi
+            w = xp.asarray(rng.random(num_rays), dtype=dtype) * xp.square(diffuse)
+            rho = xp.asarray(rng.random(num_rays), dtype=dtype) * 2 * xp.pi
             r = xp.sqrt(w)
             z = xp.sqrt(1 - w)
             f = xp.stack([

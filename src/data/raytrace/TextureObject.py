@@ -83,15 +83,15 @@ class TextureObject(OpticalObject):
             xp=xp)
 
         if self.data.dtype == np.uint8:
-            self.data[x0, y0] += (color * xl * yl).astype(self.data.dtype) * 255
-            self.data[x0, y1] += (color * xl * yr).astype(self.data.dtype) * 255
-            self.data[x1, y0] += (color * xr * yl).astype(self.data.dtype) * 255
-            self.data[x1, y1] += (color * xr * yr).astype(self.data.dtype) * 255
+            xp.add.at(self.data, (x0, y0), (color * xl * yl).astype(self.data.dtype) * 255)
+            xp.add.at(self.data, (x0, y1), (color * xl * yr).astype(self.data.dtype) * 255)
+            xp.add.at(self.data, (x1, y0), (color * xr * yl).astype(self.data.dtype) * 255)
+            xp.add.at(self.data, (x1, y1), (color * xr * yr).astype(self.data.dtype) * 255)
         else:
-            self.data[x0, y0] += (color * xl * yl).astype(self.data.dtype)
-            self.data[x0, y1] += (color * xl * yr).astype(self.data.dtype)
-            self.data[x1, y0] += (color * xr * yl).astype(self.data.dtype)
-            self.data[x1, y1] += (color * xr * yr).astype(self.data.dtype)
+            xp.add.at(self.data, (x0, y0), (color * xl * yl).astype(self.data.dtype))
+            xp.add.at(self.data, (x0, y1), (color * xl * yr).astype(self.data.dtype))
+            xp.add.at(self.data, (x1, y0), (color * xr * yl).astype(self.data.dtype))
+            xp.add.at(self.data, (x1, y1), (color * xr * yr).astype(self.data.dtype))
 
 
     def getColor(self, coords:np.ndarray, xp=np):

@@ -99,13 +99,14 @@ class FisheyeEquidistantMapping(TextureMapping):
         return result, xp.sinc(colat * INV_PI)
 
     def mapTexToCart(self, tex_coords, xp=np):
-        r = np.sqrt(np.linalg.norm(tex_coords, axis=1))
-        theta = np.arctan2(tex_coords[...,1], tex_coords[...,0])
-        sin_r = np.sin(r)
+        tex_coords = tex_coords - 0.5
+        r = np.linalg.norm(tex_coords, axis=1)
+        sin_r = np.sin(r * TWO_PI)
+        det = np.where(r == 0, TWO_PI, sin_r / r)
         return np.stack((
-            sin_r * np.cos(theta),
-            sin_r * np.sin(theta),
-            np.cos(r)), axis=-1
+            tex_coords[..., 0] * det,
+            tex_coords[..., 1] * det,
+            np.cos(r * TWO_PI)), axis=-1
         )
 
     def mapTexToSpherical(self, tex_coords):
@@ -141,10 +142,10 @@ class FlatMapping(TextureMapping):
     name = "Flat"
 
     def mapCartToTex(self, coords, xp=np, density=False):
-        return coords[..., 0:2]
+        return coords[..., 0:2] + 0.5
 
     def mapTexToCart(self, tex_coords):
-        return np.stack((tex_coords, np.zeros(shape=(*tex_coords.shape[:-1], 1))), axis=-1)
+        return np.stack((tex_coords - 0.5, np.zeros(shape=(*tex_coords.shape[:-1], 1))), axis=-1)
 
     def mapTexToSpherical(self, tex_coords):
         return tex_coords

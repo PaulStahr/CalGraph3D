@@ -198,12 +198,18 @@ class ParseUtil:
     # Operation parsing (placeholder for your math system)
     # ---------------------------------------------------------------------
 
-    def parse_operation(self, o: Any):
+    def parse_operation(self, o: Any, default=None):
         """
         Replace with your OperationCompiler equivalent.
         """
+        if o is None:
+            return None
         if isinstance(o, str):
-            return o  # compile hook goes here
+            try:
+                result = eval(o, {"np": np})
+            except NameError:
+                result = default
+            return result
 
         if isinstance(o, (int, float)):
             return float(o)

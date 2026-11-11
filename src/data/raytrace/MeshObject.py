@@ -75,8 +75,8 @@ class MeshObject(OpticalObject):
             # Create trimesh object once (cache if possible in your class!)
             if not hasattr(self, "_trimesh"):
                 self._trimesh = trimesh.Trimesh(
-                    vertices=self.vertices,
-                    faces=self.faces,
+                    vertices=ArrayUtil.convert(self.vertices, np),
+                    faces=ArrayUtil.convert(self.faces, np),
                     process=False
                 )
                 if not MeshObject._printed_trimesh_engine:
