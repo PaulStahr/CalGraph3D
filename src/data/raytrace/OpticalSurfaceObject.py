@@ -475,8 +475,8 @@ class OpticalSurfaceObject(OpticalObject):
                         ray_pos:np.ndarray,
                         ray_dir:np.ndarray,
                         intersection:Intersection,
-                        ray_tmin:np.ndarray|float,
-                        ray_tmax:np.ndarray|float,
+                        ray_tmin:np.ndarray|numbers.Number,
+                        ray_tmax:np.ndarray|numbers.Number,
                         xp=np):
         shape = ray_pos.shape[:-1]
         update_mask = xp.zeros(shape=shape, dtype=bool)
@@ -484,9 +484,14 @@ class OpticalSurfaceObject(OpticalObject):
         directionNormalized = ArrayUtil.convert(self.directionNormalized, xp)
         midpoint = ArrayUtil.convert(self.midpoint, xp)
 
+        def get_distance_mask(t: numbers.Number | xp.ndarray, ray_mask: xp.ndarray):
+            tmin_ok = (ray_tmin[ray_mask] if isinstance(ray_tmin, xp.ndarray) else ray_tmin) < t
+            tmax_ok = t < (ray_tmax[ray_mask] if isinstance(ray_tmax, xp.ndarray) else ray_tmax)
+            return xp.nonzero(tmin_ok & tmax_ok)[0]
+
         if self.surf == SurfaceType.FLAT:
             alpha = -xp.inner(directionNormalized, xyz) / xp.inner(directionNormalized, ray_dir)
-            mask_b2a = xp.nonzero((ray_tmin < alpha) & (alpha < ray_tmax))[0]
+            mask_b2a = get_distance_mask(alpha, slice(None))
             if len(mask_b2a) > 0:
                 ray_dir_b = ray_dir[mask_b2a]
                 alpha_b = alpha[mask_b2a]
@@ -511,7 +516,7 @@ class OpticalSurfaceObject(OpticalObject):
                         mask_d2a = mask_d2a[mask_e2d]
                         intersection_pos_d = intersection_pos_d[mask_e2d]
                     intersection.position[mask_d2a] = intersection_pos_d
-                    intersection.normal[mask_d2a] = self.direction[np.newaxis,...]
+                    intersection.normal[mask_d2a] = self.direction[xp.newaxis,...]
                     update_mask[mask_d2a] = True
                     intersection.distance[mask_d2a] = alpha[mask_d2a]
                     intersection.object[mask_d2a] = self.id
@@ -530,7 +535,7 @@ class OpticalSurfaceObject(OpticalObject):
                 if len(mask_b2a) == 0:
                     break
                 alpha_b = -b_a[mask_b2a] - sqrt_a[mask_b2a]
-                mask_c2b = xp.nonzero((ray_tmin[mask_b2a] < alpha_b) & (alpha_b < ray_tmax[mask_b2a]))[0]
+                mask_c2b = get_distance_mask(alpha_b, mask_b2a)
                 if len(mask_c2b) > 0:
                     mask_c2a = mask_b2a[mask_c2b]
                     alpha_c = alpha_b[mask_c2b]
@@ -539,9 +544,9 @@ class OpticalSurfaceObject(OpticalObject):
                     if len(mask_d2c) > 0:
                         mask_d2a = mask_c2a[mask_d2c]
                         alpha_d = alpha_c[mask_d2c]
-                        da_d = ray_dir[mask_d2a] * alpha_d[:, np.newaxis]
+                        da_d = ray_dir[mask_d2a] * alpha_d[:, xp.newaxis]
                         intersection.position[mask_d2a] = ray_pos[mask_d2a] + da_d
-                        intersection.normal[mask_d2a] = xyz[mask_d2a] + da_d + directionNormalized[np.newaxis,...] * (2 * dotProd_c[mask_d2c][...,np.newaxis])
+                        intersection.normal[mask_d2a] = xyz[mask_d2a] + da_d + directionNormalized[xp.newaxis,...] * (2 * dotProd_c[mask_d2c][...,xp.newaxis])
                         intersection.object[mask_d2a] = self
                         intersection.distance[mask_d2a] = alpha_d
                         update_mask[mask_d2a] = True
@@ -550,7 +555,7 @@ class OpticalSurfaceObject(OpticalObject):
             return update_mask
         elif self.surf == SurfaceType.PARABOLIC:
             dirproj_a = self.directionLength - xp.inner(directionNormalized, xyz)
-            c_a = xp.sum(xp.square(xyz), axis=-1) - np.square(dirproj_a) - self.directionLengthQ
+            c_a = xp.sum(xp.square(xyz), axis=-1) - xp.square(dirproj_a) - self.directionLengthQ
             scal_a = xp.inner(directionNormalized, ray_dir)
             b_a = xp.sum(ray_dir * xyz, axis=-1) + scal_a * dirproj_a
             a_a = 1 / (1 - xp.square(scal_a))
@@ -562,7 +567,7 @@ class OpticalSurfaceObject(OpticalObject):
                 if len(mask_b2a) == 0:
                     break
                 alpha_b = -b_a[mask_b2a] - sqrt_a[mask_b2a]
-                mask_c2b = xp.nonzero((ray_tmin[mask_b2a] < alpha_b) & (alpha_b < ray_tmax[mask_b2a]))[0]
+                mask_c2b = get_distance_mask(alpha_b, mask_b2a)
                 if len(mask_c2b) > 0:
                     mask_c2a = mask_b2a[mask_c2b]
                     alpha_c = alpha_b[mask_c2b]
@@ -571,8 +576,8 @@ class OpticalSurfaceObject(OpticalObject):
                     if len(mask_d2c) > 0:
                         mask_d2a = mask_c2a[mask_d2c]
                         alpha_d = alpha_c[mask_d2c]
-                        intersection.position[mask_d2a] = ray_pos[mask_d2a] + ray_dir[mask_d2a] * alpha_d[:,np.newaxis]
-                        intersection.normal[mask_d2a] = xyz[mask_d2a] + ray_dir[mask_d2a] * alpha_d[:,np.newaxis]
+                        intersection.position[mask_d2a] = ray_pos[mask_d2a] + ray_dir[mask_d2a] * alpha_d[:,xp.newaxis]
+                        intersection.normal[mask_d2a] = xyz[mask_d2a] + ray_dir[mask_d2a] * alpha_d[:,xp.newaxis]
                         intersection.object[mask_d2a] = self.id
                         intersection.distance[mask_d2a] = alpha_d
                         update_mask[mask_d2a] = True
@@ -587,14 +592,14 @@ class OpticalSurfaceObject(OpticalObject):
             a_a = 1 / (1 + self.conicConstant * xp.square(scal_a))
             c_a *= a_a
             b_a *= a_a
-            sqrt_a = xp.sqrt(np.square(b_a) - c_a)
+            sqrt_a = xp.sqrt(xp.square(b_a) - c_a)
             mask_b2a = xp.nonzero(xp.isfinite(sqrt_a))[0]
             for i in (FaceDirection.FRONT, FaceDirection.BACK):
                 if len(mask_b2a) == 0:
                     break
                 if self.faceDirection == i or self.faceDirection == FaceDirection.BOTH:
                     alpha_b = -b_a[mask_b2a] - sqrt_a[mask_b2a]
-                    mask_c2b = xp.nonzero((ray_tmin[mask_b2a] < alpha_b) & (alpha_b < ray_tmax[mask_b2a]))[0]
+                    mask_c2b = get_distance_mask(alpha_b, mask_b2a)
                     if len(mask_c2b) > 0:
                         mask_c2a = mask_b2a[mask_c2b]
                         alpha_c = alpha_b[mask_c2b]
@@ -605,7 +610,7 @@ class OpticalSurfaceObject(OpticalObject):
                             alpha_d = alpha_c[mask_d2c]
                             ray_pos_d = ray_pos[mask_d2a]
                             ray_dir_d = ray_dir[mask_d2a]
-                            intersection_pos_d = ray_pos_d + ray_dir_d * alpha_d[:,np.newaxis]
+                            intersection_pos_d = ray_pos_d + ray_dir_d * alpha_d[:,xp.newaxis]
                             dotProd_d = dotProd_c[mask_d2c]
 
                             if len(self.boolean_modifiers) > 0:
@@ -618,7 +623,7 @@ class OpticalSurfaceObject(OpticalObject):
                                 mask_e2a, intersection_pos_e, dotProd_e = mask_d2a, intersection_pos_d, dotProd_d
 
                             intersection.position[mask_e2a] = intersection_pos_e
-                            intersection.normal[mask_e2a] = intersection_pos_e - midpoint[np.newaxis,:] - (directionNormalized[np.newaxis,:] * self.conicConstant) * dotProd_e[:,np.newaxis]
+                            intersection.normal[mask_e2a] = intersection_pos_e - midpoint[xp.newaxis,:] - (directionNormalized[xp.newaxis,:] * self.conicConstant) * dotProd_e[:,xp.newaxis]
                             intersection.object[mask_e2a] = self.id
                             intersection.distance[mask_e2a] = alpha_d
                             update_mask[mask_e2a] = True
@@ -641,8 +646,7 @@ class OpticalSurfaceObject(OpticalObject):
                         break
                     if self.faceDirection == i or self.faceDirection == FaceDirection.BOTH:
                         alpha_c = -b_b[mask_c2b] - sqrt_b[mask_c2b]
-                        mask_c2a = mask_b2a[mask_c2b]
-                        mask_d2c = xp.nonzero(((ray_tmin if isinstance(ray_tmin, numbers.Number) else ray_tmin[mask_c2a]) < alpha_c) & (alpha_c < (ray_tmax if isinstance(ray_tmax, numbers.Number) else ray_tmax[mask_c2a])))[0]
+                        mask_d2c = get_distance_mask(alpha_c,  mask_b2a[mask_c2b])
                         if len(mask_d2c) > 0:
                             mask_d2b = mask_c2b[mask_d2c]
                             alpha_d = alpha_c[mask_d2c]
@@ -651,7 +655,7 @@ class OpticalSurfaceObject(OpticalObject):
                             if len(mask_e2d) > 0:
                                 alpha_e = alpha_d[mask_e2d]
                                 mask_e2a = mask_b2a[mask_d2b[mask_e2d]]
-                                da_e = ray_dir[mask_e2a] * alpha_e[:,np.newaxis]
+                                da_e = ray_dir[mask_e2a] * alpha_e[:,xp.newaxis]
                                 intersection_position = ray_pos[mask_e2a] + da_e
                                 if self.alphaTexture is not None:
                                     texture_coordinates = self.getTextureCoordinates(intersection_position, xp=xp)
@@ -680,12 +684,12 @@ class OpticalSurfaceObject(OpticalObject):
             sqrt = xp.sqrt(p * p - q)
             while sqrt >= 0:
                 ray_t = -p - sqrt
-                if ray_tmin < ray_t < ray_tmax:
+                mask_b2a = get_distance_mask(ray_t, slice(None))
+                if len(mask_b2a) > 0:
                     dotProd = dirproj - scal * ray_t
                     if dotProd >= self.dotProdUpperBound2 and dotProd <= self.dotProdLowerBound2:
                         intersection.position.set(ray_pos, ray_dir, ray_t)
-                        intersection.normal.set(intersection.position, midpoint, directionNormalized,
-                                                dotProd)
+                        intersection.normal.set(intersection.position, midpoint, directionNormalized, dotProd)
                         intersection.object = self
                         intersection.distance = ray_t
                         return intersection
